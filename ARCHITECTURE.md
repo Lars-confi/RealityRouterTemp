@@ -114,6 +114,191 @@ This LLM Router project is designed as a modular, scalable system for intelligen
 
 The system is built with FastAPI for the web framework, providing automatic API documentation and validation, and is designed to be easily deployable in containerized environments.
 
+## Automatic Routing Process
+
+The system uses the following criteria to automatically select the best LLM based on Expected Utility Theory framework:
+
+### Expected Utility Calculation
+
+The system evaluates all configured LLMs based on:
+- Cost (ci): Token usage for input and output
+- Time (ti): Latency of the model response
+- Probability (pi): Historical success rate for similar requests
+
+This approach ensures optimal routing decisions based on the Expected Utility Theory framework, maximizing the value of correct answers while minimizing cost and time.
+
+### Theoretical Foundation: Expected Utility Theory
+
+#### Defining the System Components
+
+First, let's define the variables in our decision environment:
+
+- The Action Space (M): This is the set of available LLMs you can route to.
+- The Query (q): The incoming question that needs to be routed.
+- The Parameters (per model mi for a given query q):
+  - ci: The estimated token cost to query model mi.
+  - ti: The estimated latency (time) it takes for model mi to answer.
+  - pi: The probability that model mi provides a correct or satisfactory answer (0 ≤ pi ≤ 1).
+
+#### Constructing the Utility Function
+
+A utility function assigns a numerical value to a specific outcome, representing how "good" or "desirable" that outcome is.
+
+Our system incurs the cost (ci) and the time delay (ti) regardless of whether the LLM is correct or not. The only variable outcome is correctness. Let's introduce weighting factors to balance these different units:
+
+- R: The inherent reward or value of getting a correct answer.
+- α: Your sensitivity to cost (how much utility you lose per cent spent).
+- β: Your sensitivity to time (how much utility you lose per second of delay).
+
+We can define the utility U of an outcome for model mi in two scenarios:
+
+**Scenario A: The model is correct**
+Ui(correct) = R - αci - βti
+
+**Scenario B: The model is incorrect**
+Ui(incorrect) = 0 - αci - βti
+
+#### Formulating the Expected Utility
+
+Because you don't know in advance if the model will be correct, you must calculate the Expected Utility (EU) for each model. Expected utility is the sum of the utilities of all possible outcomes, weighted by their probabilities.
+
+For a given model mi:
+
+EU(mi) = pi ⋅ Ui(correct) + (1 - pi) ⋅ Ui(incorrect)
+
+Substituting our utility functions into the equation:
+
+EU(mi) = pi(R - αci - βti) + (1 - pi)(-αci - βti)
+
+If we expand and simplify this algebraic expression, a beautiful and intuitive formula emerges:
+
+EU(mi) = pi ⋅ R - αci - βti
+
+Translation: The expected utility of an LLM is the value of a correct answer scaled by its probability of being right, minus the deterministic cost, minus the deterministic time penalty.
+
+#### The Decision Rule (Optimization Problem)
+
+Your router's job is to select the model that maximizes this expected utility. We write this formally using the argmax operator, which means "the argument (model) that outputs the maximum value."
+
+m* = argmax_{mi∈M} [pi ⋅ R - αci - βti]
+
+#### Simplified Parameter Approach
+
+To make the system more user-friendly, we can simplify the parameter configuration:
+
+**Parameter Configuration**
+Users must configure the following parameters during setup:
+- R (Reward): The inherent reward or value of getting a correct answer.
+- α (Cost Sensitivity): Sensitivity to cost (how much utility you lose per cent spent).
+- β (Time Sensitivity): Sensitivity to time (how much utility you lose per second of delay). If not set fallback to the relationship β = 1 - α, which reduces the number of parameters users need to configure.
+
+**Cost Calculation**
+- ci (Cost): Can be set by the user as cost per million tokens for both input and output or to a default value in $ per 1M tokens, one value for input and one for output, ci is actually the sum of these two. Perhaps we need to relate this to actual values for the user and the tool the user is using Zed, openclaw, etc.
+- ti (Time): Can be assumed to be 1 second initially, then updated based on actual call latencies for that user
+
+#### Practical Implementation Considerations
+
+To actually build this, you will need to estimate pi, ci, and ti dynamically:
+
+**Estimating Cost (ci)**
+This is highly predictable. You can count the input tokens of q using a tokenizer and multiply by the provider's input token price. You can estimate output cost by keeping a running average of output lengths for similar queries. Users can set cost per million tokens during setup.
+
+**Estimating Time (ti)**
+This can be a rolling average of the latency for model mi over the last 5-10 minutes. Initially, we can assume ti = 1 second and update based on actual call latencies.
+
+**Estimating Probability (pi)**
+This is the hardest part and it will be handled by passing features to a Reality Check endpoint. Initially it can just be a random number generator sampling values from the uniform distribution on [0,1].
+
+**Non-linear Time Penalties**
+If you have strict SLAs (e.g., the user must get an answer in under 5 seconds), you might change the linear time penalty (βti) to an exponential one, or introduce a hard constraint where EU(mi) = -∞ if ti > 5.
+
+Instead of using a local model, we can actually use the users' LLMs to judge whether the answer is correct or not by looking at the query, the answer and then the next query. If we can get a score or log probs fro, the model and the actual LLMs doing the query responses this can be turned in to features. More details need to be added here.
+
+## Tool Integration
+
+This LLM Code Rerouter can be used directly by editors like VS Codium and Zed or by agent systems like openclaw by pointing them to the /v1/completions or `/v1/chat/completions endpoints.
+
+For VS Codium/VS Code:
+```json
+{
+  "llm.rerouter.url": "http://localhost:3000/v1/completions"
+}
+```
+
+For Zed Editor:
+In Zed, you can configure multiple LLM providers by setting up the LLM Code Rerouter as your backend. The configuration file (config/config.json) allows you to add any LLM provider you want to use.
+
+To configure Zed to use your LLM Code Rerouter:
+1. Set up your LLM providers in config/config.json with their respective API keys as environment variables
+2. Point Zed to your LLM Code Rerouter endpoint:
+```json
+{
+  "llm.codeRerouter.url": "http://localhost:3000/v1/completions"
+}
+```
+
+## Adding Custom LLM Providers
+
+Security Considerations
+For Self-Hosted Scenarios:
+API keys are never stored in the configuration file. Instead, they are provided through environment variables:
+- OPENAI_API_KEY for OpenAI
+- ANTHROPIC_API_KEY for Anthropic
+- HUGGINGFACE_API_KEY for Hugging Face
+- CUSTOM_LLM_API_KEY for custom providers
+
+This approach ensures that your API keys are never exposed in the codebase.
+
+## Testing
+
+Run tests with:
+```bash
+python -m unittest tests/test_router.py
+
+## Deployment
+
+The system is designed to be deployed to Azure and other cloud platforms using the provided Dockerfile and to be installed locally using a TUI setup similar to OpenCLAW.
+
+## Data Storage for Debugging
+
+For debugging and analytics purposes, the system will store routing data in a database. This data is not exposed to end users but is crucial for:
+
+- Performance monitoring and optimization
+- Routing decision analysis
+- Model comparison and evaluation
+- System behavior tracking
+- Error analysis and troubleshooting
+
+### Database Design
+
+The system will use SQLite for local development and can be configured to use PostgreSQL or MySQL for production environments. The database will store:
+
+1. **Routing Logs**:
+   - Request metadata (timestamp, query, parameters)
+   - Selected model information
+   - Cost, time, and probability metrics
+   - Outcome (correct/incorrect)
+
+2. **Model Performance Metrics**:
+   - Historical performance data
+   - Cost tracking
+   - Latency measurements
+   - Success rates
+
+3. **Configuration Data**:
+   - Routing rules
+   - Parameter settings
+   - Model configurations
+
+### Storage Strategy
+
+- **Local Development**: SQLite database file stored in the project directory
+- **Production**: Configurable database backend (PostgreSQL/MySQL)
+- **Data Retention**: Configurable retention policies for historical data
+- **Backup**: Automated backup mechanisms for critical data
+
+This database approach ensures that developers can analyze system behavior and optimize routing decisions without impacting end-user experience.
+
 ## Project Setup
 
 ### setup.py
