@@ -62,6 +62,17 @@ The project requires the following Python dependencies (listed in requirements.t
 3. Update documentation in the `docs` directory
 4. Commit changes to Git
 
+## API Endpoints
+
+The system exposes the following REST API endpoints:
+
+- `POST /v1/completions` - For text completion requests
+- `POST /v1/chat/completions` - For chat-based requests
+- `GET /health` - Health check endpoint
+- `GET /metrics` - Metrics and statistics endpoint
+
+All endpoints follow the standard OpenAI API format for compatibility.
+
 ## Python Component Structure
 
 ### 1. Router Core
@@ -113,6 +124,18 @@ This LLM Router project is designed as a modular, scalable system for intelligen
 5. **Testable**: Each component is designed to be independently testable
 
 The system is built with FastAPI for the web framework, providing automatic API documentation and validation, and is designed to be easily deployable in containerized environments.
+
+## Data Flow and Routing Process
+
+1. **Request Reception**: Incoming requests are received via API endpoints
+2. **Request Analysis**: Query is analyzed for complexity and requirements
+3. **Model Evaluation**: All configured models are evaluated using Expected Utility Theory
+4. **Decision Making**: Optimal model is selected based on calculated expected utility
+5. **Request Forwarding**: Request is forwarded to selected model
+6. **Response Handling**: Response is processed and returned to user
+7. **Metrics Collection**: All decisions and outcomes are logged for analytics
+
+This process ensures optimal routing decisions that maximize the value of correct answers while minimizing cost and time.
 
 ## Automatic Routing Process
 
@@ -254,6 +277,17 @@ This approach ensures that your API keys are never exposed in the codebase.
 Run tests with:
 ```bash
 python -m unittest tests/test_router.py
+
+## Error Handling and Logging
+
+The system implements comprehensive error handling with:
+- Graceful degradation when models are unavailable
+- Detailed logging for debugging and monitoring
+- Circuit breaker patterns for failed model connections
+- Retry mechanisms with exponential backoff
+- Standardized error responses following API conventions
+
+All errors are logged to both console and database for debugging purposes.
 
 ## Deployment
 
