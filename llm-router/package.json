@@ -1,0 +1,27 @@
+{
+  "name": "llm-router",
+  "version": "1.0.0",
+  "description": "Intelligent routing system for Language Model requests",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "llm",
+    "routing",
+    "ai",
+    "language-model"
+  ],
+  "author": "Developer",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "jest": "^29.6.0",
+    "nodemon": "^3.0.1"
+  }
+}
