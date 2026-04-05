@@ -6,10 +6,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.router.core import router as router_router
 from src.router.metrics import router as metrics_router
+from src.models.database import init_db
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize database
+init_db()
 
 # Create the FastAPI application
 app = FastAPI(

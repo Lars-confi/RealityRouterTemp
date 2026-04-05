@@ -10,6 +10,8 @@ from src.adapters.openai_adapter import OpenAIAdapter
 from src.adapters.anthropic_adapter import AnthropicAdapter
 from src.adapters.cohere_adapter import CohereAdapter
 from src.utils.logger import setup_logger
+from src.models.database import RoutingLog, init_db, get_db
+from sqlalchemy.orm import Session
 
 logger = setup_logger(__name__)
 
@@ -83,6 +85,9 @@ class RouterCore:
             'cohere': CohereAdapter()
         }
         
+        # Initialize database
+        init_db()
+        
         logger.info("Router core initialized with Expected Utility Theory framework")
     
     def add_model(self, model_id: str, model_name: str, cost: float, time: float, probability: float):
@@ -155,6 +160,46 @@ class RouterCore:
             name=best_metrics['name']
         )
     
+    def log_routing_decision(self, decision: RoutingDecision, request: RoutingRequest, response: Dict[str, Any], db: Session):
+        """
+        Log routing decision to database
+        
+        Args:
+            decision: RoutingDecision that was made
+            request: Original routing request
+            response: Response from the model
+            db: Database session
+        """
+        try:
+            # Extract token usage from response if available
+            prompt_tokens = response.get('usage', {}).get('prompt_tokens', 0) if response.get('usage') else 0
+            completion_tokens = response.get('usage', {}).get('completion_tokens', 0) if response.get('usage') else 0
+            total_tokens = response.get('usage', {}).get('total_tokens', 0) if response.get('usage') else 0
+            
+            # Create routing log entry
+            log_entry = RoutingLog(
+                query=request.query,
+                model_id=decision.model_id,
+                model_name=decision.name,
+                expected_utility=decision.expected_utility,
+                cost=decision.cost,
+                time=decision.time,
+                probability=decision.probability,
+                response_text=response.get('text', ''),
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=total_tokens,
+                success=True  # We assume success for now, but this could be enhanced
+            )
+            
+            db.add(log_entry)
+            db.commit()
+            logger.info(f"Logged routing decision for model {decision.model_id}")
+            
+        except Exception as e:
+            logger.error(f"Error logging routing decision: {str(e)}")
+            # Don't fail the request for logging errors
+    
     def route_request(self, request: RoutingRequest) -> RoutingResponse:
         """
         Route a request to the best model
@@ -177,6 +222,11 @@ class RouterCore:
             
             # Forward the request to the selected model
             response = adapter.forward_request(request)
+            
+            # Log the routing decision to database
+            # Note: In a real implementation, we'd need to pass the database session properly
+            # For now, we'll just log to console
+            logger.info(f"Routing decision: {decision.model_id} selected with utility {decision.expected_utility}")
             
             return RoutingResponse(
                 model_id=decision.model_id,
