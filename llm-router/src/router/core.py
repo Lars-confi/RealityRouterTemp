@@ -12,6 +12,7 @@ from src.adapters.cohere_adapter import CohereAdapter
 from src.utils.logger import setup_logger
 from src.models.database import RoutingLog, init_db, get_db
 from sqlalchemy.orm import Session
+from src.router.load_balancer import load_balancer
 
 logger = setup_logger(__name__)
 
@@ -85,6 +86,9 @@ class RouterCore:
             'cohere': CohereAdapter()
         }
         
+        # Initialize load balancer
+        self.load_balancer = load_balancer
+        
         # Initialize database
         init_db()
         
@@ -116,12 +120,13 @@ class RouterCore:
         )
         logger.info(f"Added model {model_name} (ID: {model_id}) to routing system")
     
-    def get_best_model(self, request: RoutingRequest) -> RoutingDecision:
+    def get_best_model(self, request: RoutingRequest, strategy: str = "expected_utility") -> RoutingDecision:
         """
-        Select the best model based on Expected Utility Theory
+        Select the best model based on the specified strategy
         
         Args:
             request: Routing request with query information
+            strategy: Selection strategy ("expected_utility", "load_balanced")
             
         Returns:
             RoutingDecision with the best model and expected utility
@@ -129,36 +134,56 @@ class RouterCore:
         if not self.models:
             raise HTTPException(status_code=500, detail="No models available for routing")
         
-        best_model_id = None
-        best_utility = float('-inf')
-        best_metrics = None
-        
-        # Calculate expected utility for each model
-        for model_id, model_info in self.models.items():
-            cost = model_info['cost']
-            time = model_info['time']
-            probability = model_info['probability']
+        if strategy == "load_balanced":
+            # Use load balancer to select model
+            db = next(get_db())  # Get database session
+            model_id = self.load_balancer.get_next_model("weighted", db)
             
-            utility = self.utility_calculator.calculate_expected_utility(cost, time, probability)
+            if model_id is None:
+                raise HTTPException(status_code=500, detail="No suitable model found for routing")
             
-            logger.info(f"Model {model_id} utility: {utility:.4f}")
+            model_info = self.models[model_id]
             
-            if utility > best_utility:
-                best_utility = utility
-                best_model_id = model_id
-                best_metrics = model_info
-        
-        if best_model_id is None:
-            raise HTTPException(status_code=500, detail="No suitable model found for routing")
-        
-        return RoutingDecision(
-            model_id=best_model_id,
-            expected_utility=best_utility,
-            cost=best_metrics['cost'],
-            time=best_metrics['time'],
-            probability=best_metrics['probability'],
-            name=best_metrics['name']
-        )
+            return RoutingDecision(
+                model_id=model_id,
+                expected_utility=0.0,  # We don't calculate utility for load balancing
+                cost=model_info['cost'],
+                time=model_info['time'],
+                probability=model_info['probability'],
+                name=model_info['name']
+            )
+        else:
+            # Use Expected Utility Theory (default)
+            best_model_id = None
+            best_utility = float('-inf')
+            best_metrics = None
+            
+            # Calculate expected utility for each model
+            for model_id, model_info in self.models.items():
+                cost = model_info['cost']
+                time = model_info['time']
+                probability = model_info['probability']
+                
+                utility = self.utility_calculator.calculate_expected_utility(cost, time, probability)
+                
+                logger.info(f"Model {model_id} utility: {utility:.4f}")
+                
+                if utility > best_utility:
+                    best_utility = utility
+                    best_model_id = model_id
+                    best_metrics = model_info
+            
+            if best_model_id is None:
+                raise HTTPException(status_code=500, detail="No suitable model found for routing")
+            
+            return RoutingDecision(
+                model_id=best_model_id,
+                expected_utility=best_utility,
+                cost=best_metrics['cost'],
+                time=best_metrics['time'],
+                probability=best_metrics['probability'],
+                name=best_metrics['name']
+            )
     
     def log_routing_decision(self, decision: RoutingDecision, request: RoutingRequest, response: Dict[str, Any], db: Session):
         """
@@ -200,19 +225,20 @@ class RouterCore:
             logger.error(f"Error logging routing decision: {str(e)}")
             # Don't fail the request for logging errors
     
-    def route_request(self, request: RoutingRequest) -> RoutingResponse:
+    def route_request(self, request: RoutingRequest, strategy: str = "expected_utility") -> RoutingResponse:
         """
         Route a request to the best model
         
         Args:
             request: Routing request with query information
+            strategy: Selection strategy ("expected_utility", "load_balanced")
             
         Returns:
             RoutingResponse with the selected model and routing information
         """
         try:
-            # Get the best model based on expected utility
-            decision = self.get_best_model(request)
+            # Get the best model based on the specified strategy
+            decision = self.get_best_model(request, strategy)
             
             # Get the adapter for the selected model
             adapter = self.adapters.get(decision.model_id.split('_')[0])  # Simple approach
@@ -223,9 +249,10 @@ class RouterCore:
             # Forward the request to the selected model
             response = adapter.forward_request(request)
             
+            # Update load balancer metrics
+            self.load_balancer.update_metrics(decision.model_id, success=True)
+            
             # Log the routing decision to database
-            # Note: In a real implementation, we'd need to pass the database session properly
-            # For now, we'll just log to console
             logger.info(f"Routing decision: {decision.model_id} selected with utility {decision.expected_utility}")
             
             return RoutingResponse(
