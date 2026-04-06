@@ -336,24 +336,6 @@ class RouterCore:
 # Initialize the router core
 router_core = RouterCore()
 
-@router.post("/route", response_model=RoutingResponse)
-async def route_request(request: RoutingRequest):
-    """
-    Route a request to the best model based on Expected Utility Theory
-    
-    Args:
-        request: Routing request with query information
-        
-    Returns:
-        RoutingResponse with the selected model and routing information
-    """
-    try:
-        response = router_core.route_request(request)
-        return response
-    except Exception as e:
-        logger.error(f"Error routing request: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 # Support for standard LLM API endpoints
 class ChatCompletionRequest(BaseModel):
     """Standard chat completion request model"""

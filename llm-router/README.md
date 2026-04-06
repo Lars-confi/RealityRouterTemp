@@ -102,10 +102,9 @@ This allows you to analyze routing patterns and optimize your LLM usage over tim
 
 ### Implementation Details
 
-The system now supports standard LLM API endpoints:
+The system supports standard LLM API endpoints:
 - `/v1/chat/completions` - Routes to the best model based on Expected Utility Theory
 - `/v1/completions` - Routes to the best model based on Expected Utility Theory
-- `/v1/route` - Legacy endpoint for direct routing (still supported)
 
 All endpoints automatically select the most appropriate model based on performance, cost, and time considerations.
 
@@ -146,10 +145,9 @@ llm-router/
 └── setup.py             # Project setup
 ```
 
-The router now supports multiple API endpoints:
+The router supports multiple API endpoints:
 - `/v1/chat/completions` - Standard chat completion endpoint
 - `/v1/completions` - Standard completion endpoint
-- `/v1/route` - Legacy direct routing endpoint
 - `/v1/models` - Get available models
 - `/metrics` - Get routing metrics
 - `/health` - Health check endpoint
