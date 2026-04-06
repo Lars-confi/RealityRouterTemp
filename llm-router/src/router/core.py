@@ -2,9 +2,10 @@
 Core routing logic implementing Expected Utility Theory framework
 """
 from fastapi import APIRouter, HTTPException
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union, Any
 from pydantic import BaseModel
 import logging
+import datetime
 from src.models.routing import RoutingRequest, RoutingResponse
 from src.adapters.openai_adapter import OpenAIAdapter
 from src.adapters.anthropic_adapter import AnthropicAdapter
@@ -351,6 +352,118 @@ async def route_request(request: RoutingRequest):
         return response
     except Exception as e:
         logger.error(f"Error routing request: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Support for standard LLM API endpoints
+class ChatCompletionRequest(BaseModel):
+    """Standard chat completion request model"""
+    messages: List[Dict[str, Any]]
+    model: Optional[str] = None
+    temperature: Optional[float] = 1.0
+    max_tokens: Optional[int] = None
+    top_p: Optional[float] = 1.0
+    frequency_penalty: Optional[float] = 0.0
+    presence_penalty: Optional[float] = 0.0
+    stop: Optional[Union[str, List[str]]] = None
+    stream: Optional[bool] = False
+
+class ChatCompletionResponse(BaseModel):
+    """Standard chat completion response model"""
+    id: str
+    choices: List[Dict[str, Any]]
+    created: int
+    model: str
+    usage: Dict[str, Any]
+
+@router.post("/v1/chat/completions")
+async def chat_completions(request: ChatCompletionRequest):
+    """
+    Standard chat completions endpoint that routes to the best model
+    
+    Args:
+        request: Standard chat completion request
+        
+    Returns:
+        Standard chat completion response
+    """
+    try:
+        # Convert standard request to internal routing request
+        routing_request = RoutingRequest(
+            query=request.messages[-1]['content'] if request.messages else "",
+            parameters={
+                "messages": request.messages,
+                "temperature": request.temperature,
+                "max_tokens": request.max_tokens,
+                "model": request.model
+            }
+        )
+        
+        # Route the request
+        response = router_core.route_request(routing_request)
+        
+        # Convert to standard response format
+        return {
+            "id": f"chatcmpl-{response.model_id}",
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "index": 0,
+                    "message": {
+                        "content": response.response.get("text", ""),
+                        "role": "assistant"
+                    }
+                }
+            ],
+            "created": int(datetime.datetime.now().timestamp()),
+            "model": response.model_name,
+            "usage": response.response.get("usage", {})
+        }
+    except Exception as e:
+        logger.error(f"Error in chat completions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/v1/completions")
+async def completions(request: ChatCompletionRequest):
+    """
+    Standard completions endpoint that routes to the best model
+    
+    Args:
+        request: Standard completions request
+        
+    Returns:
+        Standard completions response
+    """
+    try:
+        # Convert standard request to internal routing request
+        routing_request = RoutingRequest(
+            query=request.messages[-1]['content'] if request.messages else "",
+            parameters={
+                "prompt": request.messages[-1]['content'] if request.messages else "",
+                "temperature": request.temperature,
+                "max_tokens": request.max_tokens,
+                "model": request.model
+            }
+        )
+        
+        # Route the request
+        response = router_core.route_request(routing_request)
+        
+        # Convert to standard response format
+        return {
+            "id": f"cmpl-{response.model_id}",
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "index": 0,
+                    "text": response.response.get("text", "")
+                }
+            ],
+            "created": int(datetime.datetime.now().timestamp()),
+            "model": response.model_name,
+            "usage": response.response.get("usage", {})
+        }
+    except Exception as e:
+        logger.error(f"Error in completions: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/models")

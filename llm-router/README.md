@@ -100,6 +100,15 @@ The system maintains a database of routing decisions and conversation history. Y
 
 This allows you to analyze routing patterns and optimize your LLM usage over time.
 
+### Implementation Details
+
+The system now supports standard LLM API endpoints:
+- `/v1/chat/completions` - Routes to the best model based on Expected Utility Theory
+- `/v1/completions` - Routes to the best model based on Expected Utility Theory
+- `/v1/route` - Legacy endpoint for direct routing (still supported)
+
+All endpoints automatically select the most appropriate model based on performance, cost, and time considerations.
+
 ### Configuration
 
 The system can be configured using environment variables or a `.env` file. The following environment variables are supported:
@@ -127,7 +136,7 @@ llm-router/
 │   ├── main.py          # Entry point
 │   ├── router/          # Routing components
 │   ├── adapters/        # LLM provider adapters
-│   ├── models/          # Data models
+���   ├── models/          # Data models
 │   ├── config/          # Configuration management
 │   ├── utils/           # Utility functions
 │   └── tests/           # Test files
@@ -136,6 +145,14 @@ llm-router/
 ├── requirements.txt     # Python dependencies
 └── setup.py             # Project setup
 ```
+
+The router now supports multiple API endpoints:
+- `/v1/chat/completions` - Standard chat completion endpoint
+- `/v1/completions` - Standard completion endpoint
+- `/v1/route` - Legacy direct routing endpoint
+- `/v1/models` - Get available models
+- `/metrics` - Get routing metrics
+- `/health` - Health check endpoint
 
 ## Database Logging
 
