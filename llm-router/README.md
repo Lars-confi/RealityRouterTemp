@@ -22,6 +22,7 @@ This system automatically selects the best model for your request, balancing bet
 - Support for multiple LLM providers (OpenAI, Anthropic, Cohere)
 - Database logging for routing decisions and analytics
 - RESTful API for easy integration
+- Transparent routing that works with standard LLM API endpoints
 
 ## Installation
 
@@ -66,9 +67,12 @@ python -m src.main
 
 The server will start on `http://localhost:8000`
 
-### API Endpoints
+### API Integration
 
-- `POST /v1/route` - Route a request to the best model
+The LLM Router works with standard LLM API endpoints, allowing you to integrate it with tools like VS Code, Zed, or Parlant without changing your existing workflows:
+
+- `POST /v1/chat/completions` - Standard chat completion endpoint
+- `POST /v1/completions` - Standard completion endpoint
 - `GET /v1/models` - Get list of available models
 - `GET /metrics` - Get current routing metrics
 - `GET /health` - Health check endpoint
@@ -76,13 +80,25 @@ The server will start on `http://localhost:8000`
 ### Example Request
 
 ```bash
-curl -X POST "http://localhost:8000/v1/route" \
+curl -X POST "http://localhost:8000/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "Explain quantum computing in simple terms",
+    "messages": [
+      {"role": "user", "content": "Explain quantum computing in simple terms"}
+    ],
     "max_tokens": 100
   }'
 ```
+
+### Historical Conversations
+
+The system maintains a database of routing decisions and conversation history. You can access historical conversations through:
+
+1. The `/metrics` endpoint for current routing metrics
+2. Direct database queries to the SQLite database (`llm_router.db`) which logs all routing decisions
+3. The database contains information about which models were selected for specific queries, along with performance metrics
+
+This allows you to analyze routing patterns and optimize your LLM usage over time.
 
 ### Configuration
 
@@ -121,6 +137,17 @@ llm-router/
 └── setup.py             # Project setup
 ```
 
+## Database Logging
+
+The system maintains a SQLite database (`llm_router.db`) that logs all routing decisions and conversation history. This database contains:
+
+- Routing decisions with selected models
+- Performance metrics (cost, time, probability)
+- Timestamps of all requests
+- Query information for historical analysis
+
+This allows you to analyze routing patterns and optimize your LLM usage over time.
+
 ## Contributing
 
 1. Fork the repository
@@ -132,6 +159,18 @@ llm-router/
 ## License
 
 MIT
+
+## Value Proposition
+
+The LLM Router solves the challenge of selecting the optimal language model for a given task by intelligently evaluating multiple factors including:
+- **Performance**: Success probability of the model
+- **Cost**: Token cost per million tokens
+- **Time**: Average response time in seconds
+- **Utility**: Expected utility calculated using Expected Utility Theory framework
+
+This system automatically selects the best model for your request, balancing between cost, time, and performance to maximize the overall utility of your LLM usage.
+
+The router works transparently with standard LLM API endpoints, making it compatible with popular tools like VS Code, Zed, and Parlant without requiring any changes to your existing workflows.
 
 ## Contributing
 
