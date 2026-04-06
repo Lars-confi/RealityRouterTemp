@@ -8,6 +8,8 @@ import logging
 from src.utils.logger import setup_logger
 from src.models.database import get_db, RoutingLog, ModelPerformance
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from datetime import datetime, timedelta
 
 logger = setup_logger(__name__)
 
@@ -31,9 +33,107 @@ class MetricsSummary(BaseModel):
     average_utility: float
     success_rate: float
     models: Dict[str, Dict]
+    timestamp: str
 
-# In-memory storage for metrics (in production, this would be a database)
-metrics_storage: List[MetricEntry] = []
+class ModelMetrics(BaseModel):
+    """Model performance metrics"""
+    model_id: str
+    model_name: str
+    total_requests: int
+    total_cost: float
+    average_time: float
+    success_rate: float
+    last_updated: str
+
+class MetricsCollector:
+    """Collects and manages routing metrics"""
+    
+    def __init__(self):
+        """Initialize metrics collector"""
+        self.metrics_storage = []
+    
+    def collect_routing_metrics(self, db: Session, model_id: str, cost: float, time: float, 
+                              probability: float, success: bool, query: str):
+        """
+        Collect routing metrics for a single request
+        
+        Args:
+            db: Database session
+            model_id: ID of the model used
+            cost: Cost of the request
+            time: Time taken for the request
+            probability: Success probability
+            success: Whether the request was successful
+            query: The original query
+        """
+        try:
+            # Create a new routing log entry
+            log_entry = RoutingLog(
+                query=query,
+                model_id=model_id,
+                cost=cost,
+                time=time,
+                probability=probability,
+                success=success
+            )
+            
+            db.add(log_entry)
+            db.commit()
+            db.refresh(log_entry)
+            
+            logger.info(f"Logged routing decision for model {model_id}")
+            
+            # Update model performance metrics
+            self.update_model_performance(db, model_id, cost, time, success)
+            
+        except Exception as e:
+            logger.error(f"Error collecting routing metrics: {str(e)}")
+    
+    def update_model_performance(self, db: Session, model_id: str, cost: float, time: float, success: bool):
+        """
+        Update performance metrics for a specific model
+        
+        Args:
+            db: Database session
+            model_id: ID of the model
+            cost: Cost of the request
+            time: Time taken for the request
+            success: Whether the request was successful
+        """
+        try:
+            # Try to find existing performance record
+            perf_record = db.query(ModelPerformance).filter_by(model_id=model_id).first()
+            
+            if perf_record:
+                # Update existing record
+                perf_record.total_requests += 1
+                perf_record.total_cost += cost
+                perf_record.average_time = (perf_record.average_time * (perf_record.total_requests - 1) + time) / perf_record.total_requests
+                perf_record.last_updated = datetime.utcnow()
+                
+                if success:
+                    perf_record.success_rate = (perf_record.success_rate * (perf_record.total_requests - 1) + 1) / perf_record.total_requests
+                else:
+                    perf_record.success_rate = (perf_record.success_rate * (perf_record.total_requests - 1) + 0) / perf_record.total_requests
+            else:
+                # Create new record
+                perf_record = ModelPerformance(
+                    model_id=model_id,
+                    model_name=model_id,  # This should be updated with actual name
+                    total_requests=1,
+                    total_cost=cost,
+                    average_time=time,
+                    success_rate=1.0 if success else 0.0
+                )
+                db.add(perf_record)
+            
+            db.commit()
+            
+        except Exception as e:
+            logger.error(f"Error updating model performance: {str(e)}")
+
+# Global metrics collector instance
+metrics_collector = MetricsCollector()
 
 @router.get("/summary")
 async def get_metrics_summary(db: Session = Depends(get_db)):
@@ -54,14 +154,14 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
                 average_time=0.0,
                 average_utility=0.0,
                 success_rate=0.0,
-                models={}
+                models={},
+                timestamp=datetime.utcnow().isoformat()
             )
         
         # Calculate statistics
         total_requests = len(logs)
         total_cost = sum(log.cost for log in logs)
         total_time = sum(log.time for log in logs)
-        total_utility = sum(log.expected_utility for log in logs)
         success_count = sum(1 for log in logs if log.success)
         
         # Group by model
@@ -84,20 +184,49 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
         # Calculate averages
         avg_cost = total_cost / total_requests if total_requests > 0 else 0.0
         avg_time = total_time / total_requests if total_requests > 0 else 0.0
-        avg_utility = total_utility / total_requests if total_requests > 0 else 0.0
         success_rate = success_count / total_requests if total_requests > 0 else 0.0
         
         return MetricsSummary(
             total_requests=total_requests,
             average_cost=avg_cost,
             average_time=avg_time,
-            average_utility=avg_utility,
+            average_utility=0.0,  # This would require more complex calculation
             success_rate=success_rate,
-            models=model_stats
+            models=model_stats,
+            timestamp=datetime.utcnow().isoformat()
         )
     except Exception as e:
         logger.error(f"Error getting metrics summary: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving metrics: {str(e)}")
+
+@router.get("/models")
+async def get_model_metrics(db: Session = Depends(get_db)):
+    """
+    Get metrics for all models
+    
+    Returns:
+        List of model metrics
+    """
+    try:
+        # Get all model performance records
+        perf_records = db.query(ModelPerformance).all()
+        
+        model_metrics = []
+        for record in perf_records:
+            model_metrics.append({
+                'model_id': record.model_id,
+                'model_name': record.model_name,
+                'total_requests': record.total_requests,
+                'total_cost': record.total_cost,
+                'average_time': record.average_time,
+                'success_rate': record.success_rate,
+                'last_updated': record.last_updated.isoformat() if record.last_updated else None
+            })
+        
+        return model_metrics
+    except Exception as e:
+        logger.error(f"Error getting model metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving model metrics: {str(e)}")
 
 @router.get("/history")
 async def get_metrics_history():
@@ -107,7 +236,7 @@ async def get_metrics_history():
     Returns:
         List of all metric entries
     """
-    return metrics_storage
+    return metrics_collector.metrics_storage
 
 @router.post("/log")
 async def log_metric(entry: MetricEntry, db: Session = Depends(get_db)):
@@ -124,7 +253,7 @@ async def log_metric(entry: MetricEntry, db: Session = Depends(get_db)):
     try:
         # Convert MetricEntry to RoutingLog model
         db_entry = RoutingLog(
-            timestamp=entry.timestamp,
+            timestamp=datetime.fromisoformat(entry.timestamp),
             model_id=entry.model_id,
             cost=entry.cost,
             time=entry.time,

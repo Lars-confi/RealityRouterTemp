@@ -13,6 +13,8 @@ from src.utils.logger import setup_logger
 from src.models.database import RoutingLog, init_db, get_db
 from sqlalchemy.orm import Session
 from src.router.load_balancer import load_balancer
+from src.config.settings import get_settings, load_models_from_config
+from src.router.metrics import metrics_collector
 
 logger = setup_logger(__name__)
 
@@ -92,7 +94,75 @@ class RouterCore:
         # Initialize database
         init_db()
         
+        # Load models from configuration
+        self.load_configured_models()
+        
         logger.info("Router core initialized with Expected Utility Theory framework")
+    
+    def load_configured_models(self):
+        """Load models from configuration"""
+        try:
+            models_config = load_models_from_config()
+            
+            for model_id, model_info in models_config.items():
+                self.add_model(
+                    model_id=model_id,
+                    model_name=model_info['name'],
+                    cost=model_info['cost'],
+                    time=model_info['time'],
+                    probability=model_info['probability']
+                )
+                
+                # Add to load balancer
+                self.load_balancer.add_model(
+                    model_id=model_id,
+                    model_name=model_info['name'],
+                    weight=model_info.get('weight', 1.0)
+                )
+                
+        except Exception as e:
+            logger.error(f"Error loading configured models: {str(e)}")
+            # Add default models as fallback
+            self.add_default_models()
+    
+    def add_default_models(self):
+        """Add default models if configuration fails"""
+        default_models = {
+            'openai_gpt-3.5-turbo': {
+                'name': 'OpenAI GPT-3.5 Turbo',
+                'cost': 0.002,
+                'time': 0.5,
+                'probability': 0.9
+            },
+            'anthropic_claude-haiku': {
+                'name': 'Anthropic Claude Haiku',
+                'cost': 0.00025,
+                'time': 0.8,
+                'probability': 0.85
+            },
+            'cohere_command-r-plus': {
+                'name': 'Cohere Command R+',
+                'cost': 0.001,
+                'time': 1.0,
+                'probability': 0.8
+            }
+        }
+        
+        for model_id, model_info in default_models.items():
+            self.add_model(
+                model_id=model_id,
+                model_name=model_info['name'],
+                cost=model_info['cost'],
+                time=model_info['time'],
+                probability=model_info['probability']
+            )
+            
+            # Add to load balancer
+            self.load_balancer.add_model(
+                model_id=model_id,
+                model_name=model_info['name'],
+                weight=1.0
+            )
     
     def add_model(self, model_id: str, model_name: str, cost: float, time: float, probability: float):
         """
@@ -201,24 +271,17 @@ class RouterCore:
             completion_tokens = response.get('usage', {}).get('completion_tokens', 0) if response.get('usage') else 0
             total_tokens = response.get('usage', {}).get('total_tokens', 0) if response.get('usage') else 0
             
-            # Create routing log entry
-            log_entry = RoutingLog(
-                query=request.query,
+            # Collect metrics using the metrics collector
+            metrics_collector.collect_routing_metrics(
+                db=db,
                 model_id=decision.model_id,
-                model_name=decision.name,
-                expected_utility=decision.expected_utility,
                 cost=decision.cost,
                 time=decision.time,
                 probability=decision.probability,
-                response_text=response.get('text', ''),
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                total_tokens=total_tokens,
-                success=True  # We assume success for now, but this could be enhanced
+                success=True,  # We assume success for now, but this could be enhanced
+                query=request.query
             )
             
-            db.add(log_entry)
-            db.commit()
             logger.info(f"Logged routing decision for model {decision.model_id}")
             
         except Exception as e:
