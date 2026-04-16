@@ -1,19 +1,32 @@
 """
 Database models for LLM routing system
 """
-from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, Boolean
+
+import os
+from datetime import datetime
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    Integer,
+    String,
+    Text,
+    create_engine,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
-import os
 
 # Create the base class for database models
 Base = declarative_base()
 
+
 class RoutingLog(Base):
     """Database model for routing logs"""
+
     __tablename__ = "routing_logs"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
     query = Column(Text, nullable=False)
@@ -28,14 +41,19 @@ class RoutingLog(Base):
     prompt_tokens = Column(Integer)
     completion_tokens = Column(Integer)
     total_tokens = Column(Integer)
-    
+    request_payload = Column(Text)
+    response_payload = Column(Text)
+    routing_context = Column(Text)
+
     def __repr__(self):
         return f"<RoutingLog(id={self.id}, model={self.model_name}, timestamp={self.timestamp})>"
 
+
 class ModelPerformance(Base):
     """Database model for model performance metrics"""
+
     __tablename__ = "model_performance"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     model_id = Column(String(100), unique=True, nullable=False)
     model_name = Column(String(100), nullable=False)
@@ -44,15 +62,20 @@ class ModelPerformance(Base):
     average_time = Column(Float, default=0.0)
     success_rate = Column(Float, default=0.0)
     last_updated = Column(DateTime, default=datetime.utcnow)
-    
+
     def __repr__(self):
         return f"<ModelPerformance(id={self.id}, model={self.model_name})>"
+
 
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./llm_router.db")
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {})
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_db():
     """Get database session"""
@@ -61,6 +84,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 def init_db():
     """Initialize the database"""
