@@ -19,7 +19,7 @@ This system automatically selects the best model for your request, balancing bet
 - Performance and cost optimization
 - Real-time metrics collection and analytics
 - Configurable routing rules and model parameters
-- Support for multiple LLM providers (OpenAI, Anthropic, Cohere)
+- Support for multiple LLM providers (OpenAI, Anthropic, Cohere, Ollama)
 - Database logging for routing decisions and analytics
 - RESTful API for easy integration
 - Transparent routing that works with standard LLM API endpoints
@@ -131,18 +131,18 @@ The `DEFAULT_STRATEGY` can be set to either:
 
 ```
 llm-router/
-├── src/                 # Source code
-│   ├── main.py          # Entry point
-│   ├── router/          # Routing components
-│   ├── adapters/        # LLM provider adapters
-���   ├── models/          # Data models
-│   ├── config/          # Configuration management
-│   ├── utils/           # Utility functions
-│   └── tests/           # Test files
-├── config/              # Configuration files
-├── docs/                # Documentation
-├── requirements.txt     # Python dependencies
-└── setup.py             # Project setup
+|-- src/                 # Source code
+|   |-- main.py          # Entry point
+|   |-- router/          # Routing components
+|   |-- adapters/        # LLM provider adapters
+|   |-- models/          # Data models
+|   |-- config/          # Configuration management
+|   |-- utils/           # Utility functions
+|   `-- tests/           # Test files
+|-- config/              # Configuration files
+|-- docs/                # Documentation
+|-- requirements.txt     # Python dependencies
+`-- setup.py             # Project setup
 ```
 
 The router supports multiple API endpoints:
@@ -162,30 +162,6 @@ The system maintains a SQLite database (`llm_router.db`) that logs all routing d
 - Query information for historical analysis
 
 This allows you to analyze routing patterns and optimize your LLM usage over time.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-MIT
-
-## Value Proposition
-
-The LLM Router solves the challenge of selecting the optimal language model for a given task by intelligently evaluating multiple factors including:
-- **Performance**: Success probability of the model
-- **Cost**: Token cost per million tokens
-- **Time**: Average response time in seconds
-- **Utility**: Expected utility calculated using Expected Utility Theory framework
-
-This system automatically selects the best model for your request, balancing between cost, time, and performance to maximize the overall utility of your LLM usage.
-
-The router works transparently with standard LLM API endpoints, making it compatible with popular tools like VS Code, Zed, and Parlant without requiring any changes to your existing workflows.
 
 ## Contributing
 
