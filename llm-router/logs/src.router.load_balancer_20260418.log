@@ -1,0 +1,16 @@
+2026-04-18 16:46:37,697 - src.router.load_balancer - INFO - Load balancer initialized
+2026-04-18 17:23:10,161 - src.router.load_balancer - INFO - Load balancer initialized
+2026-04-18 17:23:10,998 - src.router.load_balancer - INFO - Added model nemotron-3-nano:30b (ID: nemotron-3-nano:30b) to load balancer
+2026-04-18 17:23:11,007 - src.router.load_balancer - INFO - Added model qwen3-coder:30b (ID: qwen3-coder:30b) to load balancer
+2026-04-18 17:23:11,012 - src.router.load_balancer - INFO - Added model gemma4:31b (ID: gemma4:31b) to load balancer
+2026-04-18 17:23:11,015 - src.router.load_balancer - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to load balancer
+2026-04-18 17:24:53,500 - src.router.load_balancer - INFO - Load balancer initialized
+2026-04-18 17:24:53,550 - src.router.load_balancer - INFO - Added model nemotron-3-nano:30b (ID: nemotron-3-nano:30b) to load balancer
+2026-04-18 17:24:53,556 - src.router.load_balancer - INFO - Added model qwen3-coder:30b (ID: qwen3-coder:30b) to load balancer
+2026-04-18 17:24:53,560 - src.router.load_balancer - INFO - Added model gemma4:31b (ID: gemma4:31b) to load balancer
+2026-04-18 17:24:53,565 - src.router.load_balancer - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to load balancer
+2026-04-18 18:58:52,794 - src.router.load_balancer - INFO - Load balancer initialized
+2026-04-18 18:58:52,861 - src.router.load_balancer - INFO - Added model nemotron-3-nano:30b (ID: nemotron-3-nano:30b) to load balancer
+2026-04-18 18:58:52,873 - src.router.load_balancer - INFO - Added model qwen3-coder:30b (ID: qwen3-coder:30b) to load balancer
+2026-04-18 18:58:52,885 - src.router.load_balancer - INFO - Added model gemma4:31b (ID: gemma4:31b) to load balancer
+2026-04-18 18:58:52,896 - src.router.load_balancer - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to load balancer

@@ -1,0 +1,6 @@
+2026-04-18 17:27:23,985 - src.router.metrics - ERROR - Error collecting routing metrics: 'confidence' is an invalid keyword argument for RoutingLog
+2026-04-18 17:28:01,143 - src.router.metrics - ERROR - Error collecting routing metrics: 'confidence' is an invalid keyword argument for RoutingLog
+2026-04-18 17:47:32,021 - src.router.metrics - ERROR - Error collecting routing metrics: 'confidence' is an invalid keyword argument for RoutingLog
+2026-04-18 17:47:49,321 - src.router.metrics - ERROR - Error collecting routing metrics: 'confidence' is an invalid keyword argument for RoutingLog
+2026-04-18 17:47:53,955 - src.router.metrics - ERROR - Error collecting routing metrics: 'confidence' is an invalid keyword argument for RoutingLog
+2026-04-18 17:48:50,851 - src.router.metrics - ERROR - Error collecting routing metrics: 'confidence' is an invalid keyword argument for RoutingLog

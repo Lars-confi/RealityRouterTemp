@@ -1,0 +1,34 @@
+2026-04-18 16:46:37,738 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 16:46:40,757 - src.router.core - WARNING - Auto-discovery failed for custom URL http://100.81.4.19:11434: timed out
+2026-04-18 16:46:40,758 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-18 16:46:40,758 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 17:23:10,174 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 17:23:10,998 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 17:23:10,998 - src.router.core - INFO - Added model nemotron-3-nano:30b (ID: nemotron-3-nano:30b) to routing system
+2026-04-18 17:23:11,007 - src.router.core - INFO - Added model qwen3-coder:30b (ID: qwen3-coder:30b) to routing system
+2026-04-18 17:23:11,012 - src.router.core - INFO - Added model gemma4:31b (ID: gemma4:31b) to routing system
+2026-04-18 17:23:11,015 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to routing system
+2026-04-18 17:23:11,019 - src.router.core - INFO - Total configured and discovered models: 4
+2026-04-18 17:23:11,019 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 17:24:53,520 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 17:24:53,550 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 17:24:53,550 - src.router.core - INFO - Added model nemotron-3-nano:30b (ID: nemotron-3-nano:30b) to routing system
+2026-04-18 17:24:53,555 - src.router.core - INFO - Added model qwen3-coder:30b (ID: qwen3-coder:30b) to routing system
+2026-04-18 17:24:53,560 - src.router.core - INFO - Added model gemma4:31b (ID: gemma4:31b) to routing system
+2026-04-18 17:24:53,565 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to routing system
+2026-04-18 17:24:53,570 - src.router.core - INFO - Total configured and discovered models: 4
+2026-04-18 17:24:53,570 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 17:27:23,988 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 17:28:01,144 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 17:47:32,024 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 17:47:49,323 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 17:47:53,956 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 17:48:50,854 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 18:58:52,820 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 18:58:52,860 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 18:58:52,861 - src.router.core - INFO - Added model nemotron-3-nano:30b (ID: nemotron-3-nano:30b) to routing system
+2026-04-18 18:58:52,873 - src.router.core - INFO - Added model qwen3-coder:30b (ID: qwen3-coder:30b) to routing system
+2026-04-18 18:58:52,884 - src.router.core - INFO - Added model gemma4:31b (ID: gemma4:31b) to routing system
+2026-04-18 18:58:52,896 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to routing system
+2026-04-18 18:58:52,906 - src.router.core - INFO - Total configured and discovered models: 4
+2026-04-18 18:58:52,907 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework

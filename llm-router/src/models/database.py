@@ -44,6 +44,9 @@ class RoutingLog(Base):
     request_payload = Column(Text)
     response_payload = Column(Text)
     routing_context = Column(Text)
+    features_json = Column(Text)  # Stores the fixed-dimensional agent feature set
+    user_sentiment = Column(String(20))  # unhappy, indeterminate, happy
+    reality_check_id = Column(String(100))  # Linked ID from Reality Check API
 
     def __repr__(self):
         return f"<RoutingLog(id={self.id}, model={self.model_name}, timestamp={self.timestamp})>"
@@ -89,4 +92,3 @@ def get_db():
 def init_db():
     """Initialize the database"""
     Base.metadata.create_all(bind=engine)
-    print("Database initialized successfully")
