@@ -59,12 +59,20 @@ class GenericOpenAIAdapter(BaseAdapter):
                     del temp_params["messages"]
 
                 # NEVER overwrite the mapped model name for custom endpoints
-                # Otherwise if the user requested 'gpt-3.5' and we routed to 'llama3',
-                # passing 'gpt-3.5' to Ollama will result in a 404.
                 if "model" in temp_params:
                     del temp_params["model"]
 
                 params.update(temp_params)
+
+                # Filter out parameters known to cause 400 errors on certain providers (e.g. Gemini)
+                unsupported_params = ["frequency_penalty", "presence_penalty"]
+                if (
+                    "generativelanguage.googleapis.com" in self.base_url
+                    or "gemini" in str(self.default_model).lower()
+                ):
+                    for p in unsupported_params:
+                        if p in params:
+                            del params[p]
 
             response = await self.client.chat.completions.create(**params)
 

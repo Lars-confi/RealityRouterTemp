@@ -32,3 +32,270 @@
 2026-04-18 18:58:52,896 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to routing system
 2026-04-18 18:58:52,906 - src.router.core - INFO - Total configured and discovered models: 4
 2026-04-18 18:58:52,907 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 19:13:33,298 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 19:26:45,408 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 19:26:48,428 - src.router.core - WARNING - Auto-discovery failed for custom URL http://100.81.4.19:11434: timed out
+2026-04-18 19:26:48,429 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-18 19:26:48,429 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 19:28:25,998 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 19:28:25,999 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 19:28:25,999 - src.router.core - ERROR - Routing error: 500: No models available for routing
+2026-04-18 19:28:25,999 - src.router.core - ERROR - Chat error: 500: Routing error: 500: No models available for routing
+2026-04-18 19:28:31,010 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 19:28:31,010 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 19:28:31,017 - src.router.core - ERROR - Routing error: 500: No models available for routing
+2026-04-18 19:28:31,017 - src.router.core - ERROR - Chat error: 500: Routing error: 500: No models available for routing
+2026-04-18 19:28:36,072 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 19:28:36,072 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 19:28:36,072 - src.router.core - ERROR - Routing error: 500: No models available for routing
+2026-04-18 19:28:36,072 - src.router.core - ERROR - Chat error: 500: Routing error: 500: No models available for routing
+2026-04-18 19:28:41,143 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 19:28:41,144 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 19:28:41,144 - src.router.core - ERROR - Routing error: 500: No models available for routing
+2026-04-18 19:28:41,144 - src.router.core - ERROR - Chat error: 500: Routing error: 500: No models available for routing
+2026-04-18 19:38:38,352 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 19:38:38,377 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 19:38:38,377 - src.router.core - INFO - Added model nemotron-3-nano:30b (ID: nemotron-3-nano:30b) to routing system
+2026-04-18 19:38:38,382 - src.router.core - INFO - Added model qwen3-coder:30b (ID: qwen3-coder:30b) to routing system
+2026-04-18 19:38:38,387 - src.router.core - INFO - Added model gemma4:31b (ID: gemma4:31b) to routing system
+2026-04-18 19:38:38,393 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to routing system
+2026-04-18 19:38:38,401 - src.router.core - INFO - Total configured and discovered models: 4
+2026-04-18 19:38:38,401 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 19:39:35,916 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 19:39:35,917 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 19:39:36,354 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=1
+2026-04-18 19:39:36,514 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=2
+2026-04-18 19:39:36,691 - src.router.core - INFO - Reality Check calibration for nemotron-3-nano:30b: prob=0.5000, id=3
+2026-04-18 19:39:37,078 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=4
+2026-04-18 19:40:46,103 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 19:43:30,372 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 19:43:30,372 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 19:43:30,854 - src.router.core - INFO - Reality Check calibration for nemotron-3-nano:30b: prob=0.5000, id=5
+2026-04-18 19:43:30,917 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=6
+2026-04-18 19:43:31,266 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=7
+2026-04-18 19:43:31,289 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=8
+2026-04-18 19:44:31,484 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 19:47:28,713 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 19:47:28,713 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 19:47:29,205 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=9
+2026-04-18 19:47:29,432 - src.router.core - INFO - Reality Check calibration for nemotron-3-nano:30b: prob=0.5000, id=10
+2026-04-18 19:47:29,989 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=12
+2026-04-18 19:47:30,357 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=11
+2026-04-18 19:48:31,508 - src.router.core - INFO - Logged routing decision for model nemotron-3-nano:30b
+2026-04-18 20:02:18,793 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 20:02:18,827 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 20:02:18,827 - src.router.core - INFO - Added model nemotron-3-nano:30b (ID: nemotron-3-nano:30b) to routing system
+2026-04-18 20:02:18,832 - src.router.core - INFO - Added model qwen3-coder:30b (ID: qwen3-coder:30b) to routing system
+2026-04-18 20:02:18,837 - src.router.core - INFO - Added model gemma4:31b (ID: gemma4:31b) to routing system
+2026-04-18 20:02:18,842 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (ID: MFDoom/deepseek-coder-v2-tool-calling:16b) to routing system
+2026-04-18 20:02:18,847 - src.router.core - INFO - Total configured and discovered models: 4
+2026-04-18 20:02:18,847 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 20:09:17,203 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 20:09:17,204 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 20:09:17,215 - src.router.core - ERROR - Routing error: (sqlite3.OperationalError) no such column: routing_logs.confidence
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('nemotron-3-nano:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 20:09:17,215 - src.router.core - ERROR - Chat error: 500: Routing error: (sqlite3.OperationalError) no such column: routing_logs.confidence
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('nemotron-3-nano:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 20:09:22,229 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 20:09:22,229 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 20:09:22,230 - src.router.core - ERROR - Routing error: (sqlite3.OperationalError) no such column: routing_logs.confidence
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('nemotron-3-nano:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 20:09:22,230 - src.router.core - ERROR - Chat error: 500: Routing error: (sqlite3.OperationalError) no such column: routing_logs.confidence
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('nemotron-3-nano:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 20:09:27,274 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 20:09:27,275 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 20:09:27,276 - src.router.core - ERROR - Routing error: (sqlite3.OperationalError) no such column: routing_logs.confidence
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('nemotron-3-nano:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 20:09:27,276 - src.router.core - ERROR - Chat error: 500: Routing error: (sqlite3.OperationalError) no such column: routing_logs.confidence
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('nemotron-3-nano:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 20:09:32,303 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 20:09:32,305 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 20:09:32,306 - src.router.core - ERROR - Routing error: (sqlite3.OperationalError) no such column: routing_logs.confidence
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('nemotron-3-nano:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 20:09:32,307 - src.router.core - ERROR - Chat error: 500: Routing error: (sqlite3.OperationalError) no such column: routing_logs.confidence
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('nemotron-3-nano:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:42:26,516 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 22:42:26,566 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 22:42:26,566 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-18 22:42:26,578 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-18 22:42:26,589 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-18 22:42:26,600 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-18 22:42:26,601 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 22:44:10,138 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 22:44:10,139 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 22:44:10,150 - src.router.core - ERROR - Routing error: (sqlite3.OperationalError) no such column: routing_logs.agent_id
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.agent_id AS routing_logs_agent_id, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('qwen3-coder:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:44:10,150 - src.router.core - ERROR - Chat error: 500: Routing error: (sqlite3.OperationalError) no such column: routing_logs.agent_id
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.agent_id AS routing_logs_agent_id, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('qwen3-coder:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:44:15,178 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 22:44:15,179 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 22:44:15,181 - src.router.core - ERROR - Routing error: (sqlite3.OperationalError) no such column: routing_logs.agent_id
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.agent_id AS routing_logs_agent_id, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('qwen3-coder:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:44:15,182 - src.router.core - ERROR - Chat error: 500: Routing error: (sqlite3.OperationalError) no such column: routing_logs.agent_id
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.agent_id AS routing_logs_agent_id, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('qwen3-coder:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:44:20,198 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 22:44:20,199 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 22:44:20,200 - src.router.core - ERROR - Routing error: (sqlite3.OperationalError) no such column: routing_logs.agent_id
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.agent_id AS routing_logs_agent_id, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('qwen3-coder:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:44:20,200 - src.router.core - ERROR - Chat error: 500: Routing error: (sqlite3.OperationalError) no such column: routing_logs.agent_id
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.agent_id AS routing_logs_agent_id, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('qwen3-coder:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:44:25,228 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 22:44:25,228 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 22:44:25,230 - src.router.core - ERROR - Routing error: (sqlite3.OperationalError) no such column: routing_logs.agent_id
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.agent_id AS routing_logs_agent_id, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('qwen3-coder:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:44:25,231 - src.router.core - ERROR - Chat error: 500: Routing error: (sqlite3.OperationalError) no such column: routing_logs.agent_id
+[SQL: SELECT routing_logs.id AS routing_logs_id, routing_logs.timestamp AS routing_logs_timestamp, routing_logs."query" AS routing_logs_query, routing_logs.agent_id AS routing_logs_agent_id, routing_logs.model_id AS routing_logs_model_id, routing_logs.model_name AS routing_logs_model_name, routing_logs.expected_utility AS routing_logs_expected_utility, routing_logs.cost AS routing_logs_cost, routing_logs.time AS routing_logs_time, routing_logs.probability AS routing_logs_probability, routing_logs.success AS routing_logs_success, routing_logs.response_text AS routing_logs_response_text, routing_logs.prompt_tokens AS routing_logs_prompt_tokens, routing_logs.completion_tokens AS routing_logs_completion_tokens, routing_logs.total_tokens AS routing_logs_total_tokens, routing_logs.request_payload AS routing_logs_request_payload, routing_logs.response_payload AS routing_logs_response_payload, routing_logs.routing_context AS routing_logs_routing_context, routing_logs.features_json AS routing_logs_features_json, routing_logs.user_sentiment AS routing_logs_user_sentiment, routing_logs.reality_check_id AS routing_logs_reality_check_id, routing_logs.confidence AS routing_logs_confidence, routing_logs.entropy AS routing_logs_entropy, routing_logs.logprobs_mean AS routing_logs_logprobs_mean, routing_logs.logprobs_std AS routing_logs_logprobs_std, routing_logs.first_token_logprob AS routing_logs_first_token_logprob, routing_logs.first_token_top_logprobs AS routing_logs_first_token_top_logprobs, routing_logs.second_token_logprob AS routing_logs_second_token_logprob, routing_logs.second_token_top_logprobs AS routing_logs_second_token_top_logprobs 
+FROM routing_logs 
+WHERE routing_logs.model_id = ? AND routing_logs.time IS NOT NULL ORDER BY routing_logs.timestamp DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('qwen3-coder:30b', 20, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-04-18 22:47:36,513 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 22:47:36,537 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 22:47:36,537 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-18 22:47:36,543 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-18 22:47:36,547 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-18 22:47:36,552 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-18 22:47:36,552 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 22:58:09,113 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 22:58:09,113 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 22:58:09,601 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=1
+2026-04-18 22:58:09,796 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=2
+2026-04-18 22:58:10,142 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=3
+2026-04-18 23:00:54,212 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-18 23:04:58,779 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 23:04:58,780 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 23:04:59,146 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=4
+2026-04-18 23:04:59,428 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=5
+2026-04-18 23:04:59,461 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=6
+2026-04-18 23:05:00,263 - src.router.core - INFO - Sending feedback to Reality Check for decision 2: happy
+2026-04-18 23:12:03,624 - src.router.core - INFO - Logged routing decision for model gemma4:31b
+2026-04-18 23:21:39,329 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 23:21:39,352 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 23:21:39,353 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-18 23:21:39,358 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-18 23:21:39,362 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-18 23:21:39,367 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-18 23:21:39,368 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 23:22:47,267 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 23:22:47,267 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 23:22:47,798 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=7
+2026-04-18 23:22:47,838 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=8
+2026-04-18 23:22:48,020 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=9
+2026-04-18 23:22:59,992 - src.router.core - INFO - Assessed user sentiment: indeterminate
+2026-04-18 23:25:31,811 - src.router.core - INFO - Updated log entry 3 with RC ID and features
+2026-04-18 23:25:31,811 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-18 23:27:13,027 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 23:27:13,029 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 23:27:13,536 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=10
+2026-04-18 23:27:13,554 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=11
+2026-04-18 23:27:13,729 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=12
+2026-04-18 23:27:14,209 - src.router.core - INFO - Assessed user sentiment: happy
+2026-04-18 23:27:14,226 - src.router.core - INFO - Sending feedback to Reality Check for decision 9: happy
+2026-04-18 23:27:14,407 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-18 23:29:38,620 - src.router.core - INFO - Updated log entry 4 with RC ID and features
+2026-04-18 23:29:38,621 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-18 23:37:20,360 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 23:37:20,388 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 23:37:20,388 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-18 23:37:20,394 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-18 23:37:20,399 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-18 23:37:20,404 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-18 23:37:20,404 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 23:38:09,226 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-18 23:38:09,226 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-18 23:38:09,603 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=13
+2026-04-18 23:38:09,941 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=15
+2026-04-18 23:38:09,942 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=14
+2026-04-18 23:38:21,734 - src.router.core - INFO - Assessed user sentiment: indeterminate
+2026-04-18 23:40:58,563 - src.router.core - INFO - Updated log entry 5 with RC ID and features
+2026-04-18 23:40:58,563 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-18 23:42:28,392 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 23:42:28,419 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 23:42:28,419 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-18 23:42:28,424 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-18 23:42:28,429 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-18 23:42:28,435 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-18 23:42:28,435 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-18 23:45:48,349 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-18 23:45:48,531 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-18 23:45:48,531 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-18 23:45:48,544 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-18 23:45:48,554 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-18 23:45:48,562 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-18 23:45:48,562 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework

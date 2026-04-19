@@ -12,6 +12,7 @@ class RoutingRequest(BaseModel):
     """Request model for routing"""
 
     query: str
+    agent_id: Optional[str] = "default"
     parameters: Optional[Dict[str, Any]] = None
     timestamp: Optional[datetime.datetime] = None
 
@@ -27,6 +28,7 @@ class RoutingRequest(BaseModel):
 class RoutingResponse(BaseModel):
     """Response model for routing"""
 
+    agent_id: Optional[str] = "default"
     model_id: str
     model_name: str
     expected_utility: float

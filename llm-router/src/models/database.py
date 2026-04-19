@@ -30,6 +30,7 @@ class RoutingLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
     query = Column(Text, nullable=False)
+    agent_id = Column(String(100))
     model_id = Column(String(100), nullable=False)
     model_name = Column(String(100), nullable=False)
     expected_utility = Column(Float, nullable=False)
@@ -46,7 +47,16 @@ class RoutingLog(Base):
     routing_context = Column(Text)
     features_json = Column(Text)  # Stores the fixed-dimensional agent feature set
     user_sentiment = Column(String(20))  # unhappy, indeterminate, happy
+    strategy = Column(String(50))  # expected_utility or tiered_assessment
     reality_check_id = Column(String(100))  # Linked ID from Reality Check API
+    confidence = Column(Float)
+    entropy = Column(Float)
+    logprobs_mean = Column(Float)
+    logprobs_std = Column(Float)
+    first_token_logprob = Column(Float)
+    first_token_top_logprobs = Column(Text)
+    second_token_logprob = Column(Float)
+    second_token_top_logprobs = Column(Text)
 
     def __repr__(self):
         return f"<RoutingLog(id={self.id}, model={self.model_name}, timestamp={self.timestamp})>"
@@ -71,7 +81,8 @@ class ModelPerformance(Base):
 
 
 # Database setup
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./llm_router.db")
+# Use the database in the project root (one level up from src/)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///../llm_router.db")
 
 engine = create_engine(
     DATABASE_URL,

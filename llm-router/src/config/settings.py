@@ -3,7 +3,7 @@ Configuration management for LLM routing system
 """
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 from src.utils.logger import setup_logger
@@ -51,6 +51,10 @@ class Settings(BaseModel):
     custom_llm_base_url: Optional[str] = Field(default=None)
     custom_llm_api_key: Optional[str] = Field(default=None)
 
+    # Model settings
+    disabled_models: List[str] = Field(default_factory=list)
+    sentiment_model_id: Optional[str] = Field(default=None)
+
     # Routing settings
     enable_auto_discovery: bool = Field(default=True)
     default_strategy: str = Field(default="expected_utility")
@@ -69,6 +73,16 @@ class Settings(BaseModel):
 # Global settings instance
 # Initialize with lowercase keys mapping from the manually loaded .env file
 _settings_data = {k.lower(): v for k, v in _env_vars.items()}
+
+# Parse comma-separated string for disabled_models if present
+if "disabled_models" in _settings_data and isinstance(
+    _settings_data["disabled_models"], str
+):
+    val = _settings_data["disabled_models"].strip()
+    _settings_data["disabled_models"] = (
+        [x.strip() for x in val.split(",")] if val else []
+    )
+
 settings = Settings(**_settings_data)
 
 

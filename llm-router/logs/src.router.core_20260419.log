@@ -1,0 +1,523 @@
+2026-04-19 00:21:44,827 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 00:21:44,861 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 00:21:44,861 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 00:21:44,867 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 00:21:44,872 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 00:21:44,876 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 00:21:44,876 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 00:22:18,902 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 00:22:18,902 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 00:22:19,222 - src.router.core - WARNING - Reality Check API returned 400 for gemma4:31b
+2026-04-19 00:22:19,298 - src.router.core - WARNING - Reality Check API returned 400 for MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 00:22:19,420 - src.router.core - WARNING - Reality Check API returned 400 for qwen3-coder:30b
+2026-04-19 00:22:31,498 - src.router.core - INFO - Assessed user sentiment: happy
+2026-04-19 00:26:01,307 - src.router.core - INFO - Updated log entry 1 with RC ID and features
+2026-04-19 00:26:01,308 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 00:26:01,625 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 00:26:01,626 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 00:26:02,030 - src.router.core - WARNING - Reality Check API returned 400 for MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 00:26:02,052 - src.router.core - WARNING - Reality Check API returned 400 for qwen3-coder:30b
+2026-04-19 00:26:02,358 - src.router.core - WARNING - Reality Check API returned 400 for gemma4:31b
+2026-04-19 00:26:35,286 - src.router.core - INFO - Updated log entry 2 with RC ID and features
+2026-04-19 00:26:35,286 - src.router.core - INFO - Logged routing decision for model gemma4:31b
+2026-04-19 00:26:35,307 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 00:26:35,307 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 00:26:35,536 - src.router.core - WARNING - Reality Check API returned 400 for MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 00:26:35,610 - src.router.core - WARNING - Reality Check API returned 400 for qwen3-coder:30b
+2026-04-19 00:26:35,687 - src.router.core - WARNING - Reality Check API returned 400 for gemma4:31b
+2026-04-19 00:26:36,168 - src.router.core - INFO - Assessed user sentiment: indeterminate
+2026-04-19 00:26:43,765 - src.router.core - INFO - Updated log entry 3 with RC ID and features
+2026-04-19 00:26:43,765 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 02:28:59,298 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 02:28:59,329 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 02:28:59,329 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 02:28:59,335 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 02:28:59,341 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 02:28:59,348 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 02:28:59,348 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 02:33:50,923 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 02:33:50,924 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 02:33:51,194 - src.router.core - WARNING - Reality Check API returned 400 for MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 02:33:51,277 - src.router.core - WARNING - Reality Check API returned 400 for gemma4:31b
+2026-04-19 02:33:51,383 - src.router.core - WARNING - Reality Check API returned 400 for qwen3-coder:30b
+2026-04-19 02:34:03,095 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 02:34:31,099 - src.router.core - INFO - Updated log entry 1 with RC ID and features
+2026-04-19 02:34:31,100 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 09:39:18,463 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 09:39:18,521 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 09:39:18,521 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 09:39:18,528 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 09:39:18,533 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 09:39:18,538 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 09:39:18,538 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 12:47:49,290 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 12:47:49,330 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 12:47:49,330 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 12:47:49,340 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 12:47:49,349 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 12:47:49,358 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 12:47:49,358 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 12:48:44,944 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 12:48:44,944 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 12:48:45,345 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=1
+2026-04-19 12:48:45,624 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=2
+2026-04-19 12:48:45,652 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=3
+2026-04-19 12:48:46,861 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 12:52:51,903 - src.router.core - WARNING - Model gemma4:31b returned empty response. Escalating...
+2026-04-19 12:52:51,903 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 2)
+2026-04-19 12:52:52,167 - src.router.core - INFO - Auto-feedback (quality) response: 200
+2026-04-19 12:52:52,277 - src.router.core - INFO - Updated log entry 2 with RC ID and features
+2026-04-19 12:52:52,277 - src.router.core - INFO - Logged routing decision for model gemma4:31b
+2026-04-19 12:54:15,822 - src.router.core - INFO - Updated log entry 3 with RC ID and features
+2026-04-19 12:54:15,823 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 12:57:42,742 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 12:57:42,742 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 12:57:43,473 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=4
+2026-04-19 12:57:43,474 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=5
+2026-04-19 12:57:43,594 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=6
+2026-04-19 12:57:55,828 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'unhappy')
+2026-04-19 12:57:55,842 - src.router.core - INFO - Sending feedback to Reality Check for decision 3: happy
+2026-04-19 12:57:56,037 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 12:59:10,889 - src.router.core - WARNING - Model qwen3-coder:30b returned empty response. Escalating...
+2026-04-19 12:59:10,889 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 6)
+2026-04-19 12:59:11,573 - src.router.core - INFO - Auto-feedback (quality) response: 200
+2026-04-19 12:59:11,697 - src.router.core - INFO - Updated log entry 4 with RC ID and features
+2026-04-19 12:59:11,698 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 13:00:17,485 - src.router.core - INFO - Updated log entry 5 with RC ID and features
+2026-04-19 13:00:17,485 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 13:19:12,219 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 13:19:12,244 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 13:19:12,244 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 13:19:12,249 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 13:19:12,254 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 13:19:12,259 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 13:19:12,259 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 13:21:34,831 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 13:21:34,831 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 13:21:35,392 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=1
+2026-04-19 13:21:35,443 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=2
+2026-04-19 13:21:35,660 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=3
+2026-04-19 13:21:36,417 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 13:23:26,990 - src.router.core - INFO - Updated log entry 1 with RC ID and features
+2026-04-19 13:23:26,990 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 13:25:32,645 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 13:25:32,645 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 13:25:33,296 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=5
+2026-04-19 13:25:33,297 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=4
+2026-04-19 13:25:33,506 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=6
+2026-04-19 13:26:12,973 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'unhappy')
+2026-04-19 13:26:13,008 - src.router.core - INFO - Sending feedback to Reality Check for decision 3: happy
+2026-04-19 13:26:13,159 - src.router.core - INFO - Reality Check feedback response: 403
+2026-04-19 13:34:18,458 - src.router.core - WARNING - Model gemma4:31b returned empty response. Escalating...
+2026-04-19 13:34:18,458 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 6)
+2026-04-19 13:34:18,583 - src.router.core - INFO - Auto-feedback (quality) response: 403
+2026-04-19 13:34:18,629 - src.router.core - INFO - Updated log entry 2 with RC ID and features
+2026-04-19 13:34:18,629 - src.router.core - INFO - Logged routing decision for model gemma4:31b
+2026-04-19 13:36:07,932 - src.router.core - INFO - Updated log entry 3 with RC ID and features
+2026-04-19 13:36:07,933 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 13:50:29,662 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 13:50:29,717 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 13:50:29,717 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 13:50:29,726 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 13:50:29,736 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 13:50:29,746 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 13:50:29,746 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 13:52:51,900 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 13:52:51,900 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 13:52:52,521 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=2
+2026-04-19 13:52:52,521 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=1
+2026-04-19 13:52:52,830 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=3
+2026-04-19 13:53:04,626 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 13:55:18,773 - src.router.core - WARNING - Model qwen3-coder:30b returned empty response. Escalating...
+2026-04-19 13:55:18,773 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 1)
+2026-04-19 13:55:18,890 - src.router.core - INFO - Auto-feedback (quality) response: 403
+2026-04-19 13:55:18,954 - src.router.core - INFO - Updated log entry 1 with RC ID and features
+2026-04-19 13:55:18,954 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 14:02:33,843 - src.router.core - WARNING - Model gemma4:31b returned empty response. Escalating...
+2026-04-19 14:02:33,844 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 3)
+2026-04-19 14:02:33,961 - src.router.core - INFO - Auto-feedback (quality) response: 403
+2026-04-19 14:02:34,061 - src.router.core - INFO - Updated log entry 2 with RC ID and features
+2026-04-19 14:02:34,061 - src.router.core - INFO - Logged routing decision for model gemma4:31b
+2026-04-19 14:05:00,473 - src.router.core - INFO - Updated log entry 3 with RC ID and features
+2026-04-19 14:05:00,473 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 14:10:41,444 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 14:10:41,481 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 14:10:41,481 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 14:10:41,486 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 14:10:41,491 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 14:10:41,497 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 14:10:41,497 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 14:11:36,966 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 14:11:36,967 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 14:11:37,569 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=1
+2026-04-19 14:11:37,570 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=2
+2026-04-19 14:11:37,742 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=3
+2026-04-19 14:11:49,721 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 14:14:53,538 - src.router.core - INFO - Updated log entry 1 with RC ID and features
+2026-04-19 14:14:53,538 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 14:16:44,072 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 14:16:44,073 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 14:16:44,556 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=4
+2026-04-19 14:16:44,638 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=5
+2026-04-19 14:16:44,964 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=6
+2026-04-19 14:16:45,684 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 14:16:45,700 - src.router.core - INFO - Updated log entry 1 sentiment to happy
+2026-04-19 14:16:45,700 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 2: happy
+2026-04-19 14:16:45,853 - src.router.core - INFO - Reality Check feedback response: 403
+2026-04-19 14:25:39,217 - src.router.core - WARNING - Model gemma4:31b returned empty response. Escalating...
+2026-04-19 14:25:39,217 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 5)
+2026-04-19 14:25:39,323 - src.router.core - INFO - Auto-feedback (quality) response: 403
+2026-04-19 14:25:39,388 - src.router.core - INFO - Updated log entry 2 with RC ID and features
+2026-04-19 14:25:39,388 - src.router.core - INFO - Logged routing decision for model gemma4:31b
+2026-04-19 14:28:11,741 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 14:28:11,741 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 14:28:12,142 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=7
+2026-04-19 14:28:12,250 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=8
+2026-04-19 14:28:12,576 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=9
+2026-04-19 14:28:18,334 - src.router.core - INFO - Updated log entry 3 with RC ID and features
+2026-04-19 14:28:18,334 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 14:28:32,721 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 14:28:32,732 - src.router.core - INFO - Updated log entry 3 sentiment to happy
+2026-04-19 14:28:32,732 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 6: happy
+2026-04-19 14:28:32,827 - src.router.core - INFO - Reality Check feedback response: 403
+2026-04-19 14:31:15,558 - src.router.core - INFO - Updated log entry 4 with RC ID and features
+2026-04-19 14:31:15,558 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 14:35:39,880 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 14:35:39,913 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 14:35:39,914 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 14:35:39,919 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 14:35:39,924 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 14:35:39,929 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 14:35:39,929 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 14:36:19,625 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 14:36:19,625 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 14:36:20,196 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=1
+2026-04-19 14:36:20,212 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=2
+2026-04-19 14:36:20,513 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=3
+2026-04-19 14:36:32,648 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 14:37:55,944 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 14:37:55,945 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 14:37:56,364 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=4
+2026-04-19 14:37:56,556 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=5
+2026-04-19 14:37:56,763 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=6
+2026-04-19 14:40:11,787 - src.router.core - INFO - Updated log entry 1 with RC ID and features
+2026-04-19 14:40:11,787 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 14:40:12,126 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 14:43:54,740 - src.router.core - INFO - Updated log entry 2 with RC ID and features
+2026-04-19 14:43:54,740 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 14:43:55,084 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 14:43:55,085 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 14:43:55,561 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=7
+2026-04-19 14:43:55,917 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=8
+2026-04-19 14:43:55,973 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=9
+2026-04-19 14:44:34,315 - src.router.core - WARNING - Model gemma4:31b returned empty response. Escalating...
+2026-04-19 14:44:34,315 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 7)
+2026-04-19 14:44:34,505 - src.router.core - ERROR - Auto-feedback failed: 'str' object is not callable
+2026-04-19 14:44:34,601 - src.router.core - INFO - Updated log entry 3 with RC ID and features
+2026-04-19 14:44:34,601 - src.router.core - INFO - Logged routing decision for model gemma4:31b
+2026-04-19 14:44:46,044 - src.router.core - INFO - Updated log entry 4 with RC ID and features
+2026-04-19 14:44:46,045 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 14:44:46,052 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 14:44:46,052 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 14:44:46,486 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=10
+2026-04-19 14:44:46,671 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=11
+2026-04-19 14:44:47,040 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=12
+2026-04-19 14:44:51,293 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 14:44:51,307 - src.router.core - INFO - Updated log entry 4 sentiment to happy
+2026-04-19 14:44:51,307 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 8: happy
+2026-04-19 14:44:51,415 - src.router.core - ERROR - Error sending feedback to Reality Check: 'str' object is not callable
+2026-04-19 14:44:51,885 - src.router.core - INFO - Updated log entry 5 with RC ID and features
+2026-04-19 14:44:51,886 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 14:46:28,145 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 14:46:28,146 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 14:46:28,511 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=13
+2026-04-19 14:46:28,866 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=14
+2026-04-19 14:46:28,870 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=15
+2026-04-19 14:46:29,422 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 14:46:29,431 - src.router.core - INFO - Updated log entry 5 sentiment to happy
+2026-04-19 14:46:29,431 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 12: happy
+2026-04-19 14:46:29,568 - src.router.core - ERROR - Error sending feedback to Reality Check: 'str' object is not callable
+2026-04-19 14:46:40,689 - src.router.core - INFO - Updated log entry 6 with RC ID and features
+2026-04-19 14:46:40,689 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 19:30:51,952 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 19:30:51,985 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 19:30:51,985 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 19:30:51,993 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 19:30:52,000 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 19:30:52,006 - src.router.core - INFO - Total configured and discovered models: 3
+2026-04-19 19:30:52,006 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 20:06:07,975 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 20:06:07,975 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 20:06:08,506 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=1
+2026-04-19 20:06:08,622 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=2
+2026-04-19 20:06:08,830 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=3
+2026-04-19 20:06:21,098 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 20:06:49,907 - src.router.core - INFO - Updated log entry 1 with RC ID and features
+2026-04-19 20:06:49,908 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 20:07:31,700 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 20:07:31,701 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 20:07:32,490 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=4
+2026-04-19 20:07:32,498 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=5
+2026-04-19 20:07:32,514 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=6
+2026-04-19 20:07:33,008 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 20:07:33,035 - src.router.core - INFO - Updated log entry 1 sentiment to happy
+2026-04-19 20:07:33,035 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 1: happy
+2026-04-19 20:07:33,262 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 20:09:51,143 - src.router.core - INFO - Updated log entry 2 with RC ID and features
+2026-04-19 20:09:51,144 - src.router.core - INFO - Logged routing decision for model gemma4:31b
+2026-04-19 20:29:29,067 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 20:29:29,067 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 20:29:29,487 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=7
+2026-04-19 20:29:29,682 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=8
+2026-04-19 20:29:29,868 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=9
+2026-04-19 20:29:41,484 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 20:30:11,171 - src.router.core - INFO - Updated log entry 3 with RC ID and features
+2026-04-19 20:30:11,171 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 20:33:29,509 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 20:33:29,509 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 20:33:30,115 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=10
+2026-04-19 20:33:30,379 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=11
+2026-04-19 20:33:30,467 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=12
+2026-04-19 20:33:31,011 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 20:33:31,018 - src.router.core - INFO - Updated log entry 3 sentiment to happy
+2026-04-19 20:33:31,018 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 7: happy
+2026-04-19 20:33:31,366 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 20:34:06,359 - src.router.core - INFO - Updated log entry 4 with RC ID and features
+2026-04-19 20:34:06,359 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 20:40:13,825 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 20:40:13,825 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 20:40:14,163 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=13
+2026-04-19 20:40:14,343 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=14
+2026-04-19 20:40:14,711 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=15
+2026-04-19 20:40:26,585 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 20:40:26,619 - src.router.core - INFO - Updated log entry 4 sentiment to happy
+2026-04-19 20:40:26,619 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 11: happy
+2026-04-19 20:40:26,830 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 20:40:54,858 - src.router.core - INFO - Updated log entry 5 with RC ID and features
+2026-04-19 20:40:54,858 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 20:52:02,821 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 20:52:02,821 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 20:52:03,183 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=16
+2026-04-19 20:52:03,383 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=17
+2026-04-19 20:52:03,708 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=18
+2026-04-19 20:52:04,109 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 20:52:31,115 - src.router.core - INFO - Updated log entry 6 with RC ID and features
+2026-04-19 20:52:31,116 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 20:54:33,730 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 20:54:33,730 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 20:54:34,095 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=19
+2026-04-19 20:54:34,560 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=20
+2026-04-19 20:54:34,560 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=21
+2026-04-19 20:54:35,168 - src.router.core - INFO - Assessed user sentiment: unhappy (raw output: 'unhappy')
+2026-04-19 20:54:35,179 - src.router.core - INFO - Updated log entry 6 sentiment to unhappy
+2026-04-19 20:54:35,180 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 16: unhappy
+2026-04-19 20:54:35,573 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 20:54:57,834 - src.router.core - INFO - Updated log entry 7 with RC ID and features
+2026-04-19 20:54:57,835 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 20:56:49,467 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 20:56:49,467 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 20:56:49,824 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=22
+2026-04-19 20:56:50,005 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=23
+2026-04-19 20:56:50,204 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=24
+2026-04-19 20:56:50,610 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 20:56:50,619 - src.router.core - INFO - Updated log entry 7 sentiment to happy
+2026-04-19 20:56:50,620 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 21: happy
+2026-04-19 20:56:50,897 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 20:57:13,975 - src.router.core - INFO - Updated log entry 8 with RC ID and features
+2026-04-19 20:57:13,975 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 21:01:20,401 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:01:20,401 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:01:20,903 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=25
+2026-04-19 21:01:20,965 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=26
+2026-04-19 21:01:21,153 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=27
+2026-04-19 21:01:21,525 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 21:01:21,535 - src.router.core - INFO - Updated log entry 8 sentiment to happy
+2026-04-19 21:01:21,535 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 24: happy
+2026-04-19 21:01:21,742 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 21:01:46,636 - src.router.core - INFO - Updated log entry 9 with RC ID and features
+2026-04-19 21:01:46,636 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 21:02:15,571 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:02:15,571 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:02:15,959 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5000, id=28
+2026-04-19 21:02:16,314 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5000, id=29
+2026-04-19 21:02:16,322 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5000, id=30
+2026-04-19 21:02:16,738 - src.router.core - INFO - Assessed user sentiment: unhappy (raw output: 'unhappy')
+2026-04-19 21:02:16,750 - src.router.core - INFO - Updated log entry 9 sentiment to unhappy
+2026-04-19 21:02:16,751 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 27: unhappy
+2026-04-19 21:02:16,964 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 21:02:39,692 - src.router.core - INFO - Updated log entry 10 with RC ID and features
+2026-04-19 21:02:39,692 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 21:03:58,128 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:03:58,129 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:03:58,611 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.6842, id=31
+2026-04-19 21:03:58,920 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.6842, id=32
+2026-04-19 21:03:59,226 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.6842, id=33
+2026-04-19 21:03:59,764 - src.router.core - INFO - Assessed user sentiment: unhappy (raw output: 'unhappy')
+2026-04-19 21:03:59,772 - src.router.core - INFO - Updated log entry 10 sentiment to unhappy
+2026-04-19 21:03:59,772 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 29: unhappy
+2026-04-19 21:04:00,008 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 21:04:22,904 - src.router.core - WARNING - Model qwen3-coder:30b returned empty response. Escalating...
+2026-04-19 21:04:22,904 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 32)
+2026-04-19 21:04:23,144 - src.router.core - INFO - Auto-feedback (quality) response: 200
+2026-04-19 21:04:23,173 - src.router.core - INFO - Updated log entry 11 with RC ID and features
+2026-04-19 21:04:23,173 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 21:04:53,211 - src.router.core - INFO - Updated log entry 12 with RC ID and features
+2026-04-19 21:04:53,212 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 21:18:20,742 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-19 21:18:20,777 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-19 21:18:20,777 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-19 21:18:20,785 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-19 21:18:20,792 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-19 21:18:20,940 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-19 21:18:20,949 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-19 21:18:20,958 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-19 21:18:20,967 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-19 21:18:20,977 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-19 21:18:20,987 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-19 21:18:20,996 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview-customtools (models/gemini-3.1-pro-preview-customtools) to router
+2026-04-19 21:18:21,005 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-19 21:18:21,014 - src.router.core - INFO - Total configured and discovered models: 11
+2026-04-19 21:18:21,014 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-19 21:19:10,467 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:19:10,467 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:19:11,154 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash: prob=0.5946, id=34
+2026-04-19 21:19:11,313 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview-customtools: prob=0.5946, id=35
+2026-04-19 21:19:11,615 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5946, id=36
+2026-04-19 21:19:11,902 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash: prob=0.5946, id=37
+2026-04-19 21:19:12,279 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash-lite: prob=0.5946, id=38
+2026-04-19 21:19:12,447 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview: prob=0.5946, id=39
+2026-04-19 21:19:12,802 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-flash-lite-preview: prob=0.5946, id=40
+2026-04-19 21:19:13,097 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5946, id=41
+2026-04-19 21:19:13,210 - src.router.core - INFO - Reality Check calibration for models/gemini-3-flash-preview: prob=0.5946, id=42
+2026-04-19 21:19:13,582 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5946, id=43
+2026-04-19 21:19:13,712 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash-lite: prob=0.5946, id=44
+2026-04-19 21:19:14,747 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 21:19:38,413 - src.router.core - WARNING - Model qwen3-coder:30b returned empty response. Escalating...
+2026-04-19 21:19:38,415 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 36)
+2026-04-19 21:19:40,427 - src.router.core - ERROR - Auto-feedback failed: 
+2026-04-19 21:19:40,469 - src.router.core - INFO - Updated log entry 13 with RC ID and features
+2026-04-19 21:19:40,469 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 21:19:40,742 - src.router.core - ERROR - Model models/gemini-2.5-flash failed with infrastructure error: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:19:40,771 - src.router.core - INFO - Updated log entry 14 with RC ID and features
+2026-04-19 21:19:40,771 - src.router.core - INFO - Logged routing decision for model models/gemini-2.5-flash
+2026-04-19 21:19:40,772 - src.router.core - ERROR - Routing error: 502: Infrastructure error calling models/gemini-2.5-flash: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:19:40,772 - src.router.core - ERROR - Chat error: 500: Routing error: 502: Infrastructure error calling models/gemini-2.5-flash: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:19:45,786 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:19:45,786 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:19:46,314 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash-lite: prob=0.5946, id=45
+2026-04-19 21:19:46,692 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash: prob=0.5946, id=46
+2026-04-19 21:19:46,836 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash-lite: prob=0.5946, id=47
+2026-04-19 21:19:47,499 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5946, id=48
+2026-04-19 21:19:47,507 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash: prob=0.5946, id=49
+2026-04-19 21:19:47,585 - src.router.core - INFO - Reality Check calibration for models/gemini-3-flash-preview: prob=0.5946, id=50
+2026-04-19 21:19:47,921 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-flash-lite-preview: prob=0.5946, id=51
+2026-04-19 21:19:48,075 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview-customtools: prob=0.5946, id=52
+2026-04-19 21:19:48,322 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5946, id=53
+2026-04-19 21:19:48,590 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5946, id=54
+2026-04-19 21:19:48,940 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview: prob=0.5946, id=55
+2026-04-19 21:19:49,512 - src.router.core - INFO - Assessed user sentiment: indeterminate (raw output: 'indeterminate')
+2026-04-19 21:20:17,742 - src.router.core - INFO - Updated log entry 15 with RC ID and features
+2026-04-19 21:20:17,742 - src.router.core - INFO - Logged routing decision for model MFDoom/deepseek-coder-v2-tool-calling:16b
+2026-04-19 21:21:21,651 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:21:21,651 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:21:22,331 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5946, id=56
+2026-04-19 21:21:22,333 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash: prob=0.5946, id=57
+2026-04-19 21:21:22,639 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-flash-lite-preview: prob=0.5946, id=58
+2026-04-19 21:21:22,640 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview: prob=0.5946, id=59
+2026-04-19 21:21:22,791 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash: prob=0.5946, id=60
+2026-04-19 21:21:22,861 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5946, id=61
+2026-04-19 21:21:23,076 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash-lite: prob=0.5946, id=62
+2026-04-19 21:21:23,190 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5946, id=63
+2026-04-19 21:21:23,559 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview-customtools: prob=0.5946, id=64
+2026-04-19 21:21:23,559 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash-lite: prob=0.5946, id=65
+2026-04-19 21:21:23,736 - src.router.core - INFO - Reality Check calibration for models/gemini-3-flash-preview: prob=0.5946, id=66
+2026-04-19 21:21:24,061 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 21:21:24,070 - src.router.core - INFO - Updated log entry 15 sentiment to happy
+2026-04-19 21:21:24,071 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 48: happy
+2026-04-19 21:21:24,243 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 21:21:24,518 - src.router.core - ERROR - Model models/gemini-3.1-pro-preview-customtools failed with infrastructure error: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:21:24,544 - src.router.core - INFO - Updated log entry 16 with RC ID and features
+2026-04-19 21:21:24,544 - src.router.core - INFO - Logged routing decision for model models/gemini-3.1-pro-preview-customtools
+2026-04-19 21:21:24,544 - src.router.core - ERROR - Routing error: 502: Infrastructure error calling models/gemini-3.1-pro-preview-customtools: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:21:24,545 - src.router.core - ERROR - Chat error: 500: Routing error: 502: Infrastructure error calling models/gemini-3.1-pro-preview-customtools: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:21:29,567 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:21:29,568 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:21:30,317 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.5946, id=67
+2026-04-19 21:21:30,327 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash: prob=0.5946, id=68
+2026-04-19 21:21:30,498 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.5946, id=69
+2026-04-19 21:21:30,551 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview-customtools: prob=0.5946, id=70
+2026-04-19 21:21:30,774 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview: prob=0.5946, id=71
+2026-04-19 21:21:30,848 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash: prob=0.5946, id=72
+2026-04-19 21:21:31,033 - src.router.core - INFO - Reality Check calibration for models/gemini-3-flash-preview: prob=0.5946, id=73
+2026-04-19 21:21:31,443 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.5946, id=74
+2026-04-19 21:21:31,451 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-flash-lite-preview: prob=0.5946, id=75
+2026-04-19 21:21:31,452 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash-lite: prob=0.5946, id=76
+2026-04-19 21:21:31,853 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash-lite: prob=0.5946, id=77
+2026-04-19 21:21:32,066 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 21:21:32,072 - src.router.core - INFO - Updated log entry 16 sentiment to happy
+2026-04-19 21:21:32,072 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 64: happy
+2026-04-19 21:21:32,318 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 21:21:57,022 - src.router.core - WARNING - Model qwen3-coder:30b returned empty response. Escalating...
+2026-04-19 21:21:57,022 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 74)
+2026-04-19 21:21:57,352 - src.router.core - INFO - Auto-feedback (quality) response: 200
+2026-04-19 21:21:57,383 - src.router.core - INFO - Updated log entry 17 with RC ID and features
+2026-04-19 21:21:57,383 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 21:21:57,687 - src.router.core - ERROR - Model models/gemini-2.5-flash failed with infrastructure error: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:21:57,718 - src.router.core - INFO - Updated log entry 18 with RC ID and features
+2026-04-19 21:21:57,718 - src.router.core - INFO - Logged routing decision for model models/gemini-2.5-flash
+2026-04-19 21:21:57,718 - src.router.core - ERROR - Routing error: 502: Infrastructure error calling models/gemini-2.5-flash: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:21:57,719 - src.router.core - ERROR - Chat error: 500: Routing error: 502: Infrastructure error calling models/gemini-2.5-flash: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:22:02,747 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:22:02,747 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:22:03,274 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash: prob=0.6145, id=78
+2026-04-19 21:22:03,325 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview-customtools: prob=0.6145, id=79
+2026-04-19 21:22:03,580 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.6145, id=80
+2026-04-19 21:22:03,640 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.6145, id=81
+2026-04-19 21:22:04,007 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview: prob=0.6145, id=82
+2026-04-19 21:22:04,012 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash: prob=0.6145, id=83
+2026-04-19 21:22:04,183 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-flash-lite-preview: prob=0.6145, id=84
+2026-04-19 21:22:04,249 - src.router.core - INFO - Reality Check calibration for models/gemini-3-flash-preview: prob=0.6145, id=85
+2026-04-19 21:22:04,621 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash-lite: prob=0.6145, id=86
+2026-04-19 21:22:04,624 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.6145, id=87
+2026-04-19 21:22:04,711 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash-lite: prob=0.6145, id=88
+2026-04-19 21:22:05,092 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 21:22:05,108 - src.router.core - INFO - Updated log entry 18 sentiment to happy
+2026-04-19 21:22:05,108 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 72: happy
+2026-04-19 21:22:05,547 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 21:22:30,056 - src.router.core - WARNING - Model qwen3-coder:30b returned empty response. Escalating...
+2026-04-19 21:22:30,056 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 80)
+2026-04-19 21:22:30,245 - src.router.core - INFO - Auto-feedback (quality) response: 200
+2026-04-19 21:22:30,265 - src.router.core - INFO - Updated log entry 19 with RC ID and features
+2026-04-19 21:22:30,265 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 21:22:30,516 - src.router.core - ERROR - Model models/gemini-2.5-flash failed with infrastructure error: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:22:30,550 - src.router.core - INFO - Updated log entry 20 with RC ID and features
+2026-04-19 21:22:30,550 - src.router.core - INFO - Logged routing decision for model models/gemini-2.5-flash
+2026-04-19 21:22:30,550 - src.router.core - ERROR - Routing error: 502: Infrastructure error calling models/gemini-2.5-flash: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:22:30,551 - src.router.core - ERROR - Chat error: 500: Routing error: 502: Infrastructure error calling models/gemini-2.5-flash: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:22:35,567 - src.router.core - INFO - Routing request with strategy: expected_utility
+2026-04-19 21:22:35,567 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-19 21:22:36,131 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview-customtools: prob=0.6250, id=89
+2026-04-19 21:22:36,145 - src.router.core - INFO - Reality Check calibration for qwen3-coder:30b: prob=0.6250, id=90
+2026-04-19 21:22:36,472 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash-lite: prob=0.6150, id=91
+2026-04-19 21:22:36,478 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash-lite: prob=0.6150, id=92
+2026-04-19 21:22:36,766 - src.router.core - INFO - Reality Check calibration for models/gemini-3-flash-preview: prob=0.6250, id=93
+2026-04-19 21:22:36,786 - src.router.core - INFO - Reality Check calibration for models/gemini-2.0-flash: prob=0.6150, id=94
+2026-04-19 21:22:36,948 - src.router.core - INFO - Reality Check calibration for models/gemini-2.5-flash: prob=0.6250, id=95
+2026-04-19 21:22:37,083 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-flash-lite-preview: prob=0.6250, id=96
+2026-04-19 21:22:37,250 - src.router.core - INFO - Reality Check calibration for MFDoom/deepseek-coder-v2-tool-calling:16b: prob=0.6150, id=97
+2026-04-19 21:22:37,365 - src.router.core - INFO - Reality Check calibration for models/gemini-3.1-pro-preview: prob=0.6150, id=98
+2026-04-19 21:22:37,709 - src.router.core - INFO - Reality Check calibration for gemma4:31b: prob=0.6150, id=99
+2026-04-19 21:22:38,080 - src.router.core - INFO - Assessed user sentiment: happy (raw output: 'happy')
+2026-04-19 21:22:38,096 - src.router.core - INFO - Updated log entry 20 sentiment to happy
+2026-04-19 21:22:38,096 - src.router.core - INFO - Sending feedback to Reality Check (expected_utility) for decision 78: happy
+2026-04-19 21:22:38,278 - src.router.core - INFO - Reality Check feedback response: 200
+2026-04-19 21:23:03,024 - src.router.core - WARNING - Model qwen3-coder:30b returned empty response. Escalating...
+2026-04-19 21:23:03,025 - src.router.core - INFO - Sending auto-negative feedback for empty response (decision 90)
+2026-04-19 21:23:03,288 - src.router.core - INFO - Auto-feedback (quality) response: 200
+2026-04-19 21:23:03,354 - src.router.core - INFO - Updated log entry 21 with RC ID and features
+2026-04-19 21:23:03,354 - src.router.core - INFO - Logged routing decision for model qwen3-coder:30b
+2026-04-19 21:23:03,809 - src.router.core - ERROR - Model models/gemini-2.5-flash failed with infrastructure error: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:23:03,867 - src.router.core - INFO - Updated log entry 22 with RC ID and features
+2026-04-19 21:23:03,867 - src.router.core - INFO - Logged routing decision for model models/gemini-2.5-flash
+2026-04-19 21:23:03,867 - src.router.core - ERROR - Routing error: 502: Infrastructure error calling models/gemini-2.5-flash: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
+2026-04-19 21:23:03,867 - src.router.core - ERROR - Chat error: 500: Routing error: 502: Infrastructure error calling models/gemini-2.5-flash: Error calling Custom OpenAI API: Error code: 400 - [{'error': {'code': 400, 'message': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.BadRequest', 'fieldViolations': [{'description': 'Invalid JSON payload received. Unknown name "frequency_penalty": Cannot find field.'}]}]}}]
