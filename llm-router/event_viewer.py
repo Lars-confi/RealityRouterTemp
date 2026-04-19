@@ -6,7 +6,8 @@ import sqlite3
 import sys
 import time
 
-DB_PATH = "llm_router.db"
+# Look for database in current dir or parent dir (project root)
+DB_PATH = "llm_router.db" if os.path.exists("llm_router.db") else "../llm_router.db"
 
 
 def clear_screen():
@@ -67,10 +68,11 @@ def format_payload(payload_str, truncate_lines=None):
         return raw
 
 
-def show_detail_view(log):
+def show_detail_view(log_row):
     """
     Detailed view showing un-truncated request and response payloads.
     """
+    log = dict(log_row)
     while True:
         clear_screen()
         print("=====================================================")
@@ -79,10 +81,10 @@ def show_detail_view(log):
         print(f"Timestamp: {log['timestamp']}")
         status = "✅ SUCCESS" if log["success"] else "❌ FAILED"
         print(f"Status:    {status}")
+        print(f"Agent:     {log.get('agent_id', 'default')}")
         print(f"Model:     {log['model_name']} ({log['model_id']})")
 
-        row = dict(log)
-        rc_id = row.get("reality_check_id")
+        rc_id = log.get("reality_check_id")
         if rc_id:
             print(f"RC Decision ID: {rc_id}")
 
@@ -94,9 +96,7 @@ def show_detail_view(log):
         )
 
         # Show User Sentiment
-        sentiment = (
-            log["user_sentiment"] if "user_sentiment" in dict(log).keys() else None
-        )
+        sentiment = log.get("user_sentiment")
         if sentiment:
             s_map = {
                 "happy": "😊 Happy",
@@ -106,8 +106,7 @@ def show_detail_view(log):
             print(f"Sentiment: {s_map.get(sentiment, sentiment)}")
 
         # Show Agent Features
-        row = dict(log)
-        feat_json = row.get("features_json")
+        feat_json = log.get("features_json")
         if feat_json:
             try:
                 f = json.loads(feat_json)
@@ -137,7 +136,7 @@ def show_detail_view(log):
                 pass
 
         # Show Model Comparison Table
-        context = row.get("routing_context")
+        context = log.get("routing_context")
         if context:
             try:
                 decisions = json.loads(context)
@@ -156,11 +155,11 @@ def show_detail_view(log):
         print("-" * 53)
 
         print("\n[FULL REQUEST PAYLOAD]")
-        print(format_payload(log["request_payload"]))
+        print(format_payload(log.get("request_payload")))
 
         print("\n" + "-" * 53)
         print("\n[FULL RESPONSE PAYLOAD]")
-        print(format_payload(log["response_payload"]))
+        print(format_payload(log.get("response_payload")))
 
         print("\n" + "=" * 53)
         input("\nPress [Enter] to return to list view: ")
@@ -197,14 +196,17 @@ def view_events():
             if not logs:
                 print("\nNo events logged yet. Try sending a prompt to the server!")
             else:
-                for idx, log in enumerate(logs, 1):
+                for idx, log_row in enumerate(logs, 1):
+                    log = dict(log_row)
                     status = "✅ SUCCESS" if log["success"] else "❌ FAILED"
                     print(f"[{idx}] [{log['timestamp']}] {status}")
-                    print(f"    Model: {log['model_name']} ({log['model_id']})")
+                    print(
+                        f"    Agent: {log.get('agent_id', 'default')} | Model: {log['model_name']} ({log['model_id']})"
+                    )
                     print(f"    Time: {log['time']:.2f}s | Cost: ${log['cost']:.6f}")
 
                     req_preview = format_payload(
-                        log["request_payload"], truncate_lines=2
+                        log.get("request_payload"), truncate_lines=2
                     )
                     print(f"    Req Preview: {req_preview.strip()}")
                     print("-" * 53)

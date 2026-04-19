@@ -46,6 +46,7 @@ class MetricsSummary(BaseModel):
     potential_max_cost: float
     success_rate: float
     models: Dict[str, Dict]
+    agents: Dict[str, Dict]
     timestamp: str
 
 
@@ -79,6 +80,8 @@ class MetricsCollector:
         probability: float,
         success: bool,
         query: str,
+        strategy: str = None,
+        agent_id: str = "default",
         response_text: str = None,
         prompt_tokens: int = 0,
         completion_tokens: int = 0,
@@ -102,6 +105,7 @@ class MetricsCollector:
             # Create a new routing log entry
             log_entry = RoutingLog(
                 query=query,
+                agent_id=agent_id,
                 model_id=model_id,
                 model_name=model_name,
                 expected_utility=expected_utility,
@@ -116,6 +120,7 @@ class MetricsCollector:
                 request_payload=request_payload,
                 response_payload=response_payload,
                 routing_context=routing_context,
+                strategy=strategy,
                 confidence=confidence,
                 entropy=entropy,
                 logprobs_mean=logprobs_mean,
@@ -228,6 +233,7 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
                 potential_max_cost=0.0,
                 success_rate=0.0,
                 models={},
+                agents={},
                 timestamp=datetime.utcnow().isoformat(),
             )
 
@@ -240,9 +246,11 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
         total_time = sum(log.time for log in logs)
         success_count = sum(1 for log in logs if log.success)
 
-        # Group by model
+        # Group by model and agent
         model_stats = {}
+        agent_stats = {}
         for log in logs:
+            # Model grouping
             model_id = log.model_id
             if model_id not in model_stats:
                 model_stats[model_id] = {
@@ -265,6 +273,21 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
             model_stats[model_id]["total_time"] += log.time
             if log.success:
                 model_stats[model_id]["success_count"] += 1
+
+            # Agent grouping
+            a_id = log.agent_id or "default"
+            if a_id not in agent_stats:
+                agent_stats[a_id] = {
+                    "requests": 0,
+                    "total_cost": 0.0,
+                    "total_tokens": 0,
+                    "success_count": 0,
+                }
+            agent_stats[a_id]["requests"] += 1
+            agent_stats[a_id]["total_cost"] += log.cost
+            agent_stats[a_id]["total_tokens"] += log.total_tokens or 0
+            if log.success:
+                agent_stats[a_id]["success_count"] += 1
 
         # Calculate averages
         avg_cost = total_cost / total_requests if total_requests > 0 else 0.0
@@ -303,6 +326,7 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
             potential_max_cost=potential_max_cost,
             success_rate=success_rate,
             models=model_stats,
+            agents=agent_stats,
             timestamp=datetime.utcnow().isoformat(),
         )
     except Exception as e:
@@ -439,6 +463,24 @@ async def get_dashboard():
                 </div>
             </div>
 
+            <div id="agents" class="card">
+                <h2>Agent Activity</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Agent ID</th>
+                                <th>Requests</th>
+                                <th>Total Cost</th>
+                                <th>Total Tokens</th>
+                                <th>Success Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agents-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div id="models" class="card">
                 <h2>Model Performance & Unit Economics</h2>
                 <div style="overflow-x: auto;">
@@ -476,7 +518,24 @@ async def get_dashboard():
                         <div class="stat"><div class="stat-label">Success Density</div><div class="stat-value">${(data.success_rate * 100).toFixed(1)}%</div><div class="stat-label">Operational</div></div>
                     `;
 
-                    // Update Table
+                    // Update Agents Table
+                    const agentsBody = document.getElementById('agents-body');
+                    agentsBody.innerHTML = '';
+                    const sortedAgents = Object.entries(data.agents).sort((a, b) => b[1].requests - a[1].requests);
+                    for (const [id, stats] of sortedAgents) {
+                        const row = document.createElement('tr');
+                        const rate = ((stats.success_count / stats.requests) * 100).toFixed(1);
+                        row.innerHTML = `
+                            <td style="font-weight: 600;">${id}</td>
+                            <td>${stats.requests.toLocaleString()}</td>
+                            <td>$${stats.total_cost.toFixed(6)}</td>
+                            <td>${stats.total_tokens.toLocaleString()}</td>
+                            <td><span class="badge ${rate > 90 ? 'badge-success' : ''}">${rate}%</span></td>
+                        `;
+                        agentsBody.appendChild(row);
+                    }
+
+                    // Update Models Table
                     const modelsBody = document.getElementById('models-body');
                     modelsBody.innerHTML = '';
 

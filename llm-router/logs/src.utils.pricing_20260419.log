@@ -1,0 +1,8 @@
+2026-04-19 21:53:21,322 - src.utils.pricing - INFO - Fetching up-to-date model prices from litellm...
+2026-04-19 21:53:21,595 - src.utils.pricing - INFO - Successfully fetched and cached model prices.
+2026-04-19 21:53:26,655 - src.utils.pricing - INFO - Loaded model prices from local cache.
+2026-04-19 21:53:31,264 - src.utils.pricing - INFO - Loaded model prices from local cache.
+2026-04-19 21:53:34,945 - src.utils.pricing - INFO - Loaded model prices from local cache.
+2026-04-19 21:53:39,757 - src.utils.pricing - INFO - Loaded model prices from local cache.
+2026-04-19 21:53:44,160 - src.utils.pricing - INFO - Loaded model prices from local cache.
+2026-04-19 21:53:49,787 - src.utils.pricing - INFO - Loaded model prices from local cache.

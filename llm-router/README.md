@@ -1,176 +1,74 @@
-# LLM Router
+# LLM Router: Core Architecture & Contribution Guide
 
-An intelligent routing system for Language Model requests that automatically routes to the most appropriate model based on various criteria using Expected Utility Theory.
+An intelligent, modular routing engine that applies **Expected Utility Theory (EUT)** to language model selection. This system acts as a high-performance middleware layer designed to optimize agentic workflows for cost, latency, and response quality.
 
-## Value Proposition
+## System Architecture
 
-The LLM Router solves the challenge of selecting the optimal language model for a given task by intelligently evaluating multiple factors including:
-- **Performance**: Success probability of the model
-- **Cost**: Token cost per million tokens
-- **Time**: Average response time in seconds
-- **Utility**: Expected utility calculated using Expected Utility Theory framework
+The LLM Router is built on a modular Python/FastAPI backend that decouples routing logic from model execution. It utilizes a stateful feedback loop to calibrate routing decisions based on real-time performance and user sentiment.
 
-This system automatically selects the best model for your request, balancing between cost, time, and performance to maximize the overall utility of your LLM usage.
+### Core Components
 
-## Features
+#### 1. Router Engine (`src.router.core`)
+The central orchestrator implementing multi-strategy routing logic.
+- **Unified Feature Extractor**: Analyzes incoming queries for 40+ structural and semantic features (AST complexity, trace frequencies, etc.).
+- **Utility Calculator**: Implements the mathematical framework: $EU(m_i) = p_i \cdot R - \alpha \cdot c_i - \beta \cdot t_i$.
+- **Validation Layer**: Intercepts model responses to verify schema compliance (JSON, XML, Markdown) before delivery.
 
-- Intelligent routing based on Expected Utility Theory framework
-- Load balancing across multiple models (round-robin, weighted, performance-based)
-- Performance and cost optimization
-- Real-time metrics collection and analytics
-- Configurable routing rules and model parameters
-- Support for multiple LLM providers (OpenAI, Anthropic, Cohere, Ollama)
-- Database logging for routing decisions and analytics
-- RESTful API for easy integration
-- Transparent routing that works with standard LLM API endpoints
+#### 2. Reality Check Integration
+The system integrates with Reality Check calibration endpoints to obtain success probabilities ($p_i$).
+- **LLM Routing Endpoint**: Used for single-shot calibration during initial ranking.
+- **LLM Rerouting Endpoint**: Used for high-fidelity post-hoc assessment in tiered strategies.
+- **Sentiment Feedback Loop**: Asynchronous submission of user feedback to reinforce or penalize model performance.
 
-## Installation
+#### 3. Adapter Layer (`src.adapters`)
+A provider-agnostic interface that normalizes requests across different backends.
+- **Normalized Interfaces**: Support for OpenAI, Anthropic, Gemini, and Generic (Ollama/vLLM) providers.
+- **Concurrency Controller**: Uses per-adapter semaphores to manage `thread_limit` constraints.
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd llm-router
-```
+#### 4. Persistence Layer (`src.models.database`)
+A SQLAlchemy-managed store that enables continuous learning.
+- **Routing Logs**: Stores full payloads, extracted features, and utility metrics.
+- **Performance Tracking**: Maintains rolling averages for model latency and success rates.
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+---
 
-3. Set up environment variables:
-Create a `.env` file in the project root with your API keys:
-```
-OPENAI_API_KEY=your_openai_key
-ANTHROPIC_API_KEY=your_anthropic_key
-COHERE_API_KEY=your_cohere_key
-DATABASE_URL=sqlite:///./llm_router.db
-DEFAULT_STRATEGY=expected_utility
-REWARD=1.0
-COST_SENSITIVITY=0.5
-TIME_SENSITIVITY=0.5
-```
+## Technical Stack
+- **Backend**: FastAPI (Asynchronous I/O)
+- **Database**: SQLAlchemy (SQLite/PostgreSQL)
+- **Networking**: HTTPX (Async client)
+- **Validation**: Pydantic v2
 
-4. Initialize the database:
-```bash
-python -m src.main
-```
+---
 
-## Usage
+## Contributing to LLM Router
 
-### Running the Application
+We welcome contributions from the community. Follow these guidelines to help improve the routing engine.
 
-To start the LLM Router API server:
+### How to Contribute
+1. **Feature Implementation**: Add support for new model providers or improve feature extraction logic.
+2. **Bug Fixes**: Resolve issues in the validation layer or improve error handling for specific adapters.
+3. **Documentation**: Enhance technical guides or clarify architectural components.
+4. **Testing**: Expand the `pytest` suite to cover edge cases in sequential rerouting.
 
-```bash
-python -m src.main
-```
+### Development Workflow
+1. **Fork & Clone**: Create a local copy of the repository.
+2. **Environment Setup**:
+   ```bash
+   pip install -r requirements.txt
+   python setup.py develop
+   ```
+3. **Branching**: Create a descriptive branch (e.g., `feature/new-adapter` or `fix/validation-regex`).
+4. **Testing**: Ensure all tests pass before submitting.
+   ```bash
+   pytest tests/
+   ```
+5. **Pull Requests**: Submit your PR with a detailed description of the changes and any architectural impact.
 
-The server will start on `http://localhost:8000`
+### Code Standards
+- Follow PEP 8 guidelines.
+- Use type hints for all new function signatures.
+- Ensure all new features are accompanied by relevant unit or integration tests.
 
-### API Integration
+---
 
-The LLM Router works with standard LLM API endpoints, allowing you to integrate it with tools like VS Code, Zed, or Parlant without changing your existing workflows:
-
-- `POST /v1/chat/completions` - Standard chat completion endpoint
-- `POST /v1/completions` - Standard completion endpoint
-- `GET /v1/models` - Get list of available models
-- `GET /metrics` - Get current routing metrics
-- `GET /health` - Health check endpoint
-
-### Example Request
-
-```bash
-curl -X POST "http://localhost:8000/v1/chat/completions" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "messages": [
-      {"role": "user", "content": "Explain quantum computing in simple terms"}
-    ],
-    "max_tokens": 100
-  }'
-```
-
-### Historical Conversations
-
-The system maintains a database of routing decisions and conversation history. You can access historical conversations through:
-
-1. The `/metrics` endpoint for current routing metrics
-2. Direct database queries to the SQLite database (`llm_router.db`) which logs all routing decisions
-3. The database contains information about which models were selected for specific queries, along with performance metrics
-
-This allows you to analyze routing patterns and optimize your LLM usage over time.
-
-### Implementation Details
-
-The system supports standard LLM API endpoints:
-- `/v1/chat/completions` - Routes to the best model based on Expected Utility Theory
-- `/v1/completions` - Routes to the best model based on Expected Utility Theory
-
-All endpoints automatically select the most appropriate model based on performance, cost, and time considerations.
-
-### Configuration
-
-The system can be configured using environment variables or a `.env` file. The following environment variables are supported:
-
-```
-OPENAI_API_KEY=your_openai_key
-ANTHROPIC_API_KEY=your_anthropic_key
-COHERE_API_KEY=your_cohere_key
-DATABASE_URL=sqlite:///./llm_router.db
-DEFAULT_STRATEGY=expected_utility
-REWARD=1.0
-COST_SENSITIVITY=0.5
-TIME_SENSITIVITY=0.5
-```
-
-The `DEFAULT_STRATEGY` can be set to either:
-- `expected_utility` - Use Expected Utility Theory for routing decisions
-- `load_balanced` - Use load balancing across models
-
-## Project Structure
-
-```
-llm-router/
-|-- src/                 # Source code
-|   |-- main.py          # Entry point
-|   |-- router/          # Routing components
-|   |-- adapters/        # LLM provider adapters
-|   |-- models/          # Data models
-|   |-- config/          # Configuration management
-|   |-- utils/           # Utility functions
-|   `-- tests/           # Test files
-|-- config/              # Configuration files
-|-- docs/                # Documentation
-|-- requirements.txt     # Python dependencies
-`-- setup.py             # Project setup
-```
-
-The router supports multiple API endpoints:
-- `/v1/chat/completions` - Standard chat completion endpoint
-- `/v1/completions` - Standard completion endpoint
-- `/v1/models` - Get available models
-- `/metrics` - Get routing metrics
-- `/health` - Health check endpoint
-
-## Database Logging
-
-The system maintains a SQLite database (`llm_router.db`) that logs all routing decisions and conversation history. This database contains:
-
-- Routing decisions with selected models
-- Performance metrics (cost, time, probability)
-- Timestamps of all requests
-- Query information for historical analysis
-
-This allows you to analyze routing patterns and optimize your LLM usage over time.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-MIT
+*LLM Router is maintained by Confidentia AI and friends, powered by Reality Check.*
