@@ -433,23 +433,23 @@ async def get_dashboard():
     <head>
         <title>LLM Router Dashboard</title>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 2em; background: #f4f7f6; color: #333; }
-            .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
-            h1 { color: #2c3e50; margin-bottom: 0.5em; }
-            h2 { color: #34495e; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 2em; background: #121212; color: #e0e0e0; }
+            .card { background: #1e1e1e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 30px; }
+            h1 { color: #ecf0f1; margin-bottom: 0.5em; }
+            h2 { color: #bdc3c7; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
             .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-            .stat { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; }
-            .stat-savings { border-left-color: #27ae60; background: #ebfcf1; }
-            .stat-value { font-size: 1.8em; font-weight: bold; color: #2980b9; margin: 5px 0; }
-            .stat-savings .stat-value { color: #27ae60; }
-            .stat-label { color: #7f8c8d; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
+            .stat { background: #2c2c2c; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; }
+            .stat-savings { border-left-color: #2ecc71; background: #1a3b2b; }
+            .stat-value { font-size: 1.8em; font-weight: bold; color: #5dade2; margin: 5px 0; }
+            .stat-savings .stat-value { color: #2ecc71; }
+            .stat-label { color: #95a5a6; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
             table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid #edf2f7; }
-            th { background: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75em; }
+            th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid #333; }
+            th { background: #2c2c2c; color: #bdc3c7; font-weight: 600; text-transform: uppercase; font-size: 0.75em; }
             tr:last-child td { border-bottom: none; }
-            tr:hover { background: #f8fafc; }
+            tr:hover { background: #2a2a2a; }
             .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
-            .badge-success { background: #dcfce7; color: #166534; }
+            .badge-success { background: #064e3b; color: #34d399; }
         </style>
     </head>
     <body>
@@ -497,6 +497,9 @@ async def get_dashboard():
                         </thead>
                         <tbody id="models-body"></tbody>
                     </table>
+                </div>
+                <div style="text-align: right; margin-top: 10px; font-size: 0.8em; color: #7f8c8d;">
+                    *Pricing data provided by <a href="https://github.com/BerriAI/litellm" target="_blank" style="color: #3498db; text-decoration: none;">LiteLLM</a>
                 </div>
             </div>
         </div>
@@ -546,8 +549,8 @@ async def get_dashboard():
                         const rate = ((stats.success_count / stats.requests) * 100).toFixed(1);
                         row.innerHTML = `
                             <td>
-                                <div style="font-weight: 600; color: #2c3e50;">${stats.name || id}</div>
-                                <div style="font-size: 0.75em; color: #94a3b8;">${id}</div>
+                                <div style="font-weight: 600; color: #ecf0f1;">${stats.name || id}</div>
+                                <div style="font-size: 0.75em; color: #95a5a6;">${id}</div>
                             </td>
                             <td>${stats.requests.toLocaleString()}</td>
                             <td>$${stats.total_cost.toFixed(6)}</td>

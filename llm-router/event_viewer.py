@@ -211,7 +211,10 @@ def view_events():
                     print(f"    Req Preview: {req_preview.strip()}")
                     print("-" * 53)
 
-            print("\nCommands: [Enter] Refresh | [1-5] View Details | [q] Quit")
+            print(
+                "\n  * Cost estimates powered by LiteLLM (https://github.com/BerriAI/litellm)"
+            )
+            print("Commands: [Enter] Refresh | [1-5] View Details | [q] Quit")
             choice = input("Choice: ").strip().lower()
 
             if choice == "q":
