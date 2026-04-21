@@ -1,0 +1,264 @@
+2026-04-21 07:05:53,730 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:05:53,782 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-21 07:05:53,782 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-21 07:05:53,803 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-21 07:05:53,823 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-21 07:05:54,011 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-21 07:05:54,052 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-21 07:05:54,090 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-21 07:05:54,112 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-21 07:05:54,133 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-21 07:05:54,153 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-21 07:05:54,173 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-21 07:05:54,193 - src.router.core - INFO - Total configured and discovered models: 10
+2026-04-21 07:05:54,193 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:06:05,495 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:06:05,547 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-21 07:06:05,548 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-21 07:06:05,573 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-21 07:06:05,613 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-21 07:06:05,788 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-21 07:06:05,830 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-21 07:06:05,866 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-21 07:06:05,887 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-21 07:06:05,907 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-21 07:06:05,928 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-21 07:06:05,948 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-21 07:06:05,968 - src.router.core - INFO - Total configured and discovered models: 10
+2026-04-21 07:06:05,968 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:06:58,266 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:06:58,309 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-21 07:06:58,310 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-21 07:06:58,331 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-21 07:06:58,365 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-21 07:06:58,583 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-21 07:06:58,622 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-21 07:06:58,658 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-21 07:06:58,680 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-21 07:06:58,699 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-21 07:06:58,718 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-21 07:06:58,737 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-21 07:06:58,755 - src.router.core - INFO - Total configured and discovered models: 10
+2026-04-21 07:06:58,755 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:06:58,762 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:06:58,781 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='123291939028912'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:06:59,139 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:06:59,139 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:06:59,144 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:06:59,253 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:06:59,273 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='123291926346304'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:06:59,668 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:06:59,668 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:06:59,672 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='123291925211488'>
+2026-04-21 07:06:59,676 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='123291925211488'>
+2026-04-21 07:06:59,677 - src.router.core - ERROR - Routing error: 503: Sticky model unavailable
+2026-04-21 07:06:59,687 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:06:59,726 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='123291925300672'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:07:00,030 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:07:00,030 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:07:00,033 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='123291924987632'>
+2026-04-21 07:07:00,039 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:07:00,082 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='123291925377200'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:07:00,462 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:07:00,462 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:07:00,468 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:07:29,970 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:07:30,021 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-21 07:07:30,022 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-21 07:07:30,047 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-21 07:07:30,084 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-21 07:07:30,246 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-21 07:07:30,281 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-21 07:07:30,315 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-21 07:07:30,337 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-21 07:07:30,356 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-21 07:07:30,375 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-21 07:07:30,394 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-21 07:07:30,412 - src.router.core - INFO - Total configured and discovered models: 10
+2026-04-21 07:07:30,412 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:07:30,420 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:07:30,440 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='129650789322720'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:07:31,259 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:07:31,259 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:07:31,263 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:07:31,265 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:07:31,266 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:07:31,278 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:07:31,370 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='129650789812128'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:07:31,904 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:07:31,904 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:07:31,910 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='129650789495056'>
+2026-04-21 07:07:31,913 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='129650789495056'>
+2026-04-21 07:07:31,919 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:07:31,958 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='129650789217392'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:07:32,354 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:07:32,355 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:07:32,359 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='129650785525952'>
+2026-04-21 07:07:32,369 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:07:32,409 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='129650785662112'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:07:32,929 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:07:32,929 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:07:32,935 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:07:32,937 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:07:32,938 - src.router.core - INFO - Reality Check calibration for model-no-tools: prob=0.8000, id=123
+2026-04-21 07:07:32,938 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:08:05,680 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:08:05,709 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-21 07:08:05,710 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-21 07:08:05,715 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-21 07:08:05,720 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-21 07:08:05,847 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-21 07:08:05,858 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-21 07:08:05,868 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-21 07:08:05,878 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-21 07:08:05,888 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-21 07:08:05,897 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-21 07:08:05,906 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-21 07:08:05,915 - src.router.core - INFO - Total configured and discovered models: 10
+2026-04-21 07:08:05,915 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:08:05,925 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:08:05,934 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='138298995055248'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:08:06,284 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:08:06,284 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:08:06,288 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:08:06,291 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:08:06,291 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:08:06,299 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:08:06,310 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='138298995470896'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:08:06,623 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:08:06,624 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:08:06,627 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='138298992498000'>
+2026-04-21 07:08:06,629 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='138298992498000'>
+2026-04-21 07:08:06,635 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:08:06,647 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='138298992954400'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:08:07,270 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:08:07,271 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:08:07,274 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='138298992964480'>
+2026-04-21 07:08:07,282 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:08:07,293 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='138298991404976'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:08:07,738 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:08:07,739 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:08:07,742 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:08:07,744 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:08:07,744 - src.router.core - INFO - Reality Check calibration for model-no-tools: prob=0.8000, id=123
+2026-04-21 07:08:07,745 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:19:37,421 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:19:37,484 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-21 07:19:37,485 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-21 07:19:37,520 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-21 07:19:37,556 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-21 07:19:37,737 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-21 07:19:37,767 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-21 07:19:37,794 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-21 07:19:37,819 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-21 07:19:37,837 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-21 07:19:37,856 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-21 07:19:37,874 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-21 07:19:37,893 - src.router.core - INFO - Total configured and discovered models: 10
+2026-04-21 07:19:37,893 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:19:37,900 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:19:37,919 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='126340003316272'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:19:38,305 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:19:38,305 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:19:38,310 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:19:38,313 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:19:38,313 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:19:38,320 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:19:38,359 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='126340003908784'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:19:38,743 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:19:38,744 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:19:38,757 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='126340000635872'>
+2026-04-21 07:19:38,761 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='126340000635872'>
+2026-04-21 07:19:38,885 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:19:38,917 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='126340003664416'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:19:39,272 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:19:39,272 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:19:39,275 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='126340000679264'>
+2026-04-21 07:19:39,288 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:19:39,324 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='126340000854288'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:19:39,805 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:19:39,806 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:19:39,809 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:19:39,811 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:19:39,811 - src.router.core - INFO - Reality Check calibration for model-no-tools: prob=0.8000, id=123
+2026-04-21 07:19:39,811 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:20:09,868 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:09,914 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-21 07:20:09,915 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-21 07:20:09,936 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-21 07:20:09,972 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-21 07:20:10,155 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-21 07:20:10,193 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-21 07:20:10,230 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-21 07:20:10,251 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-21 07:20:10,270 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-21 07:20:10,289 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-21 07:20:10,309 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-21 07:20:10,327 - src.router.core - INFO - Total configured and discovered models: 10
+2026-04-21 07:20:10,327 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:10,335 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:10,355 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='130733954881808'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:20:10,893 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:20:10,893 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:10,897 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:20:10,900 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:20:10,900 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:20:10,907 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:10,946 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='130733955473072'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:20:11,316 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:20:11,317 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:11,323 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='130733951167632'>
+2026-04-21 07:20:11,333 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='130733951167632'>
+2026-04-21 07:20:11,445 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:11,482 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='130733955290064'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:20:11,824 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:20:11,824 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:11,829 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='130733954854224'>
+2026-04-21 07:20:11,838 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:11,875 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='130733955383808'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:20:12,229 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:20:12,230 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:12,237 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:20:12,240 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:20:12,240 - src.router.core - INFO - Reality Check calibration for model-no-tools: prob=0.8000, id=123
+2026-04-21 07:20:12,241 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:20:25,284 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:25,313 - src.router.core - INFO - Ollama discovery: found 4 models
+2026-04-21 07:20:25,314 - src.router.core - INFO - Added model qwen3-coder:30b (qwen3-coder:30b) to router
+2026-04-21 07:20:25,320 - src.router.core - INFO - Added model gemma4:31b (gemma4:31b) to router
+2026-04-21 07:20:25,325 - src.router.core - INFO - Added model MFDoom/deepseek-coder-v2-tool-calling:16b (MFDoom/deepseek-coder-v2-tool-calling:16b) to router
+2026-04-21 07:20:25,453 - src.router.core - INFO - Added model models/gemini-2.5-flash (models/gemini-2.5-flash) to router
+2026-04-21 07:20:25,463 - src.router.core - INFO - Added model models/gemini-2.0-flash (models/gemini-2.0-flash) to router
+2026-04-21 07:20:25,473 - src.router.core - INFO - Added model models/gemini-2.0-flash-lite (models/gemini-2.0-flash-lite) to router
+2026-04-21 07:20:25,483 - src.router.core - INFO - Added model models/gemini-2.5-flash-lite (models/gemini-2.5-flash-lite) to router
+2026-04-21 07:20:25,491 - src.router.core - INFO - Added model models/gemini-3-flash-preview (models/gemini-3-flash-preview) to router
+2026-04-21 07:20:25,498 - src.router.core - INFO - Added model models/gemini-3.1-pro-preview (models/gemini-3.1-pro-preview) to router
+2026-04-21 07:20:25,503 - src.router.core - INFO - Added model models/gemini-3.1-flash-lite-preview (models/gemini-3.1-flash-lite-preview) to router
+2026-04-21 07:20:25,508 - src.router.core - INFO - Total configured and discovered models: 10
+2026-04-21 07:20:25,508 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:25,514 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:25,519 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='123915183691760'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:20:25,783 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:20:25,784 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:25,787 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:20:25,790 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:20:25,791 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123
+2026-04-21 07:20:25,797 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:25,807 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='123915184123792'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:20:26,140 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:20:26,141 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:26,144 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='123915180102320'>
+2026-04-21 07:20:26,147 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='123915180102320'>
+2026-04-21 07:20:26,153 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:26,162 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='123915180542336'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:20:26,505 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:20:26,505 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:26,508 - src.router.core - INFO - Routing request with strategy: <MagicMock name='get_settings().default_strategy' id='123915180552416'>
+2026-04-21 07:20:26,513 - src.router.core - INFO - Auto-discovering models from configured providers...
+2026-04-21 07:20:26,524 - src.router.core - WARNING - Auto-discovery failed for custom URL <MagicMock name='get_settings().custom_llm_base_url' id='123915178992912'>: Request URL is missing an 'http://' or 'https://' protocol.
+2026-04-21 07:20:27,106 - src.router.core - INFO - Total configured and discovered models: 0
+2026-04-21 07:20:27,106 - src.router.core - INFO - Router core initialized with Expected Utility Theory framework
+2026-04-21 07:20:27,110 - src.router.core - INFO - Ranking models using strategy: expected_utility
+2026-04-21 07:20:27,112 - src.router.core - INFO - Reality Check calibration for model-tool-supporter: prob=0.8000, id=123
+2026-04-21 07:20:27,112 - src.router.core - INFO - Reality Check calibration for model-no-tools: prob=0.8000, id=123
+2026-04-21 07:20:27,113 - src.router.core - INFO - Reality Check calibration for claude-3-5-sonnet: prob=0.8000, id=123

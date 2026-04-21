@@ -29,7 +29,15 @@ fi
 
 # 3. Activate Virtual Environment
 echo -e "${GREEN}Activating virtual environment...${NC}"
-source venv/bin/activate
+if [ -f "venv/bin/activate" ]; then
+    # Mac/Linux
+    source venv/bin/activate
+elif [ -f "venv/Scripts/activate" ]; then
+    # Windows (Git Bash/MSYS2/WSL)
+    source venv/Scripts/activate
+else
+    echo -e "${YELLOW}Warning: Could not find virtual environment activation script.${NC}"
+fi
 
 # 4. Install Dependencies
 echo -e "${GREEN}Checking and installing dependencies...${NC}"
@@ -41,6 +49,8 @@ cd ..
 
 # 5. Launch the Python TUI
 echo -e "${GREEN}Launching LLM Rerouter Setup Wizard...${NC}"
+export LOG_DIR="$(pwd)/logs"
+mkdir -p "$LOG_DIR"
 python3 start_router.py
 
 # Deactivate venv upon exit

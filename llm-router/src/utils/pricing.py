@@ -84,18 +84,18 @@ class PricingManager:
 
     def get_model_pricing(
         self, model_name: str
-    ) -> Tuple[Optional[float], Optional[float]]:
+    ) -> Tuple[Optional[float], Optional[float], bool, Optional[int], Optional[int]]:
         """
-        Get prompt and completion cost per 1k tokens.
+        Get prompt cost, completion cost per 1k tokens, function calling support, and context limits.
 
         Args:
             model_name: The name of the model (e.g. 'gpt-4o', 'gemini-1.5-pro')
 
         Returns:
-            Tuple of (prompt_cost_per_1k, completion_cost_per_1k)
+            Tuple of (prompt_cost_per_1k, completion_cost_per_1k, supports_function_calling, max_input_tokens, max_tokens)
         """
         if not self.prices:
-            return None, None
+            return None, None, False, None, None
 
         model_name_lower = model_name.lower()
 
@@ -113,12 +113,12 @@ class PricingManager:
             if model_name_lower in key:
                 return self._extract_costs(self.prices[key])
 
-        return None, None
+        return None, None, False, None, None
 
     def _extract_costs(
         self, price_data: dict
-    ) -> Tuple[Optional[float], Optional[float]]:
-        """Convert cost per token to cost per 1k tokens"""
+    ) -> Tuple[Optional[float], Optional[float], bool, Optional[int], Optional[int]]:
+        """Convert cost per token to cost per 1k tokens, also extract limits"""
         try:
             # LiteLLM stores cost per individual token. We calculate cost per 1k tokens.
             input_cost = price_data.get("input_cost_per_token")
@@ -126,10 +126,21 @@ class PricingManager:
 
             p_cost = (input_cost * 1000) if input_cost is not None else None
             c_cost = (output_cost * 1000) if output_cost is not None else None
+            supports_function_calling = price_data.get(
+                "supports_function_calling", False
+            )
+            max_input_tokens = price_data.get("max_input_tokens")
+            max_tokens = price_data.get("max_tokens")
 
-            return p_cost, c_cost
+            return (
+                p_cost,
+                c_cost,
+                supports_function_calling,
+                max_input_tokens,
+                max_tokens,
+            )
         except Exception:
-            return None, None
+            return None, None, False, None, None
 
 
 # Global singleton instance

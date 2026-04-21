@@ -129,7 +129,7 @@ class RouterCore:
             for model_id, model_info in config_models.items():
                 if model_id in settings.disabled_models:
                     continue
-                p_cost, c_cost = pricing_manager.get_model_pricing(model_id)
+                p_cost, c_cost, supports_function_calling, max_input_tokens, max_tokens = pricing_manager.get_model_pricing(model_id)
                 self.add_model(
                     model_id=model_id,
                     model_name=model_info.get("name", model_id),
@@ -146,6 +146,9 @@ class RouterCore:
                     completion_cost=model_info.get("completion_cost")
                     if model_info.get("completion_cost") is not None
                     else c_cost,
+                    supports_function_calling=supports_function_calling,
+                    max_input_tokens=model_info.get("max_input_tokens") or max_input_tokens,
+                    max_tokens=model_info.get("max_tokens") or max_tokens,
                 )
                 self.load_balancer.add_model(
                     model_id, model_info.get("name", model_id), 1.0
@@ -188,14 +191,12 @@ class RouterCore:
                                     and name not in self.models
                                     and name not in settings.disabled_models
                                 ):
-                                    p_cost, c_cost = pricing_manager.get_model_pricing(
-                                        name
-                                    )
+                                    p_cost, c_cost, supports_function_calling, max_input_tokens, max_tokens = pricing_manager.get_model_pricing(name)
                                     if p_cost is None:
                                         p_cost, c_cost = 0.0, 0.0
                                     cost = (p_cost + c_cost) / 2
                                     self.add_model(
-                                        name, name, cost, 1.0, 0.8, None, p_cost, c_cost
+                                        name, name, cost, 1.0, 0.8, None, p_cost, c_cost, supports_function_calling, max_input_tokens, max_tokens
                                     )
                                     self.load_balancer.add_model(name, name, 1.0)
                                     base = (
@@ -220,14 +221,12 @@ class RouterCore:
                                     and name not in self.models
                                     and name not in settings.disabled_models
                                 ):
-                                    p_cost, c_cost = pricing_manager.get_model_pricing(
-                                        name
-                                    )
+                                    p_cost, c_cost, supports_function_calling, max_input_tokens, max_tokens = pricing_manager.get_model_pricing(name)
                                     if p_cost is None:
                                         p_cost, c_cost = 0.001, 0.001
                                     cost = (p_cost + c_cost) / 2
                                     self.add_model(
-                                        name, name, cost, 1.0, 0.8, None, p_cost, c_cost
+                                        name, name, cost, 1.0, 0.8, None, p_cost, c_cost, supports_function_calling, max_input_tokens, max_tokens
                                     )
                                     self.load_balancer.add_model(name, name, 1.0)
                                     base = (
@@ -260,9 +259,7 @@ class RouterCore:
                                     name not in self.models
                                     and name not in settings.disabled_models
                                 ):
-                                    p_cost, c_cost = pricing_manager.get_model_pricing(
-                                        name
-                                    )
+                                    p_cost, c_cost, supports_function_calling, max_input_tokens, max_tokens = pricing_manager.get_model_pricing(name)
                                     if p_cost is None:
                                         if "gpt-4o-mini" in name:
                                             p_cost, c_cost = 0.00015, 0.0006
@@ -276,7 +273,7 @@ class RouterCore:
                                             p_cost, c_cost = 0.002, 0.002
                                     cost = (p_cost + c_cost) / 2
                                     self.add_model(
-                                        name, name, cost, 0.5, 0.9, None, p_cost, c_cost
+                                        name, name, cost, 0.5, 0.9, None, p_cost, c_cost, supports_function_calling, max_input_tokens, max_tokens
                                     )
                                     self.load_balancer.add_model(name, name, 1.0)
                                     self.adapters[name] = GenericOpenAIAdapter(
@@ -309,9 +306,7 @@ class RouterCore:
                                     name not in self.models
                                     and name not in settings.disabled_models
                                 ):
-                                    p_cost, c_cost = pricing_manager.get_model_pricing(
-                                        name
-                                    )
+                                    p_cost, c_cost, supports_function_calling, max_input_tokens, max_tokens = pricing_manager.get_model_pricing(name)
                                     if p_cost is None:
                                         if "flash" in name:
                                             p_cost, c_cost = 0.000075, 0.0003
@@ -329,6 +324,9 @@ class RouterCore:
                                         None,
                                         p_cost,
                                         c_cost,
+                                        supports_function_calling,
+                                        max_input_tokens,
+                                        max_tokens,
                                     )
                                     self.load_balancer.add_model(name, name, 1.0)
                                     self.adapters[name] = GenericOpenAIAdapter(
@@ -355,6 +353,9 @@ class RouterCore:
         concurrency_limit: Optional[int] = None,
         prompt_cost: Optional[float] = None,
         completion_cost: Optional[float] = None,
+        supports_function_calling: bool = False,
+        max_input_tokens: Optional[int] = None,
+        max_tokens: Optional[int] = None,
     ):
         """Add a model to the router"""
         self.models[model_id] = {
@@ -365,6 +366,9 @@ class RouterCore:
             "time": time,
             "probability": probability,
             "concurrency_limit": concurrency_limit,
+            "supports_function_calling": supports_function_calling,
+            "max_input_tokens": max_input_tokens,
+            "max_tokens": max_tokens,
         }
         self.metrics[model_id] = {
             "requests": 0,
@@ -555,6 +559,25 @@ class RouterCore:
 
         return features
 
+
+    def _estimate_tokens(self, request: RoutingRequest) -> int:
+        """Estimate the number of tokens in the request."""
+        total_chars = 0
+        if request.query:
+            total_chars += len(request.query)
+            
+        if request.parameters and "messages" in request.parameters:
+            for msg in request.parameters["messages"]:
+                content = msg.get("content", "")
+                if isinstance(content, str):
+                    total_chars += len(content)
+                elif isinstance(content, list):
+                    for item in content:
+                        if isinstance(item, dict) and item.get("type") == "text":
+                            total_chars += len(item.get("text", ""))
+                            
+        return total_chars // 4
+
     async def get_ranked_models(
         self, request: RoutingRequest, strategy: str = "expected_utility"
     ) -> List[RoutingDecision]:
@@ -568,7 +591,7 @@ class RouterCore:
         db = SessionLocal()
         try:
             # Estimate prompt tokens (roughly 4 chars per token)
-            prompt_tokens_est = len(request.query) / 4 if request.query else 0
+            total_estimated_tokens = self._estimate_tokens(request)
 
             if strategy == "load_balanced":
                 model_id = self.load_balancer.get_next_model("weighted", db)
@@ -579,7 +602,7 @@ class RouterCore:
                 m = self.models[model_id]
                 p_cost = m.get("prompt_cost", m["cost"])
                 c_cost = m.get("completion_cost", m["cost"])
-                estimated_cost = (prompt_tokens_est * p_cost / 1000.0) + (
+                estimated_cost = (total_estimated_tokens * p_cost / 1000.0) + (
                     500 * c_cost / 1000.0
                 )
                 return [
@@ -593,8 +616,17 @@ class RouterCore:
                     )
                 ]
 
+            tools_requested = request.parameters and request.parameters.get("tools")
+
             model_tasks = []
             for mid, info in self.models.items():
+                if tools_requested and not info.get("supports_function_calling", False):
+                    continue
+                    
+                if info.get("max_input_tokens") and total_estimated_tokens > info["max_input_tokens"]:
+                    continue
+                if info.get("max_tokens") and total_estimated_tokens > info["max_tokens"]:
+                    continue
                 recent = (
                     db.query(RoutingLog)
                     .filter(RoutingLog.model_id == mid, RoutingLog.time != None)
@@ -617,7 +649,7 @@ class RouterCore:
                     if recent and any(l.completion_tokens for l in recent)
                     else 500
                 )
-                estimated_cost = (prompt_tokens_est * p_cost / 1000.0) + (
+                estimated_cost = (total_estimated_tokens * p_cost / 1000.0) + (
                     avg_completion * c_cost / 1000.0
                 )
 
