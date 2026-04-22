@@ -26,6 +26,7 @@ from src.models.routing import RoutingRequest, RoutingResponse
 from src.router.load_balancer import load_balancer
 from src.router.metrics import metrics_collector
 from src.utils.logger import setup_logger
+from src.utils.capability_tester import capability_manager
 from src.utils.pricing import pricing_manager
 
 logger = setup_logger(__name__)
@@ -104,6 +105,7 @@ class RouterCore:
     def __init__(self):
         self.models = {}
         self.metrics = {}
+        self.models_to_probe = []
         settings = get_settings()
         self.utility_calculator = ExpectedUtilityCalculator(
             reward=settings.reward,
@@ -379,23 +381,35 @@ class RouterCore:
             gemini_key = settings.gemini_api_key
             if gemini_key and gemini_key != "dummy":
                 try:
-                    resp = httpx.get(
+                    # Merge both compat and native lists to catch missing bleeding edge models
+                    gemini_discovered = []
+                    
+                    # A. Compat API
+                    resp1 = httpx.get(
                         "https://generativelanguage.googleapis.com/v1beta/openai/models",
                         headers={"Authorization": f"Bearer {gemini_key}"},
                         timeout=3,
                     )
-                    if resp.status_code == 200:
-                        for m in resp.json().get("data", []):
+                    if resp1.status_code == 200:
+                        for m in resp1.json().get("data", []):
                             name = m.get("id")
-                            if (
-                                name
-                                and ("gemini" in name or "gemma" in name)
-                                and "embedding" not in name
-                            ):
-                                if (
-                                    name not in self.models
-                                    and name not in settings.disabled_models
-                                ):
+                            if name and ("gemini" in name or "gemma" in name) and "embedding" not in name:
+                                gemini_discovered.append(name)
+                                
+                    # B. Native API
+                    resp2 = httpx.get(
+                        f"https://generativelanguage.googleapis.com/v1beta/models?key={gemini_key}",
+                        timeout=3,
+                    )
+                    if resp2.status_code == 200:
+                        for m in resp2.json().get("models", []):
+                            name = m.get("name")
+                            if name and ("gemini" in name or "gemma" in name) and "embedding" not in name:
+                                if name not in gemini_discovered:
+                                    gemini_discovered.append(name)
+                    
+                    for name in gemini_discovered:
+                        if name not in self.models and name not in settings.disabled_models:
                                     (
                                         p_cost,
                                         c_cost,
@@ -1714,6 +1728,30 @@ class RouterCore:
             raise HTTPException(status_code=500, detail=f"Routing error: {str(e)}")
         finally:
             db.close()
+
+
+    async def run_capability_probes(self):
+        """Runs background capability probes on un-cached models."""
+        if not getattr(self, "models_to_probe", None):
+            return
+            
+        logger.info(f"Starting background capability probes for {len(self.models_to_probe)} models...")
+        import asyncio
+        sem = asyncio.Semaphore(5)
+        
+        async def probe(model_id):
+            async with sem:
+                if model_id not in self.adapters:
+                    return
+                caps = await capability_manager.probe_model(model_id, self.adapters[model_id])
+                if model_id in self.models:
+                    self.models[model_id]["supports_function_calling"] = caps.get("supports_tools", False)
+                    self.models[model_id]["supports_logprobs"] = caps.get("supports_logprobs", False)
+                    
+        tasks = [probe(mid) for mid in self.models_to_probe]
+        await asyncio.gather(*tasks, return_exceptions=True)
+        logger.info("Finished background capability probes.")
+        self.models_to_probe = []
 
 
 class ChatCompletionRequest(BaseModel):
