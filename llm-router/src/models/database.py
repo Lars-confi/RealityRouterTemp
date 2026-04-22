@@ -82,7 +82,10 @@ class ModelPerformance(Base):
 
 # Database setup
 # Use the database in the project root (one level up from src/)
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///../llm_router.db")
+APP_HOME = os.getenv("LLM_REROUTER_HOME", os.path.expanduser("~/.llm_rerouter"))
+os.makedirs(APP_HOME, exist_ok=True)
+DEFAULT_DB_PATH = os.path.join(APP_HOME, "llm_router.db")
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
 engine = create_engine(
     DATABASE_URL,

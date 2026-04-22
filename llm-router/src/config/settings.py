@@ -26,10 +26,8 @@ def _load_env_file(path=".env"):
 
 # Manually load .env to avoid picking up global system environment variables
 # Check current directory and parent directory for .env
-_env_path = ".env"
-if not os.path.exists(_env_path) and os.path.exists("../.env"):
-    _env_path = "../.env"
-
+APP_HOME = os.getenv("LLM_REROUTER_HOME", os.path.expanduser("~/.llm_rerouter"))
+_env_path = os.path.join(APP_HOME, ".env")
 _env_vars = _load_env_file(_env_path)
 
 
@@ -41,7 +39,7 @@ class Settings(BaseModel):
     debug: bool = Field(default=False)
 
     # Database settings
-    database_url: str = Field(default="sqlite:///./llm_router.db")
+    database_url: str = Field(default=f"sqlite:///{os.path.join(APP_HOME, 'llm_router.db')}")
 
     # API keys
     openai_api_key: Optional[str] = Field(default=None)
@@ -64,7 +62,7 @@ class Settings(BaseModel):
 
     # Model settings
     models_config: Dict[str, Any] = Field(default_factory=dict)
-    models_config_path: str = Field(default="../user_models.json")
+    models_config_path: str = Field(default=os.path.join(APP_HOME, "user_models.json"))
 
     # Load balancing settings
     load_balancing_strategy: str = Field(default="weighted")

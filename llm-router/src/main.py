@@ -40,6 +40,13 @@ app.include_router(router_router, prefix="/v1", tags=["routing"])
 app.include_router(metrics_router, prefix="/metrics", tags=["metrics"])
 
 
+from src.router.core import router_core
+import asyncio
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(router_core.run_capability_probes())
+
 @app.get("/")
 async def root():
     return {"message": "LLM Router API is running"}

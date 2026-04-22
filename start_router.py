@@ -8,8 +8,10 @@ import time
 import urllib.request
 
 # --- Configuration & Files ---
-ENV_FILE = ".env"
-DISABLED_MODELS_FILE = "disabled_models.json"
+APP_HOME = os.getenv("LLM_REROUTER_HOME", os.path.expanduser("~/.llm_rerouter"))
+os.makedirs(APP_HOME, exist_ok=True)
+ENV_FILE = os.path.join(APP_HOME, ".env")
+DISABLED_MODELS_FILE = os.path.join(APP_HOME, "disabled_models.json")
 
 # --- Colors & UI Elements ---
 C_RESET = "\033[0m"
@@ -194,13 +196,39 @@ def get_all_models(env_vars):
     # Gemini
     g_key = env_vars.get("GEMINI_API_KEY")
     if g_key and g_key != "dummy":
-        models.extend(
-            sync_discover_openai_compat(
-                "https://generativelanguage.googleapis.com/v1beta/openai",
-                g_key,
-                "gemini",
-            )
+        # Get models from OpenAI compat endpoint
+        compat_models = sync_discover_openai_compat(
+            "https://generativelanguage.googleapis.com/v1beta/openai",
+            g_key,
+            "gemini",
         )
+        compat_ids = {m["id"] for m in compat_models}
+        models.extend(compat_models)
+        
+        # Also poll the native endpoint to catch missing 2.5/3.1 aliases that aren't on compat yet
+        try:
+            import urllib.request
+            import json
+            import ssl
+            url = f"https://generativelanguage.googleapis.com/v1beta/models?key={g_key}"
+            req = urllib.request.Request(url)
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            with urllib.request.urlopen(req, timeout=3, context=ctx) as response:
+                if response.status == 200:
+                    data = json.loads(response.read().decode())
+                    for model in data.get("models", []):
+                        m_id = model.get("name")
+                        if m_id and m_id not in compat_ids:
+                            models.append({
+                                "id": m_id,
+                                "name": f"Gemini: {m_id}",
+                                "provider": "gemini"
+                            })
+        except:
+            pass
+            
     return models
 
 

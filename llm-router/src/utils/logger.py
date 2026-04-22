@@ -31,12 +31,8 @@ def setup_logger(name, level=logging.INFO):
         # Create file handler
         log_dir = os.getenv("LOG_DIR")
         if not log_dir:
-            base_dir = os.path.dirname(
-                os.path.dirname(
-                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                )
-            )
-            log_dir = os.path.join(base_dir, "logs")
+            app_home = os.getenv("LLM_REROUTER_HOME", os.path.expanduser("~/.llm_rerouter"))
+            log_dir = os.path.join(app_home, "logs")
 
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)

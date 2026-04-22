@@ -34,7 +34,7 @@ zip -r "$ZIP_NAME" . \
     -x "venv/*" \
     -x ".env" \
     -x "llm_router.db" \
-    -x "llm-router/config/model_prices.json" \
+
     -x "*/__pycache__/*" \
     -x "*.pyc" \
     -x ".git/*" \

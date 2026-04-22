@@ -13,6 +13,47 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}       LLM Rerouter Initialization      ${NC}"
 echo -e "${BLUE}========================================${NC}"
 
+# Define App Home
+export LLM_REROUTER_HOME="${LLM_REROUTER_HOME:-$HOME/.llm_rerouter}"
+mkdir -p "$LLM_REROUTER_HOME"
+mkdir -p "$LLM_REROUTER_HOME/config"
+mkdir -p "$LLM_REROUTER_HOME/logs"
+
+# Optional: Migrate existing files if they exist in the current directory and not in LLM_REROUTER_HOME
+for file in .env disabled_models.json user_models.json llm_router.db; do
+    if [ -f "$file" ]; then
+        if [ ! -f "$LLM_REROUTER_HOME/$file" ]; then
+            echo -e "${YELLOW}Migrating $file to $LLM_REROUTER_HOME...${NC}"
+            cp "$file" "$LLM_REROUTER_HOME/"
+        fi
+        rm "$file"
+    fi
+done
+
+if [ -d "llm-router/config" ]; then
+    for file in llm-router/config/*.json; do
+        if [ -f "$file" ]; then
+            if [ ! -f "$LLM_REROUTER_HOME/config/$(basename "$file")" ]; then
+                echo -e "${YELLOW}Migrating $(basename "$file") to $LLM_REROUTER_HOME/config...${NC}"
+                cp "$file" "$LLM_REROUTER_HOME/config/"
+            fi
+        fi
+    done
+    rm -rf "llm-router/config"
+fi
+
+if [ -d "logs" ]; then
+    for file in logs/*.log; do
+        if [ -f "$file" ]; then
+            if [ ! -f "$LLM_REROUTER_HOME/logs/$(basename "$file")" ]; then
+                cp "$file" "$LLM_REROUTER_HOME/logs/"
+            fi
+            rm "$file"
+        fi
+    done
+    rmdir logs 2>/dev/null || true
+fi
+
 # 1. Check for Python 3
 if ! command -v python3 &> /dev/null; then
     echo -e "${YELLOW}Python 3 is not installed. Please install Python 3 to continue.${NC}"
@@ -49,8 +90,7 @@ cd ..
 
 # 5. Launch the Python TUI
 echo -e "${GREEN}Launching LLM Rerouter Setup Wizard...${NC}"
-export LOG_DIR="$(pwd)/logs"
-mkdir -p "$LOG_DIR"
+export LOG_DIR="$LLM_REROUTER_HOME/logs"
 python3 start_router.py
 
 # Deactivate venv upon exit

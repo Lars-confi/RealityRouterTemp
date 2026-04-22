@@ -7,7 +7,8 @@ import sys
 import time
 
 # Look for database in current dir or parent dir (project root)
-DB_PATH = "llm_router.db" if os.path.exists("llm_router.db") else "../llm_router.db"
+APP_HOME = os.getenv("LLM_REROUTER_HOME", os.path.expanduser("~/.llm_rerouter"))
+DB_PATH = os.path.join(APP_HOME, "llm_router.db")
 
 
 def clear_screen():
@@ -185,6 +186,18 @@ def view_events():
             print("         LLM Rerouter Event & Debug Viewer           ")
             print("=====================================================")
 
+            # Retrieve System Health
+            try:
+                c.execute("SELECT model_id, model_name, total_requests, success_rate FROM model_performance WHERE success_rate < 0.5 AND total_requests > 1")
+                failing_models = c.fetchall()
+                if failing_models:
+                    print("\n⚠️  WARNING: The following models have high failure rates and may be incompatible:")
+                    for fm in failing_models:
+                        print(f"   - {fm['model_name']} ({fm['model_id']}): {fm['success_rate']*100:.1f}% success across {fm['total_requests']} requests")
+                    print("=" * 53)
+            except:
+                pass
+
             # Retrieve last 5 events
             try:
                 c.execute("SELECT * FROM routing_logs ORDER BY timestamp DESC LIMIT 5")
@@ -214,11 +227,38 @@ def view_events():
             print(
                 "\n  * Cost estimates powered by LiteLLM (https://github.com/BerriAI/litellm)"
             )
-            print("Commands: [Enter] Refresh | [1-5] View Details | [q] Quit")
+            print("Commands: [Enter] Refresh | [1-5] View Details | [h] Health Report | [q] Quit")
             choice = input("Choice: ").strip().lower()
 
             if choice == "q":
                 break
+            elif choice == "h":
+                clear_screen()
+                print("=====================================================")
+                print("                 SYSTEM HEALTH REPORT                ")
+                print("=====================================================")
+                try:
+                    c.execute("SELECT model_name, model_id, total_requests, successes, success_rate, average_time FROM model_performance ORDER BY success_rate DESC, total_requests DESC")
+                    perf = c.fetchall()
+                    if not perf:
+                        print("No performance data available.")
+                    else:
+                        print(f"{'Model Name':<30} | {'Reqs':>4} | {'Success%':>8} | {'Avg Time':>8}")
+                        print("-" * 31 + "+" + "-" * 6 + "+" + "-" * 10 + "+" + "-" * 9)
+                        for p in perf:
+                            name = p['model_name'][:27] + "..." if len(p['model_name']) > 30 else p['model_name'][:30]
+                            success_pct = p['success_rate'] * 100
+                            status_icon = "🟢" if success_pct > 80 else ("🟡" if success_pct > 0 else "🔴")
+                            
+                            # Also check if it's currently tripped in memory
+                            # We can't access memory directly from SQLite, but 0% success is a good proxy for incompatible
+                            
+                            print(f"{status_icon} {name:<28} | {p['total_requests']:>4} | {success_pct:>7.1f}% | {p['average_time']:>7.2f}s")
+                except Exception as e:
+                    print(f"Error loading health data: {e}")
+                
+                print("\n" + "=" * 53)
+                input("\nPress [Enter] to return to list view: ")
             elif choice.isdigit():
                 val = int(choice)
                 if 1 <= val <= len(logs):

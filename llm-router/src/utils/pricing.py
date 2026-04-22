@@ -15,9 +15,8 @@ logger = setup_logger(__name__)
 
 # We use the open source LiteLLM pricing dataset which is updated frequently
 PRICING_URL = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
-CACHE_FILE = os.path.join(
-    os.path.dirname(__file__), "..", "..", "config", "model_prices.json"
-)
+APP_HOME = os.getenv("LLM_REROUTER_HOME", os.path.expanduser("~/.llm_rerouter"))
+CACHE_FILE = os.path.join(APP_HOME, "config", "model_prices.json")
 CACHE_EXPIRY = 7 * 24 * 60 * 60  # 1 week in seconds
 
 
