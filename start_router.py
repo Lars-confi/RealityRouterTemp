@@ -204,12 +204,13 @@ def get_all_models(env_vars):
         )
         compat_ids = {m["id"] for m in compat_models}
         models.extend(compat_models)
-        
+
         # Also poll the native endpoint to catch missing 2.5/3.1 aliases that aren't on compat yet
         try:
-            import urllib.request
             import json
             import ssl
+            import urllib.request
+
             url = f"https://generativelanguage.googleapis.com/v1beta/models?key={g_key}"
             req = urllib.request.Request(url)
             ctx = ssl.create_default_context()
@@ -221,14 +222,16 @@ def get_all_models(env_vars):
                     for model in data.get("models", []):
                         m_id = model.get("name")
                         if m_id and m_id not in compat_ids:
-                            models.append({
-                                "id": m_id,
-                                "name": f"Gemini: {m_id}",
-                                "provider": "gemini"
-                            })
+                            models.append(
+                                {
+                                    "id": m_id,
+                                    "name": f"Gemini: {m_id}",
+                                    "provider": "gemini",
+                                }
+                            )
         except:
             pass
-            
+
     return models
 
 
@@ -381,6 +384,13 @@ def wizard_model_management(env_vars):
         choice = prompt("Choice", "s").lower()
 
         if choice == "s":
+            if not env_vars.get("SENTIMENT_MODEL_ID"):
+                print_status(
+                    "You must select a Sentiment Model (using 'f<number>') before starting.",
+                    "error",
+                )
+                time.sleep(2)
+                continue
             save_disabled_models(disabled)
             # We pass the disabled list to the env so the router can read it easily
             env_vars["DISABLED_MODELS"] = ",".join(list(disabled))
@@ -458,7 +468,16 @@ def main():
     if os.path.exists(ENV_FILE):
         print_header("LLM Rerouter")
         print_status("Welcome back! Existing config detected.\n")
-        action = prompt("(s)tart server or (r)econfigure?", "s").lower()
+        if not env_vars.get("SENTIMENT_MODEL_ID"):
+            print_status(
+                "A Sentiment Model has not been configured yet. Reconfiguration required.",
+                "warn",
+            )
+            action = "r"
+            time.sleep(2)
+        else:
+            action = prompt("(s)tart server or (r)econfigure?", "s").lower()
+
         if action == "s":
             start_server(env_vars)
             return

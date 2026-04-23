@@ -48,13 +48,14 @@ class CapabilityManager:
         req_tools = RoutingRequest(
             query="test",
             parameters={
+                "model": model_id,
                 "messages": [{"role": "user", "content": "Reply with exactly 'test', no other text."}],
                 "max_tokens": 10,
                 "tools": [{
                     "type": "function",
                     "function": {
                         "name": "dummy_tool",
-                        "description": "dummy"
+                        "description": "dummy", "parameters": {"type": "object", "properties": {}}
                     }
                 }],
                 "logprobs": True,
@@ -72,6 +73,7 @@ class CapabilityManager:
             req_logprobs = RoutingRequest(
                 query="test",
                 parameters={
+                    "model": model_id,
                     "messages": [{"role": "user", "content": "Reply with exactly 'test', no other text."}],
                     "max_tokens": 10,
                     "logprobs": True,
@@ -88,6 +90,7 @@ class CapabilityManager:
                 req_vanilla = RoutingRequest(
                     query="test",
                     parameters={
+                        "model": model_id,
                         "messages": [{"role": "user", "content": "Reply with exactly 'test', no other text."}],
                         "max_tokens": 10
                     }

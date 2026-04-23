@@ -37,7 +37,7 @@ class HuggingFaceAdapter(BaseAdapter):
             payload = {
                 "inputs": request.query,
                 "parameters": {
-                    "max_new_tokens": request.parameters.get("max_tokens", 1000) if request.parameters else 1000,
+                    "max_new_tokens": request.parameters.get("max_tokens", 4096) if request.parameters else 1000,
                     "temperature": request.parameters.get("temperature", 0.7) if request.parameters else 0.7,
                     "return_full_text": False
                 }
