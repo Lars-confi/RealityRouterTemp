@@ -81,7 +81,7 @@ class AnthropicAdapter(BaseAdapter):
             # Prepare args
             kwargs = {
                 "model": getattr(self, "default_model", model),
-                "max_tokens": request.parameters.get("max_tokens", 1000) if request.parameters else 1000,
+                "max_tokens": request.parameters.get("max_tokens", 4096) if request.parameters else 1000,
                 "temperature": request.parameters.get("temperature", 0.7) if request.parameters else 0.7,
                 "messages": messages,
             }
@@ -119,7 +119,7 @@ class AnthropicAdapter(BaseAdapter):
                     + message.usage.output_tokens,
                 },
                 "model": message.model,
-                "finish_reason": message.stop_reason,
+                "finish_reason": "tool_calls" if message.stop_reason == "tool_use" else message.stop_reason,
             }
             if tool_calls:
                 result["tool_calls"] = tool_calls

@@ -25,8 +25,8 @@ from src.models.database import RoutingLog, SessionLocal, get_db, init_db
 from src.models.routing import RoutingRequest, RoutingResponse
 from src.router.load_balancer import load_balancer
 from src.router.metrics import metrics_collector
-from src.utils.logger import setup_logger
 from src.utils.capability_tester import capability_manager
+from src.utils.logger import setup_logger
 from src.utils.pricing import pricing_manager
 
 logger = setup_logger(__name__)
@@ -383,7 +383,7 @@ class RouterCore:
                 try:
                     # Merge both compat and native lists to catch missing bleeding edge models
                     gemini_discovered = []
-                    
+
                     # A. Compat API
                     resp1 = httpx.get(
                         "https://generativelanguage.googleapis.com/v1beta/openai/models",
@@ -393,9 +393,13 @@ class RouterCore:
                     if resp1.status_code == 200:
                         for m in resp1.json().get("data", []):
                             name = m.get("id")
-                            if name and ("gemini" in name or "gemma" in name) and "embedding" not in name:
+                            if (
+                                name
+                                and ("gemini" in name or "gemma" in name)
+                                and "embedding" not in name
+                            ):
                                 gemini_discovered.append(name)
-                                
+
                     # B. Native API
                     resp2 = httpx.get(
                         f"https://generativelanguage.googleapis.com/v1beta/models?key={gemini_key}",
@@ -404,50 +408,55 @@ class RouterCore:
                     if resp2.status_code == 200:
                         for m in resp2.json().get("models", []):
                             name = m.get("name")
-                            if name and ("gemini" in name or "gemma" in name) and "embedding" not in name:
+                            if (
+                                name
+                                and ("gemini" in name or "gemma" in name)
+                                and "embedding" not in name
+                            ):
                                 if name not in gemini_discovered:
                                     gemini_discovered.append(name)
-                    
-                    for name in gemini_discovered:
-                        if name not in self.models and name not in settings.disabled_models:
-                                    (
-                                        p_cost,
-                                        c_cost,
-                                        supports_function_calling,
-                                        max_input_tokens,
-                                        max_tokens,
-                                    ) = pricing_manager.get_model_pricing(name)
-                                    if p_cost is None:
-                                        if "flash" in name:
-                                            p_cost, c_cost = 0.000075, 0.0003
-                                        elif "pro" in name:
-                                            p_cost, c_cost = 0.00125, 0.005
-                                        else:
-                                            p_cost, c_cost = 0.00035, 0.00035
-                                    cost = (p_cost + c_cost) / 2
-                                    self.add_model(
-                                        name,
-                                        name,
-                                        cost,
-                                        0.4,
-                                        0.88,
-                                        None,
-                                        p_cost,
-                                        c_cost,
-                                        supports_function_calling,
-                                        max_input_tokens,
-                                        max_tokens,
-                                    )
-                                    self.load_balancer.add_model(name, name, 1.0)
-                                    from src.adapters.gemini_adapter import (
-                                        GeminiAdapter,
-                                    )
 
-                                    self.adapters[name] = GeminiAdapter(
-                                        api_key=gemini_key
-                                    )
-                                    self.adapters[name].model_name = name
-                                    self.adapters[name].default_model = name
+                    for name in gemini_discovered:
+                        if (
+                            name not in self.models
+                            and name not in settings.disabled_models
+                        ):
+                            (
+                                p_cost,
+                                c_cost,
+                                supports_function_calling,
+                                max_input_tokens,
+                                max_tokens,
+                            ) = pricing_manager.get_model_pricing(name)
+                            if p_cost is None:
+                                if "flash" in name:
+                                    p_cost, c_cost = 0.000075, 0.0003
+                                elif "pro" in name:
+                                    p_cost, c_cost = 0.00125, 0.005
+                                else:
+                                    p_cost, c_cost = 0.00035, 0.00035
+                            cost = (p_cost + c_cost) / 2
+                            self.add_model(
+                                name,
+                                name,
+                                cost,
+                                0.4,
+                                0.88,
+                                None,
+                                p_cost,
+                                c_cost,
+                                supports_function_calling,
+                                max_input_tokens,
+                                max_tokens,
+                            )
+                            self.load_balancer.add_model(name, name, 1.0)
+                            from src.adapters.gemini_adapter import (
+                                GeminiAdapter,
+                            )
+
+                            self.adapters[name] = GeminiAdapter(api_key=gemini_key)
+                            self.adapters[name].model_name = name
+                            self.adapters[name].default_model = name
                 except Exception as e:
                     logger.warning(f"Auto-discovery failed for Gemini: {e}")
 
@@ -512,6 +521,9 @@ class RouterCore:
         query = request.query or ""
         agent_id = request.agent_id or "default"
         features = {
+            "model_id": "unknown",
+            "agent_id": "default",
+            "model_provider": "unknown",
             "struct_nodes": 0.0,
             "struct_height": 0.0,
             "struct_loop_dens": 0.0,
@@ -550,11 +562,47 @@ class RouterCore:
             "is_refusal": 0.0,
         }
 
-        # Model Fingerprints
-        m_hs = hashlib.sha256(model_id.encode()).hexdigest()
-        for i in range(8):
-            chunk = m_hs[i * 8 : (i + 1) * 8]
-            features[f"model_fp_{i}"] = int(chunk, 16) / 0xFFFFFFFF
+        # Categorical Features
+        features["model_id"] = model_id
+        features["agent_id"] = agent_id
+
+        # Model Capabilities
+        m_info = self.models.get(model_id, {})
+        features["model_supports_tools"] = 1.0 if m_info.get("supports_function_calling") else 0.0
+        features["model_context_window"] = float(m_info.get("max_input_tokens") or 8192)
+        features["model_max_output"] = float(m_info.get("max_tokens") or 4096)
+        
+        # Pricing/Tier Indicators (Cost correlates with reasoning power)
+        features["model_prompt_cost"] = float(m_info.get("prompt_cost", m_info.get("cost", 0.0)))
+        features["model_completion_cost"] = float(m_info.get("completion_cost", m_info.get("cost", 0.0)))
+        
+        # Additional probed capabilities
+        features["model_supports_logprobs"] = 1.0 if m_info.get("supports_logprobs") else 0.0
+        
+        # Provider and Locality
+        is_local = 0.0
+        provider = "unknown"
+        adapter = self.adapters.get(model_id)
+        if adapter:
+            adapter_name = adapter.__class__.__name__
+            if adapter_name == "OpenAIAdapter":
+                provider = "openai"
+            elif adapter_name == "AnthropicAdapter":
+                provider = "anthropic"
+            elif adapter_name == "GeminiAdapter":
+                provider = "gemini"
+            elif adapter_name == "CohereAdapter":
+                provider = "cohere"
+            elif adapter_name == "GenericOpenAIAdapter":
+                base_url = getattr(adapter, "base_url", "")
+                if "11434" in base_url or "localhost" in base_url or "127.0.0.1" in base_url:
+                    is_local = 1.0
+                    provider = "ollama"
+                else:
+                    provider = "custom_openai"
+
+        features["model_is_local"] = is_local
+        features["model_provider"] = provider
 
         # Structural analysis if code
         try:
@@ -651,10 +699,7 @@ class RouterCore:
         for i in range(min(6, len(q_hs) // 2)):
             features[f"query_hash_{i}"] = int(q_hs[i * 2 : i * 2 + 2], 16) / 255.0
 
-        # Agent Fingerprint
-        features["agent_id_hash"] = (
-            int(hashlib.md5(agent_id.encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
-        )
+
 
         # Post-response metrics
         if response:
@@ -733,18 +778,22 @@ class RouterCore:
             model_tasks = []
             for mid, info in self.models.items():
                 if tools_requested and not info.get("supports_function_calling", False):
-                    continue
+                    # We added the fallback interceptor for this exact scenario so it strips tools automatically if unsupported!
+                    # Do NOT drop it from the leaderboard, just let the interceptor handle it.
+                    pass
 
                 if (
                     info.get("max_input_tokens")
                     and total_estimated_tokens > info["max_input_tokens"]
                 ):
                     continue
-                if (
-                    info.get("max_tokens")
-                    and total_estimated_tokens > info["max_tokens"]
-                ):
-                    continue
+                # Do NOT compare input tokens against max_tokens (output limit)
+                # Only check max_input_tokens
+                # if (
+                #     info.get("max_tokens")
+                #     and total_estimated_tokens > info["max_tokens"]
+                # ):
+                #     continue
                 recent = (
                     db.query(RoutingLog)
                     .filter(RoutingLog.model_id == mid, RoutingLog.time != None)
@@ -1268,7 +1317,7 @@ class RouterCore:
 
                     # Attempt continuation if truncated
                     continuation_count = 0
-                    max_continuations = 2
+                    max_continuations = 4
 
                     while (
                         finish_reason == "length"
@@ -1286,8 +1335,19 @@ class RouterCore:
                             cont_messages = [{"role": "user", "content": request.query}]
 
                         # Add the partial response so far and the continuation prompt
+                        # If the model natively started a tool call, we need to pass the partial JSON
+                        partial_content = response.get("text", "")
+                        if not partial_content and response.get("tool_calls"):
+                            # This was a partial native tool call that hit max_tokens
+                            try:
+                                tc = response["tool_calls"][0]
+                                args = tc.get("function", {}).get("arguments", "")
+                                partial_content = f"```json\n{args}"
+                            except:
+                                pass
+                        
                         cont_messages.append(
-                            {"role": "assistant", "content": response.get("text", "")}
+                            {"role": "assistant", "content": partial_content}
                         )
                         cont_messages.append(
                             {
@@ -1331,6 +1391,58 @@ class RouterCore:
                             # Record failure for circuit breaker
                             self.load_balancer.record_failure(decision.model_id)
                             break
+
+                    if (
+                        has_tools
+                        and not response.get("tool_calls")
+                    ):
+                        import json as _json
+                        import re as _re
+                        import uuid as _uuid
+
+                        # Try to parse the interceptor's JSON back into a tool_call
+                        text_to_parse = response.get("text", "")
+                        json_match = _re.search(
+                            r"```(?:json)?\s*(\{.*?\})\s*```", text_to_parse, _re.DOTALL
+                        )
+                        if json_match:
+                            json_str = json_match.group(1)
+                        else:
+                            json_str = text_to_parse.strip()
+                            # Find first { and last }
+                            start = json_str.find("{")
+                            end = json_str.rfind("}")
+                            if start != -1 and end != -1:
+                                json_str = json_str[start : end + 1]
+
+                        try:
+                            if json_str:
+                                parsed_args = _json.loads(json_str)
+                                tool_name = "unknown"
+                                if "tools_schema" in locals() and tools_schema:
+                                    tool_name = tools_schema[0]["function"]["name"]
+
+                                # Sometimes models include function name in JSON
+                                if "name" in parsed_args and "arguments" in parsed_args:
+                                    tool_name = parsed_args["name"]
+                                    parsed_args = parsed_args["arguments"]
+
+                                response["tool_calls"] = [
+                                    {
+                                        "id": f"call_{_uuid.uuid4().hex[:8]}",
+                                        "type": "function",
+                                        "function": {
+                                            "name": tool_name,
+                                            "arguments": _json.dumps(parsed_args),
+                                        },
+                                    }
+                                ]
+                                response["finish_reason"] = "tool_calls"
+                                # We can optionally clear the text if we successfully parsed tools
+                                response["text"] = ""
+                                resp_text = ""
+                        except Exception as e:
+                            pass
 
                     is_empty = not resp_text and not response.get("tool_calls")
                     is_truncated = finish_reason == "length"
@@ -1427,7 +1539,7 @@ class RouterCore:
                                     is_malformed = True
 
                     # 6. Additional Truncation Check: Check for partial code blocks at the very end
-                    if resp_text.endswith("`") or resp_text.endswith("``"):
+                    if (resp_text.endswith("`") and not resp_text.endswith("```")) or (resp_text.endswith("``") and not resp_text.endswith("```")):
                         is_truncated = True
 
                     # 7. Check for partial JSON/XML structures at the end
@@ -1710,17 +1822,21 @@ class RouterCore:
                         db,
                         routing_context,
                         self.extract_coding_features(request, decision.model_id),
-                        None,
+                        
                     )
-                    # Re-raise the exception to alert the calling agent of the connection/API problem
-                    raise HTTPException(
-                        status_code=502,
-                        detail=f"Infrastructure error calling {decision.model_id}: {str(e)}",
-                    )
+                    last_error = e
+                    continue
 
-            raise HTTPException(
-                status_code=500, detail=f"All models failed. Last error: {last_error}"
-            )
+            if last_error:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"All models failed. Last infrastructure error: {str(last_error)}",
+                )
+            else:
+                raise HTTPException(
+                    status_code=500, detail="No models available to handle the request."
+                )
+
         except HTTPException:
             raise
         except Exception as e:
@@ -1729,25 +1845,34 @@ class RouterCore:
         finally:
             db.close()
 
-
     async def run_capability_probes(self):
         """Runs background capability probes on un-cached models."""
         if not getattr(self, "models_to_probe", None):
             return
-            
-        logger.info(f"Starting background capability probes for {len(self.models_to_probe)} models...")
+
+        logger.info(
+            f"Starting background capability probes for {len(self.models_to_probe)} models..."
+        )
         import asyncio
+
         sem = asyncio.Semaphore(5)
-        
+        print(f"DEBUG: Models to probe: {self.models_to_probe}")
+
         async def probe(model_id):
             async with sem:
                 if model_id not in self.adapters:
                     return
-                caps = await capability_manager.probe_model(model_id, self.adapters[model_id])
+                caps = await capability_manager.probe_model(
+                    model_id, self.adapters[model_id]
+                )
                 if model_id in self.models:
-                    self.models[model_id]["supports_function_calling"] = caps.get("supports_tools", False)
-                    self.models[model_id]["supports_logprobs"] = caps.get("supports_logprobs", False)
-                    
+                    self.models[model_id]["supports_function_calling"] = caps.get(
+                        "supports_tools", False
+                    )
+                    self.models[model_id]["supports_logprobs"] = caps.get(
+                        "supports_logprobs", False
+                    )
+
         tasks = [probe(mid) for mid in self.models_to_probe]
         await asyncio.gather(*tasks, return_exceptions=True)
         logger.info("Finished background capability probes.")
@@ -1767,6 +1892,8 @@ class ChatCompletionRequest(BaseModel):
     stop: Optional[Union[str, List[str]]] = None
     stream: Optional[bool] = False
 
+    model_config = {"extra": "allow"}
+
 
 class ChatCompletionResponse(BaseModel):
     id: str
@@ -1775,6 +1902,21 @@ class ChatCompletionResponse(BaseModel):
     created: int
     model: str
     usage: Dict[str, Any]
+
+
+@router.get("/models")
+async def list_models():
+    models_list = []
+    for model_id, info in router_core.models.items():
+        models_list.append(
+            {
+                "id": model_id,
+                "object": "model",
+                "created": 1686935002,
+                "owned_by": "llm-rerouter",
+            }
+        )
+    return {"object": "list", "data": models_list}
 
 
 @router.post("/chat/completions")
@@ -1811,6 +1953,8 @@ async def chat_completions(
         strategy = params.pop("strategy", None)
         agent_id = params.pop("agent_id", x_agent_id or user_agent or "default")
         params["stream"] = False
+        if "stream_options" in params:
+            del params["stream_options"]
         response = await router_core.route_request(
             RoutingRequest(query=query_text, agent_id=agent_id, parameters=params),
             strategy=strategy,
@@ -1829,8 +1973,14 @@ async def chat_completions(
                         "index": 0,
                         "message": {
                             "role": "assistant",
-                            "content": response.response.get("text", ""),
-                            **({"tool_calls": response.response.get("tool_calls")} if response.response.get("tool_calls") else {})
+                            "content": response.response.get("text", "")
+                            if response.response.get("text")
+                            else None,
+                            **(
+                                {"tool_calls": response.response.get("tool_calls")}
+                                if response.response.get("tool_calls")
+                                else {}
+                            ),
                         },
                         "logprobs": None,
                         "finish_reason": response.response.get("finish_reason", "stop"),
@@ -1848,7 +1998,32 @@ async def chat_completions(
                 "model": response.model_name,
             }
             yield f"data: {json.dumps({**common, 'choices': [{'index': 0, 'delta': {'role': 'assistant'}, 'finish_reason': None}]})}\n\n"
-            yield f"data: {json.dumps({**common, 'choices': [{'index': 0, 'delta': {'content': response.response.get('text', '')}, 'finish_reason': None}]})}\n\n"
+
+            content = response.response.get("text", "")
+            if content:
+                yield f"data: {json.dumps({**common, 'choices': [{'index': 0, 'delta': {'content': content}, 'finish_reason': None}]})}\n\n"
+
+            tool_calls = response.response.get("tool_calls")
+            if tool_calls:
+                init_tool_calls = []
+                for i, tc in enumerate(tool_calls):
+                    init_tool_calls.append(
+                        {
+                            "index": i,
+                            "id": tc.get("id", ""),
+                            "type": "function",
+                            "function": {
+                                "name": tc.get("function", {}).get("name", "")
+                            },
+                        }
+                    )
+                yield f"data: {json.dumps({**common, 'choices': [{'index': 0, 'delta': {'tool_calls': init_tool_calls}, 'finish_reason': None}]})}\n\n"
+                
+                for i, tc in enumerate(tool_calls):
+                    args = tc.get("function", {}).get("arguments", "")
+                    if args:
+                        yield f"data: {json.dumps({**common, 'choices': [{'index': 0, 'delta': {'tool_calls': [{'index': i, 'function': {'arguments': args}}]}, 'finish_reason': None}]})}\n\n"
+
             yield f"data: {json.dumps({**common, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': response.response.get('finish_reason', 'stop')}]})}\n\n"
             yield "data: [DONE]\n\n"
 
@@ -1883,6 +2058,8 @@ async def completions(
         strategy = params.pop("strategy", None)
         agent_id = params.pop("agent_id", x_agent_id or user_agent or "default")
         params["stream"] = False
+        if "stream_options" in params:
+            del params["stream_options"]
         response = await router_core.route_request(
             RoutingRequest(query=query_text, agent_id=agent_id, parameters=params),
             strategy=strategy,
