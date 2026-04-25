@@ -436,6 +436,8 @@ def start_server(env_vars):
     env["PYTHONPATH"] = "llm-router"
 
     print(f"\n  {C_GREEN}{C_BOLD}Server active at http://0.0.0.0:8000{C_RESET}")
+    sentiment_model = env_vars.get("SENTIMENT_MODEL_ID", "Not Configured")
+    print(f"  {C_YELLOW}Sentiment Model: {sentiment_model}{C_RESET}")
     print(f"  {C_CYAN}Press [CTRL+C] to stop the process.{C_RESET}\n")
     print(f"{C_BLUE}" + "━" * 64 + f"{C_RESET}")
 

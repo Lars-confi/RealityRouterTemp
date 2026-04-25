@@ -3,7 +3,7 @@ Base adapter class for LLM providers
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from src.models.routing import RoutingRequest, RoutingResponse
 
@@ -11,7 +11,7 @@ from src.models.routing import RoutingRequest, RoutingResponse
 class BaseAdapter(ABC):
     """Base class for all LLM adapters"""
 
-    def __init__(self, model_name: str, api_key: str = None):
+    def __init__(self, model_name: str, api_key: Optional[str] = None):
         """
         Initialize the adapter
 

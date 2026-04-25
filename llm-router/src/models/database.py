@@ -57,6 +57,7 @@ class RoutingLog(Base):
     first_token_top_logprobs = Column(Text)
     second_token_logprob = Column(Float)
     second_token_top_logprobs = Column(Text)
+    potential_cost = Column(Float)
 
     def __repr__(self):
         return f"<RoutingLog(id={self.id}, model={self.model_name}, timestamp={self.timestamp})>"
@@ -106,3 +107,14 @@ def get_db():
 def init_db():
     """Initialize the database"""
     Base.metadata.create_all(bind=engine)
+
+    # Add potential_cost column for existing databases
+    try:
+        from sqlalchemy import text
+
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE routing_logs ADD COLUMN potential_cost FLOAT")
+            )
+    except Exception:
+        pass

@@ -19,7 +19,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from src.adapters.generic_openai_adapter import GenericOpenAIAdapter
 from src.config.settings import get_settings, load_models_from_config
 from src.models.database import RoutingLog, SessionLocal, get_db, init_db
 from src.models.routing import RoutingRequest, RoutingResponse
@@ -164,41 +163,29 @@ class RouterCore:
                     model_id, model_info.get("name", model_id), 1.0
                 )
                 base_url = model_info.get("base_url", "")
-                if "anthropic" in base_url or "anthropic" in model_id.lower():
-                    from src.adapters.anthropic_adapter import AnthropicAdapter
 
-                    self.adapters[model_id] = AnthropicAdapter(
-                        api_key=model_info.get("api_key")
-                    )
-                elif "gemini" in model_id.lower() or "generativelanguage" in base_url:
-                    from src.adapters.gemini_adapter import GeminiAdapter
+                from src.adapters.litellm_adapter import LiteLLMAdapter
 
-                    self.adapters[model_id] = GeminiAdapter(
-                        api_key=model_info.get("api_key")
-                    )
-                elif "cohere" in model_id.lower():
-                    from src.adapters.cohere_adapter import CohereAdapter
+                model_name_for_adapter = model_info.get("model", model_id)
 
-                    self.adapters[model_id] = CohereAdapter(
-                        api_key=model_info.get("api_key")
-                    )
-                elif "api.openai.com" in base_url:
-                    from src.adapters.openai_adapter import OpenAIAdapter
+                if "gemini" in model_id.lower() or "generativelanguage" in base_url:
+                    if model_name_for_adapter.startswith("models/"):
+                        model_name_for_adapter = model_name_for_adapter[7:]
+                    if not model_name_for_adapter.startswith("gemini/"):
+                        model_name_for_adapter = f"gemini/{model_name_for_adapter}"
+                elif (
+                    "11434" in base_url
+                    or "localhost" in base_url
+                    or "127.0.0.1" in base_url
+                ):
+                    if not model_name_for_adapter.startswith("openai/"):
+                        model_name_for_adapter = f"openai/{model_name_for_adapter}"
 
-                    self.adapters[model_id] = OpenAIAdapter(
-                        api_key=model_info.get("api_key")
-                    )
-                else:
-                    self.adapters[model_id] = GenericOpenAIAdapter(
-                        model_name=model_info.get("name", model_id),
-                        api_key=model_info.get("api_key"),
-                        base_url=model_info.get("base_url"),
-                        default_model=model_info.get("model", model_id),
-                    )
-                if hasattr(self.adapters[model_id], "default_model"):
-                    self.adapters[model_id].default_model = model_info.get(
-                        "model", model_id
-                    )
+                self.adapters[model_id] = LiteLLMAdapter(
+                    model_name=model_name_for_adapter,
+                    api_key=model_info.get("api_key"),
+                    base_url=base_url if base_url else None,
+                )
 
             # Auto-Discover Dynamic Models
             if not settings.enable_auto_discovery:
@@ -240,6 +227,7 @@ class RouterCore:
                                     ) = pricing_manager.get_model_pricing(name)
                                     if p_cost is None:
                                         p_cost, c_cost = 0.0, 0.0
+                                    supports_function_calling = True
                                     cost = (p_cost + c_cost) / 2
                                     self.add_model(
                                         name,
@@ -260,8 +248,14 @@ class RouterCore:
                                         if custom_url.endswith("/v1")
                                         else f"{custom_url}/v1"
                                     )
-                                    self.adapters[name] = GenericOpenAIAdapter(
-                                        name, custom_key, base, name
+                                    from src.adapters.litellm_adapter import (
+                                        LiteLLMAdapter,
+                                    )
+
+                                    self.adapters[name] = LiteLLMAdapter(
+                                        model_name=f"openai/{name}",
+                                        api_key=custom_key,
+                                        base_url=base,
                                     )
                     else:
                         resp = httpx.get(
@@ -286,6 +280,7 @@ class RouterCore:
                                     ) = pricing_manager.get_model_pricing(name)
                                     if p_cost is None:
                                         p_cost, c_cost = 0.001, 0.001
+                                    supports_function_calling = True
                                     cost = (p_cost + c_cost) / 2
                                     self.add_model(
                                         name,
@@ -306,8 +301,14 @@ class RouterCore:
                                         if custom_url.endswith("/v1")
                                         else f"{custom_url}/v1"
                                     )
-                                    self.adapters[name] = GenericOpenAIAdapter(
-                                        name, custom_key, base, name
+                                    from src.adapters.litellm_adapter import (
+                                        LiteLLMAdapter,
+                                    )
+
+                                    self.adapters[name] = LiteLLMAdapter(
+                                        model_name=f"openai/{name}",
+                                        api_key=custom_key,
+                                        base_url=base,
                                     )
                 except Exception as e:
                     logger.warning(
@@ -349,6 +350,7 @@ class RouterCore:
                                             p_cost, c_cost = 0.0005, 0.0015
                                         else:
                                             p_cost, c_cost = 0.002, 0.002
+                                    supports_function_calling = True
                                     cost = (p_cost + c_cost) / 2
                                     self.add_model(
                                         name,
@@ -364,16 +366,13 @@ class RouterCore:
                                         max_tokens,
                                     )
                                     self.load_balancer.add_model(name, name, 1.0)
-                                    from src.adapters.openai_adapter import (
-                                        OpenAIAdapter,
+                                    from src.adapters.litellm_adapter import (
+                                        LiteLLMAdapter,
                                     )
 
-                                    self.adapters[name] = OpenAIAdapter(
-                                        api_key=openai_key
+                                    self.adapters[name] = LiteLLMAdapter(
+                                        model_name=name, api_key=openai_key
                                     )
-                                    # Override model name explicitly
-                                    self.adapters[name].model_name = name
-                                    self.adapters[name].default_model = name
                 except Exception as e:
                     logger.warning(f"Auto-discovery failed for OpenAI: {e}")
 
@@ -393,12 +392,15 @@ class RouterCore:
                     if resp1.status_code == 200:
                         for m in resp1.json().get("data", []):
                             name = m.get("id")
+                            if name and name.startswith("models/"):
+                                name = name[7:]
                             if (
                                 name
                                 and ("gemini" in name or "gemma" in name)
                                 and "embedding" not in name
                             ):
-                                gemini_discovered.append(name)
+                                if name not in gemini_discovered:
+                                    gemini_discovered.append(name)
 
                     # B. Native API
                     resp2 = httpx.get(
@@ -408,6 +410,8 @@ class RouterCore:
                     if resp2.status_code == 200:
                         for m in resp2.json().get("models", []):
                             name = m.get("name")
+                            if name and name.startswith("models/"):
+                                name = name[7:]
                             if (
                                 name
                                 and ("gemini" in name or "gemma" in name)
@@ -435,6 +439,7 @@ class RouterCore:
                                     p_cost, c_cost = 0.00125, 0.005
                                 else:
                                     p_cost, c_cost = 0.00035, 0.00035
+                            supports_function_calling = True
                             cost = (p_cost + c_cost) / 2
                             self.add_model(
                                 name,
@@ -450,13 +455,11 @@ class RouterCore:
                                 max_tokens,
                             )
                             self.load_balancer.add_model(name, name, 1.0)
-                            from src.adapters.gemini_adapter import (
-                                GeminiAdapter,
-                            )
+                            from src.adapters.litellm_adapter import LiteLLMAdapter
 
-                            self.adapters[name] = GeminiAdapter(api_key=gemini_key)
-                            self.adapters[name].model_name = name
-                            self.adapters[name].default_model = name
+                            self.adapters[name] = LiteLLMAdapter(
+                                model_name=f"gemini/{name}", api_key=gemini_key
+                            )
                 except Exception as e:
                     logger.warning(f"Auto-discovery failed for Gemini: {e}")
 
@@ -568,38 +571,54 @@ class RouterCore:
 
         # Model Capabilities
         m_info = self.models.get(model_id, {})
-        features["model_supports_tools"] = 1.0 if m_info.get("supports_function_calling") else 0.0
+        features["model_supports_tools"] = (
+            1.0 if m_info.get("supports_function_calling") else 0.0
+        )
         features["model_context_window"] = float(m_info.get("max_input_tokens") or 8192)
         features["model_max_output"] = float(m_info.get("max_tokens") or 4096)
-        
+
         # Pricing/Tier Indicators (Cost correlates with reasoning power)
-        features["model_prompt_cost"] = float(m_info.get("prompt_cost", m_info.get("cost", 0.0)))
-        features["model_completion_cost"] = float(m_info.get("completion_cost", m_info.get("cost", 0.0)))
-        
+        features["model_prompt_cost"] = float(
+            m_info.get("prompt_cost", m_info.get("cost", 0.0))
+        )
+        features["model_completion_cost"] = float(
+            m_info.get("completion_cost", m_info.get("cost", 0.0))
+        )
+
         # Additional probed capabilities
-        features["model_supports_logprobs"] = 1.0 if m_info.get("supports_logprobs") else 0.0
-        
+        features["model_supports_logprobs"] = (
+            1.0 if m_info.get("supports_logprobs") else 0.0
+        )
+
         # Provider and Locality
         is_local = 0.0
         provider = "unknown"
         adapter = self.adapters.get(model_id)
         if adapter:
-            adapter_name = adapter.__class__.__name__
-            if adapter_name == "OpenAIAdapter":
-                provider = "openai"
-            elif adapter_name == "AnthropicAdapter":
-                provider = "anthropic"
-            elif adapter_name == "GeminiAdapter":
-                provider = "gemini"
-            elif adapter_name == "CohereAdapter":
-                provider = "cohere"
-            elif adapter_name == "GenericOpenAIAdapter":
-                base_url = getattr(adapter, "base_url", "")
-                if "11434" in base_url or "localhost" in base_url or "127.0.0.1" in base_url:
+            adapter_name = type(adapter).__name__
+            if adapter_name == "LiteLLMAdapter":
+                provider_str = getattr(adapter, "model_name", "")
+                base_url = getattr(adapter, "base_url", "") or ""
+                if (
+                    "11434" in base_url
+                    or "localhost" in base_url
+                    or "127.0.0.1" in base_url
+                ):
                     is_local = 1.0
                     provider = "ollama"
+                elif provider_str.startswith("openai/"):
+                    provider = "openai"
+                elif provider_str.startswith("anthropic/"):
+                    provider = "anthropic"
+                elif provider_str.startswith("gemini/"):
+                    provider = "gemini"
+                elif provider_str.startswith("cohere/"):
+                    provider = "cohere"
+                elif provider_str.startswith("ollama/"):
+                    provider = "ollama"
+                    is_local = 1.0
                 else:
-                    provider = "custom_openai"
+                    provider = "custom_litellm"
 
         features["model_is_local"] = is_local
         features["model_provider"] = provider
@@ -698,8 +717,6 @@ class RouterCore:
         q_hs = hashlib.md5(query.encode()).hexdigest()
         for i in range(min(6, len(q_hs) // 2)):
             features[f"query_hash_{i}"] = int(q_hs[i * 2 : i * 2 + 2], 16) / 255.0
-
-
 
         # Post-response metrics
         if response:
@@ -974,6 +991,23 @@ class RouterCore:
             elif prompt_tokens > 0 or completion_tokens > 0:
                 actual_cost = (total_tokens * decision.cost) / 1000.0
 
+            potential_max_cost = actual_cost
+            if self.models and (prompt_tokens > 0 or completion_tokens > 0):
+                for model_config in self.models.values():
+                    p_c = model_config.get("prompt_cost", model_config.get("cost", 0.0))
+                    c_c = model_config.get(
+                        "completion_cost", model_config.get("cost", 0.0)
+                    )
+                    if p_c is None:
+                        p_c = model_config.get("cost", 0.0)
+                    if c_c is None:
+                        c_c = model_config.get("cost", 0.0)
+                    m_potential = (prompt_tokens * p_c / 1000.0) + (
+                        completion_tokens * c_c / 1000.0
+                    )
+                    if m_potential > potential_max_cost:
+                        potential_max_cost = m_potential
+
             # Determine the strategy for metrics logging
             log_strategy = (
                 request.parameters.get("strategy") if request.parameters else None
@@ -1036,6 +1070,7 @@ class RouterCore:
                     log_entry.user_sentiment = user_sentiment
                 if decision.reality_check_id:
                     log_entry.reality_check_id = str(decision.reality_check_id)
+                log_entry.potential_cost = potential_max_cost
                 db.commit()
                 logger.info(f"Updated log entry {log_entry.id} with RC ID and features")
 
@@ -1153,11 +1188,16 @@ class RouterCore:
                     if adapter:
                         response = await adapter.forward_request(request)
                         model_info = self.models[model_id]
+                        actual_cost = (
+                            response.get("cost", model_info.get("cost", 0.0))
+                            if isinstance(response, dict) and response.get("cost")
+                            else model_info.get("cost", 0.0)
+                        )
                         return RoutingResponse(
                             model_id=model_id,
                             model_name=model_info.get("name", model_id),
                             expected_utility=10.0,
-                            cost=model_info.get("cost", 0.0),
+                            cost=actual_cost,
                             time=model_info.get("time", 0.0),
                             probability=model_info.get("probability", 1.0),
                             response=response,
@@ -1345,7 +1385,7 @@ class RouterCore:
                                 partial_content = f"```json\n{args}"
                             except:
                                 pass
-                        
+
                         cont_messages.append(
                             {"role": "assistant", "content": partial_content}
                         )
@@ -1392,10 +1432,7 @@ class RouterCore:
                             self.load_balancer.record_failure(decision.model_id)
                             break
 
-                    if (
-                        has_tools
-                        and not response.get("tool_calls")
-                    ):
+                    if has_tools and not response.get("tool_calls"):
                         import json as _json
                         import re as _re
                         import uuid as _uuid
@@ -1539,7 +1576,9 @@ class RouterCore:
                                     is_malformed = True
 
                     # 6. Additional Truncation Check: Check for partial code blocks at the very end
-                    if (resp_text.endswith("`") and not resp_text.endswith("```")) or (resp_text.endswith("``") and not resp_text.endswith("```")):
+                    if (resp_text.endswith("`") and not resp_text.endswith("```")) or (
+                        resp_text.endswith("``") and not resp_text.endswith("```")
+                    ):
                         is_truncated = True
 
                     # 7. Check for partial JSON/XML structures at the end
@@ -1631,8 +1670,15 @@ class RouterCore:
                             decision.model_id, success=False
                         )
                         # Log the failure and continue to next model in ranked list
+                        actual_cost = (
+                            response.get("cost", decision.cost)
+                            if isinstance(response, dict) and response.get("cost")
+                            else decision.cost
+                        )
                         self.log_routing_decision(
-                            decision.model_copy(update={"time": elapsed_time}),
+                            decision.model_copy(
+                                update={"time": elapsed_time, "cost": actual_cost}
+                            ),
                             request,
                             response,
                             db,
@@ -1707,9 +1753,18 @@ class RouterCore:
                                                 f"Escalating from {decision.model_id}: u_stop({u_stop:.4f}) < eu_continue({eu_continue:.4f})"
                                             )
                                             # Log this attempt before moving to next model
+                                            actual_cost = (
+                                                response.get("cost", decision.cost)
+                                                if isinstance(response, dict)
+                                                and response.get("cost")
+                                                else decision.cost
+                                            )
                                             self.log_routing_decision(
                                                 decision.model_copy(
-                                                    update={"time": elapsed_time}
+                                                    update={
+                                                        "time": elapsed_time,
+                                                        "cost": actual_cost,
+                                                    }
                                                 ),
                                                 request,
                                                 response,
@@ -1747,9 +1802,18 @@ class RouterCore:
                                                 logger.info(
                                                     f"Escalating via local fallback from {decision.model_id}: {u_stop:.4f} < {eu_continue:.4f}"
                                                 )
+                                                actual_cost = (
+                                                    response.get("cost", decision.cost)
+                                                    if isinstance(response, dict)
+                                                    and response.get("cost")
+                                                    else decision.cost
+                                                )
                                                 self.log_routing_decision(
                                                     decision.model_copy(
-                                                        update={"time": elapsed_time}
+                                                        update={
+                                                            "time": elapsed_time,
+                                                            "cost": actual_cost,
+                                                        }
                                                     ),
                                                     request,
                                                     response,
@@ -1775,9 +1839,18 @@ class RouterCore:
                                         logger.info(
                                             f"Escalating via exception fallback from {decision.model_id}: {u_stop:.4f} < {eu_continue:.4f}"
                                         )
+                                        actual_cost = (
+                                            response.get("cost", decision.cost)
+                                            if isinstance(response, dict)
+                                            and response.get("cost")
+                                            else decision.cost
+                                        )
                                         self.log_routing_decision(
                                             decision.model_copy(
-                                                update={"time": elapsed_time}
+                                                update={
+                                                    "time": elapsed_time,
+                                                    "cost": actual_cost,
+                                                }
                                             ),
                                             request,
                                             response,
@@ -1791,8 +1864,15 @@ class RouterCore:
                     final_features = self.extract_coding_features(
                         request, decision.model_id, response
                     )
+                    actual_cost = (
+                        response.get("cost", decision.cost)
+                        if isinstance(response, dict) and response.get("cost")
+                        else decision.cost
+                    )
                     self.log_routing_decision(
-                        decision.model_copy(update={"time": elapsed_time}),
+                        decision.model_copy(
+                            update={"time": elapsed_time, "cost": actual_cost}
+                        ),
                         request,
                         response,
                         db,
@@ -1804,7 +1884,7 @@ class RouterCore:
                         model_id=decision.model_id,
                         model_name=decision.name,
                         expected_utility=decision.expected_utility,
-                        cost=decision.cost,
+                        cost=actual_cost,
                         time=elapsed_time,
                         probability=decision.probability,
                         response=response,
@@ -1822,7 +1902,6 @@ class RouterCore:
                         db,
                         routing_context,
                         self.extract_coding_features(request, decision.model_id),
-                        
                     )
                     last_error = e
                     continue
@@ -2013,12 +2092,13 @@ async def chat_completions(
                             "id": tc.get("id", ""),
                             "type": "function",
                             "function": {
-                                "name": tc.get("function", {}).get("name", "")
+                                "name": tc.get("function", {}).get("name", ""),
+                                "arguments": "",
                             },
                         }
                     )
                 yield f"data: {json.dumps({**common, 'choices': [{'index': 0, 'delta': {'tool_calls': init_tool_calls}, 'finish_reason': None}]})}\n\n"
-                
+
                 for i, tc in enumerate(tool_calls):
                     args = tc.get("function", {}).get("arguments", "")
                     if args:

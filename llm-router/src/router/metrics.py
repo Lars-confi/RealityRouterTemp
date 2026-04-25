@@ -296,25 +296,15 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
         avg_time = total_time / total_requests if total_requests > 0 else 0.0
         success_rate = success_count / total_requests if total_requests > 0 else 0.0
 
-        # Estimate potential max cost (if used most expensive model for all tokens)
-        max_unit_cost = 0.0
-        for m_info in model_stats.values():
-            if m_info["total_tokens"] > 0:
-                unit_cost = m_info["total_cost"] / m_info["total_tokens"]
-                if unit_cost > max_unit_cost:
-                    max_unit_cost = unit_cost
-
-        if max_unit_cost == 0:
-            # Fallback if no token data: use max cost per request
-            max_avg_cost = 0.0
-            for m_info in model_stats.values():
-                if m_info["requests"] > 0:
-                    avg = m_info["total_cost"] / m_info["requests"]
-                    if avg > max_avg_cost:
-                        max_avg_cost = avg
-            potential_max_cost = total_requests * max_avg_cost
-        else:
-            potential_max_cost = total_tokens * max_unit_cost
+        # Calculate potential max cost based on the maximum cost available at the time of each request
+        potential_max_cost = sum(
+            (
+                log.potential_cost
+                if getattr(log, "potential_cost", None) is not None
+                else log.cost
+            )
+            for log in logs
+        )
 
         return MetricsSummary(
             total_requests=total_requests,
