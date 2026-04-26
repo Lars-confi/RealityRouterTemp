@@ -70,6 +70,7 @@ class RoutingDecision(BaseModel):
     name: str
     reality_check_id: Optional[Union[int, str]] = None
     feedback_required: bool = False
+    is_random_exploration: bool = False
 
 
 class ExpectedUtilityCalculator:
@@ -918,15 +919,31 @@ class RouterCore:
                 if r["fb_req"]:
                     feedback_candidates.append(d)
 
+            import random
+
             if strategy == "tiered_assessment":
                 # Start with cheapest models first for tiered escalation
                 decisions.sort(key=lambda x: (x.cost, x.time))
             else:
-                decisions.sort(key=lambda x: x.expected_utility, reverse=True)
+                # Group by utility to break ties randomly
+                utility_groups = {}
+                for d in decisions:
+                    rounded_utility = round(d.expected_utility, 4)
+                    if rounded_utility not in utility_groups:
+                        utility_groups[rounded_utility] = []
+                    utility_groups[rounded_utility].append(d)
+
+                shuffled_decisions = []
+                for util in sorted(utility_groups.keys(), reverse=True):
+                    group = utility_groups[util]
+                    if len(group) > 1:
+                        random.shuffle(group)
+                        for d in group:
+                            d.is_random_exploration = True
+                    shuffled_decisions.extend(group)
+                decisions = shuffled_decisions
 
             if feedback_candidates:
-                import random
-
                 winner = random.choice(feedback_candidates)
                 for i, d in enumerate(decisions):
                     if d.model_id == winner.model_id:
@@ -1155,6 +1172,28 @@ class RouterCore:
         logger.info(f"Routing request with strategy: {strategy}")
         db = SessionLocal()
         try:
+            # Strip fragile thought signatures from incoming messages to prevent Google 400 errors
+            if request.parameters and "messages" in request.parameters:
+                for msg in request.parameters["messages"]:
+                    if isinstance(msg, dict):
+                        if msg.get("tool_calls"):
+                            for tc in msg["tool_calls"]:
+                                if (
+                                    isinstance(tc, dict)
+                                    and "id" in tc
+                                    and isinstance(tc["id"], str)
+                                    and "__thought__" in tc["id"]
+                                ):
+                                    tc["id"] = tc["id"].split("__thought__")[0]
+                        if (
+                            msg.get("tool_call_id")
+                            and isinstance(msg["tool_call_id"], str)
+                            and "__thought__" in msg["tool_call_id"]
+                        ):
+                            msg["tool_call_id"] = msg["tool_call_id"].split(
+                                "__thought__"
+                            )[0]
+
             # Check for sticky session
             if (
                 request.agent_id
@@ -1187,6 +1226,19 @@ class RouterCore:
                     adapter = self.adapters.get(model_id)
                     if adapter:
                         response = await adapter.forward_request(request)
+                        if (
+                            response
+                            and isinstance(response, dict)
+                            and response.get("tool_calls")
+                        ):
+                            for tc in response["tool_calls"]:
+                                if (
+                                    isinstance(tc, dict)
+                                    and "id" in tc
+                                    and isinstance(tc["id"], str)
+                                    and "__thought__" in tc["id"]
+                                ):
+                                    tc["id"] = tc["id"].split("__thought__")[0]
                         model_info = self.models[model_id]
                         actual_cost = (
                             response.get("cost", model_info.get("cost", 0.0))
@@ -1279,18 +1331,38 @@ class RouterCore:
                     if strategy == "expected_utility"
                     else " LLM REROUTER: RANKING MODELS "
                 )
-                print("\n" + "=" * 70)
-                print(title.center(70, "="))
-                print("-" * 70)
-                print(f"{'  Model Name (ID)':<42} | {'Utility':>10} | {'Prob':>8}")
-                print("-" * 42 + " | " + "-" * 10 + " | " + "-" * 8)
+                print("\n" + "=" * 105)
+                print(title.center(105, "="))
+                print("-" * 105)
+                print(
+                    f"{'  Model Name (ID)':<42} | {'Utility':>10} | {'Prob':>8} | {'Cost':>8} | {'Time':>6} | {'Info':>10}"
+                )
+                print(
+                    "-" * 42
+                    + " | "
+                    + "-" * 10
+                    + " | "
+                    + "-" * 8
+                    + " | "
+                    + "-" * 8
+                    + " | "
+                    + "-" * 6
+                    + " | "
+                    + "-" * 10
+                )
                 for d in ranked_decisions:
                     marker = ">>" if d == ranked_decisions[0] else "  "
                     label = d.name if len(d.name) <= 39 else d.name[:36] + "..."
+                    info_tags = []
+                    if d.feedback_required:
+                        info_tags.append("FB_Req")
+                    elif getattr(d, "is_random_exploration", False):
+                        info_tags.append("Random")
+                    info_str = ",".join(info_tags)
                     print(
-                        f"{marker} {label:<39} | {d.expected_utility:>10.4f} | {d.probability:>8.4f}"
+                        f"{marker} {label:<39} | {d.expected_utility:>10.4f} | {d.probability:>8.4f} | {d.cost:>8.4f} | {d.time:>6.2f} | {info_str:>10}"
                     )
-                print("=" * 70 + "\n")
+                print("=" * 105 + "\n")
 
             routing_context = json.dumps([d.model_dump() for d in ranked_decisions])
             last_error = None
@@ -1344,6 +1416,21 @@ class RouterCore:
                     else:
                         response = await adapter.forward_request(request)
                     elapsed_time = time.time() - start_time
+
+                    # --- STRIP FRAGILE THOUGHT SIGNATURES ---
+                    if (
+                        response
+                        and isinstance(response, dict)
+                        and response.get("tool_calls")
+                    ):
+                        for tc in response["tool_calls"]:
+                            if (
+                                isinstance(tc, dict)
+                                and "id" in tc
+                                and isinstance(tc["id"], str)
+                                and "__thought__" in tc["id"]
+                            ):
+                                tc["id"] = tc["id"].split("__thought__")[0]
 
                     # --- RESPONSE VALIDATION & SMART CONTINUATION ---
                     resp_text = str(response.get("text", "")).strip()

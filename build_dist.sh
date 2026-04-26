@@ -27,14 +27,21 @@ if [ -f "$ZIP_NAME" ]; then
 fi
 
 echo -e "${GREEN}Zipping project files...${NC}"
-echo "Excluding: venv/, .git/, __pycache__/, .env, llm_router.db, and cached pricing data."
+echo "Excluding: testing scripts, venv/, .git/, __pycache__/, and sensitive configurations (.env, DB, etc)."
 
 # Create the zip file, excluding unwanted directories and personal/system files
 zip -r "$ZIP_NAME" . \
     -x "venv/*" \
     -x ".env" \
     -x "llm_router.db" \
-
+    -x "disabled_models.json" \
+    -x "user_models.json" \
+    -x "test_*.py" \
+    -x "*/test_*.py" \
+    -x "patch_*.py" \
+    -x "*/patch_*.py" \
+    -x ".pytest_cache/*" \
+    -x "*/.pytest_cache/*" \
     -x "*/__pycache__/*" \
     -x "*.pyc" \
     -x ".git/*" \
