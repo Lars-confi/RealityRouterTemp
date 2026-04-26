@@ -263,6 +263,9 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
                     "total_time": 0.0,
                     "success_count": 0,
                     "total_utility": 0.0,
+                    "raw_costs": [],
+                    "raw_times": [],
+                    "raw_probs": [],
                 }
             model_stats[model_id]["requests"] += 1
             model_stats[model_id]["total_cost"] += log.cost
@@ -273,6 +276,9 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
             model_stats[model_id]["total_tokens"] += log.total_tokens or 0
             model_stats[model_id]["total_time"] += log.time
             model_stats[model_id]["total_utility"] += log.expected_utility or 0.0
+            model_stats[model_id]["raw_costs"].append(log.cost)
+            model_stats[model_id]["raw_times"].append(log.time)
+            model_stats[model_id]["raw_probs"].append(log.probability)
             if log.success:
                 model_stats[model_id]["success_count"] += 1
 
@@ -290,6 +296,32 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
             agent_stats[a_id]["total_tokens"] += log.total_tokens or 0
             if log.success:
                 agent_stats[a_id]["success_count"] += 1
+
+        import numpy as np
+
+        for m_id, stats in model_stats.items():
+            for key, stat_key in [
+                ("raw_costs", "cost_stats"),
+                ("raw_times", "time_stats"),
+                ("raw_probs", "prob_stats"),
+            ]:
+                data = stats.pop(key)
+                if data:
+                    stats[stat_key] = {
+                        "min": float(np.min(data)),
+                        "q1": float(np.percentile(data, 25)),
+                        "median": float(np.median(data)),
+                        "q3": float(np.percentile(data, 75)),
+                        "max": float(np.max(data)),
+                    }
+                else:
+                    stats[stat_key] = {
+                        "min": 0,
+                        "q1": 0,
+                        "median": 0,
+                        "q3": 0,
+                        "max": 0,
+                    }
 
         # Calculate averages
         avg_cost = total_cost / total_requests if total_requests > 0 else 0.0
@@ -446,6 +478,10 @@ async def get_dashboard():
             tr:hover { background: #2a2a2a; }
             .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
             .badge-success { background: #064e3b; color: #34d399; }
+            .boxplot-container { width: 120px; height: 18px; position: relative; margin-top: 6px; background: rgba(255,255,255,0.03); border-radius: 2px; }
+            .boxplot-whisker { position: absolute; height: 2px; background: #7f8c8d; top: 8px; }
+            .boxplot-box { position: absolute; height: 10px; background: #3498db; top: 4px; opacity: 0.8; }
+            .boxplot-median { position: absolute; height: 14px; width: 2px; background: #fff; top: 2px; }
         </style>
     </head>
     <body>
@@ -485,10 +521,10 @@ async def get_dashboard():
                             <tr>
                                 <th>Intelligence Provider</th>
                                 <th>Calls</th>
-                                <th>Total Cost</th>
-                                <th>Avg Latency</th>
+                                <th>Total Cost & Dist</th>
+                                <th>Avg Latency & Dist</th>
                                 <th>Throughput (Tokens)</th>
-                                <th>Avg Utility</th>
+                                <th>Avg Utility & Prob Dist</th>
                             </tr>
                         </thead>
                         <tbody id="models-body"></tbody>
@@ -509,12 +545,81 @@ async def get_dashboard():
                     // Update Summary Grid
                     const summaryGrid = document.getElementById('summary-grid');
                     const savings = Math.max(0, data.potential_max_cost - data.total_cost);
+
+                    let bestProbModel = "N/A";
+                    let bestProbVal = -1;
+                    let bestCostModel = "N/A";
+                    let bestCostVal = Infinity;
+                    let bestTimeModel = "N/A";
+                    let bestTimeVal = Infinity;
+
+                    let leastProbModel = "N/A";
+                    let leastProbVal = Infinity;
+                    let chattiestModel = "N/A";
+                    let chattiestVal = -1;
+                    let shyestModel = "N/A";
+                    let shyestVal = Infinity;
+                    let confusedModel = "N/A";
+                    let confusedVal = -1;
+
+                    for (const [id, stats] of Object.entries(data.models)) {
+                        if (stats.requests === 0) continue;
+                        let name = stats.name || id;
+
+                        if (stats.prob_stats && stats.prob_stats.median > bestProbVal) {
+                            bestProbVal = stats.prob_stats.median;
+                            bestProbModel = name;
+                        }
+                        if (stats.prob_stats && stats.prob_stats.median < leastProbVal) {
+                            leastProbVal = stats.prob_stats.median;
+                            leastProbModel = name;
+                        }
+                        if (stats.cost_stats && stats.cost_stats.median < bestCostVal) {
+                            bestCostVal = stats.cost_stats.median;
+                            bestCostModel = name;
+                        }
+                        if (stats.time_stats && stats.time_stats.median < bestTimeVal) {
+                            bestTimeVal = stats.time_stats.median;
+                            bestTimeModel = name;
+                        }
+
+                        let avgTokens = stats.total_completion_tokens / stats.requests;
+                        if (avgTokens > chattiestVal) {
+                            chattiestVal = avgTokens;
+                            chattiestModel = name;
+                        }
+                        if (avgTokens < shyestVal) {
+                            shyestVal = avgTokens;
+                            shyestModel = name;
+                        }
+
+                        let errorRate = 1.0 - (stats.success_count / stats.requests);
+                        if (errorRate > confusedVal) {
+                            confusedVal = errorRate;
+                            confusedModel = name;
+                        }
+                    }
+                    if (bestCostVal === Infinity) bestCostVal = 0;
+                    if (bestTimeVal === Infinity) bestTimeVal = 0;
+                    if (bestProbVal === -1) bestProbVal = 0;
+                    if (leastProbVal === Infinity) leastProbVal = 0;
+                    if (chattiestVal === -1) chattiestVal = 0;
+                    if (shyestVal === Infinity) shyestVal = 0;
+                    if (confusedVal === -1) confusedVal = 0;
+
                     summaryGrid.innerHTML = `
                         <div class="stat"><div class="stat-label">Total Volume</div><div class="stat-value">${data.total_requests.toLocaleString()}</div><div class="stat-label">Requests</div></div>
                         <div class="stat stat-expense"><div class="stat-label">Accrued Expense</div><div class="stat-value">$${data.total_cost.toFixed(4)}</div><div class="stat-label">Actual USD</div></div>
                         <div class="stat stat-potential"><div class="stat-label">Potential Cost</div><div class="stat-value">$${data.potential_max_cost.toFixed(4)}</div><div class="stat-label">Max Model USD</div></div>
                         <div class="stat stat-savings"><div class="stat-label">Total Savings</div><div class="stat-value">$${savings.toFixed(4)}</div><div class="stat-label">Retained Value</div></div>
                         <div class="stat"><div class="stat-label">Success Density</div><div class="stat-value">${(data.success_rate * 100).toFixed(1)}%</div><div class="stat-label">Operational</div></div>
+                        <div class="stat" style="border-left-color: #9b59b6; background: #2c1e36;"><div class="stat-label">Most Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #d2b4de;" title="${bestProbModel}">${bestProbModel}</div><div class="stat-label">${bestProbVal.toFixed(4)} (Med Prob)</div></div>
+                        <div class="stat" style="border-left-color: #f1c40f; background: #332b10;"><div class="stat-label">Most Economical</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f9e79f;" title="${bestCostModel}">${bestCostModel}</div><div class="stat-label">$${bestCostVal.toFixed(6)} (Med Cost)</div></div>
+                        <div class="stat" style="border-left-color: #1abc9c; background: #16332d;"><div class="stat-label">Fastest Response</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a3e4d7;" title="${bestTimeModel}">${bestTimeModel}</div><div class="stat-label">${bestTimeVal.toFixed(2)}s (Med Time)</div></div>
+                        <div class="stat" style="border-left-color: #7f8c8d; background: #2b2b2b;"><div class="stat-label">Least Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #bdc3c7;" title="${leastProbModel}">${leastProbModel}</div><div class="stat-label">${leastProbVal.toFixed(4)} (Med Prob)</div></div>
+                        <div class="stat" style="border-left-color: #e67e22; background: #3d220f;"><div class="stat-label">Chattiest</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f5b041;" title="${chattiestModel}">${chattiestModel}</div><div class="stat-label">${chattiestVal.toFixed(0)} (Avg Tokens)</div></div>
+                        <div class="stat" style="border-left-color: #3498db; background: #152b3c;"><div class="stat-label">Most Shy</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #85c1e9;" title="${shyestModel}">${shyestModel}</div><div class="stat-label">${shyestVal.toFixed(0)} (Avg Tokens)</div></div>
+                        <div class="stat" style="border-left-color: #e74c3c; background: #3b1a1a;"><div class="stat-label">Clumsiest Model</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f1948a;" title="${confusedModel}">${confusedModel}</div><div class="stat-label">${(confusedVal * 100).toFixed(1)}% (Error Rate)</div></div>
                     `;
 
                     // Update Agents Table
@@ -540,6 +645,35 @@ async def get_dashboard():
 
                     const sortedModels = Object.entries(data.models).sort((a, b) => b[1].requests - a[1].requests);
 
+                    let maxCost = 0;
+                    let maxTime = 0;
+                    for (const [id, stats] of sortedModels) {
+                        if (stats.cost_stats && stats.cost_stats.max > maxCost) maxCost = stats.cost_stats.max;
+                        if (stats.time_stats && stats.time_stats.max > maxTime) maxTime = stats.time_stats.max;
+                    }
+                    if (maxCost === 0) maxCost = 1;
+                    if (maxTime === 0) maxTime = 1;
+
+                    function makeBoxplot(stats, globalMax, isProb) {
+                        if (!stats) return '';
+                        let min = stats.min, q1 = stats.q1, med = stats.median, q3 = stats.q3, max = stats.max;
+                        let scale = globalMax;
+                        if (isProb) { scale = 1.0; }
+
+                        let pMin = (min / scale) * 100;
+                        let pQ1 = (q1 / scale) * 100;
+                        let pMed = (med / scale) * 100;
+                        let pQ3 = (q3 / scale) * 100;
+                        let pMax = (max / scale) * 100;
+
+                        return `
+                        <div class="boxplot-container" title="Min: ${min.toFixed(4)}&#10;Q1: ${q1.toFixed(4)}&#10;Median: ${med.toFixed(4)}&#10;Q3: ${q3.toFixed(4)}&#10;Max: ${max.toFixed(4)}">
+                            <div class="boxplot-whisker" style="left: ${pMin}%; width: ${pMax - pMin}%;"></div>
+                            <div class="boxplot-box" style="left: ${pQ1}%; width: ${Math.max(0.5, pQ3 - pQ1)}%;"></div>
+                            <div class="boxplot-median" style="left: ${pMed}%;"></div>
+                        </div>`;
+                    }
+
                     for (const [id, stats] of sortedModels) {
                         const row = document.createElement('tr');
                         const avgUtil = stats.requests ? (stats.total_utility / stats.requests) : 0;
@@ -549,14 +683,21 @@ async def get_dashboard():
                                 <div style="font-size: 0.75em; color: #95a5a6;">${id}</div>
                             </td>
                             <td>${stats.requests.toLocaleString()}</td>
-                            <td>$${stats.total_cost.toFixed(6)}</td>
-                            <td>${stats.total_time ? (stats.total_time / stats.requests).toFixed(2) + 's' : 'N/A'}</td>
+                            <td>
+                                <div>$${stats.total_cost.toFixed(6)}</div>
+                                ${makeBoxplot(stats.cost_stats, maxCost, false)}
+                            </td>
+                            <td>
+                                <div>${stats.total_time ? (stats.total_time / stats.requests).toFixed(2) + 's' : 'N/A'}</div>
+                                ${makeBoxplot(stats.time_stats, maxTime, false)}
+                            </td>
                             <td>
                                 <div style="font-size: 0.85em;">P: ${stats.total_prompt_tokens.toLocaleString()}</div>
                                 <div style="font-size: 0.85em;">C: ${stats.total_completion_tokens.toLocaleString()}</div>
                             </td>
                             <td>
-                                <span class="badge badge-success">${avgUtil.toFixed(4)}</span>
+                                <div style="margin-bottom: 4px;"><span class="badge badge-success">${avgUtil.toFixed(4)}</span></div>
+                                ${makeBoxplot(stats.prob_stats, 1.0, true)}
                             </td>
                         `;
                         modelsBody.appendChild(row);
