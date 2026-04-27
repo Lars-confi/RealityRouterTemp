@@ -114,6 +114,7 @@ def prompt(text, default="", color=C_YELLOW):
 def sync_discover_ollama(base_url="http://localhost:11434"):
     discovered = []
     try:
+        base_url = base_url.rstrip("/")
         url = (
             base_url.replace("/v1", "/api/tags")
             if base_url.endswith("/v1")
@@ -133,17 +134,16 @@ def sync_discover_ollama(base_url="http://localhost:11434"):
                                 "provider": "ollama",
                             }
                         )
-    except:
-        pass
+    except Exception as e:
+        print(f"  \033[93m[WARN] Failed to connect to Ollama at {base_url}: {e}\033[0m")
     return discovered
 
 
 def sync_discover_openai_compat(base_url, api_key, provider_name):
     discovered = []
     try:
-        url = (
-            f"{base_url}/models" if not base_url.endswith("/") else f"{base_url}models"
-        )
+        base_url = base_url.rstrip("/")
+        url = f"{base_url}/models"
         req = urllib.request.Request(url)
         if api_key and api_key != "dummy":
             req.add_header("Authorization", f"Bearer {api_key}")
@@ -156,6 +156,8 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
                 for model in data.get("data", []):
                     m_id = model.get("id")
                     if m_id:
+                        if m_id.startswith("models/"):
+                            m_id = m_id[7:]
                         if (
                             provider_name == "openai"
                             and "gpt" not in m_id
@@ -169,8 +171,10 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
                                 "provider": provider_name,
                             }
                         )
-    except:
-        pass
+    except Exception as e:
+        print(
+            f"  \033[93m[WARN] Failed to connect to {provider_name} API at {base_url}: {e}\033[0m"
+        )
     return discovered
 
 
@@ -221,14 +225,17 @@ def get_all_models(env_vars):
                     data = json.loads(response.read().decode())
                     for model in data.get("models", []):
                         m_id = model.get("name")
-                        if m_id and m_id not in compat_ids:
-                            models.append(
-                                {
-                                    "id": m_id,
-                                    "name": f"Gemini: {m_id}",
-                                    "provider": "gemini",
-                                }
-                            )
+                        if m_id:
+                            if m_id.startswith("models/"):
+                                m_id = m_id[7:]
+                            if m_id not in compat_ids:
+                                models.append(
+                                    {
+                                        "id": m_id,
+                                        "name": f"Gemini: {m_id}",
+                                        "provider": "gemini",
+                                    }
+                                )
         except:
             pass
 
