@@ -67,6 +67,7 @@ class RoutingDecision(BaseModel):
     cost: float
     time: float
     probability: float
+    uncertainty: float = 0.0
     name: str
     reality_check_id: Optional[Union[int, str]] = None
     feedback_required: bool = False
@@ -867,15 +868,28 @@ class RouterCore:
                         if resp.status_code == 200:
                             r = resp.json()
                             prob = r.get("prob_true", 0.5)
+                            # Calculate entropy-based uncertainty if not provided (H = -p*log2(p) - (1-p)*log2(1-p))
+                            uncertainty = r.get("uncertainty")
+                            if uncertainty is None:
+                                import math
+
+                                if prob <= 0 or prob >= 1:
+                                    uncertainty = 0.0
+                                else:
+                                    uncertainty = -(
+                                        prob * math.log2(prob)
+                                        + (1 - prob) * math.log2(1 - prob)
+                                    )
                             logger.info(
-                                f"Reality Check calibration for {m['id']}: prob={prob:.4f}, id={r.get('decision_id')}"
+                                f"Reality Check calibration for {m['id']}: prob={prob:.4f}, uncert={uncertainty:.4f}, id={r.get('decision_id')}"
                             )
                             print(
-                                f"Reality Check calibration for {m['id']}: prob={prob:.4f}, id={r.get('decision_id')}"
+                                f"Reality Check calibration for {m['id']}: prob={prob:.4f}, uncert={uncertainty:.4f}, id={r.get('decision_id')}"
                             )
                             return {
                                 **m,
                                 "prob": prob,
+                                "uncertainty": uncertainty,
                                 "rc_id": r.get("decision_id"),
                                 "fb_req": r.get("feedback_requested", False),
                             }
@@ -887,7 +901,13 @@ class RouterCore:
                 except Exception as e:
                     logger.error(f"Reality Check call failed for {m['id']}: {e}")
 
-                return {**m, "prob": 0.5, "rc_id": None, "fb_req": False}
+                return {
+                    **m,
+                    "prob": 0.5,
+                    "uncertainty": 0.5,
+                    "rc_id": None,
+                    "fb_req": False,
+                }
 
             results = await asyncio.gather(*[call_rc(m) for m in model_tasks])
 
@@ -911,6 +931,7 @@ class RouterCore:
                     cost=r["cost"],
                     time=r["time"],
                     probability=r["prob"],
+                    uncertainty=r.get("uncertainty", 0.0),
                     name=r["name"],
                     reality_check_id=r["rc_id"],
                     feedback_required=r["fb_req"],
@@ -1331,16 +1352,18 @@ class RouterCore:
                     if strategy == "expected_utility"
                     else " LLM REROUTER: RANKING MODELS "
                 )
-                print("\n" + "=" * 105)
-                print(title.center(105, "="))
-                print("-" * 105)
+                print("\n" + "=" * 116)
+                print(title.center(116, "="))
+                print("-" * 116)
                 print(
-                    f"{'  Model Name (ID)':<42} | {'Utility':>10} | {'Prob':>8} | {'Cost':>8} | {'Time':>6} | {'Info':>10}"
+                    f"{'  Model Name (ID)':<42} | {'Utility':>10} | {'Prob':>8} | {'Uncert':>8} | {'Cost':>8} | {'Time':>6} | {'Info':>10}"
                 )
                 print(
                     "-" * 42
                     + " | "
                     + "-" * 10
+                    + " | "
+                    + "-" * 8
                     + " | "
                     + "-" * 8
                     + " | "
@@ -1360,9 +1383,9 @@ class RouterCore:
                         info_tags.append("Random")
                     info_str = ",".join(info_tags)
                     print(
-                        f"{marker} {label:<39} | {d.expected_utility:>10.4f} | {d.probability:>8.4f} | {d.cost:>8.4f} | {d.time:>6.2f} | {info_str:>10}"
+                        f"{marker} {label:<39} | {d.expected_utility:>10.4f} | {d.probability:>8.4f} | {d.uncertainty:>8.4f} | {d.cost:>8.4f} | {d.time:>6.2f} | {info_str:>10}"
                     )
-                print("=" * 105 + "\n")
+                print("=" * 116 + "\n")
 
             routing_context = json.dumps([d.model_dump() for d in ranked_decisions])
             last_error = None
