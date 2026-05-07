@@ -8,7 +8,7 @@ import time
 import urllib.request
 
 # --- Configuration & Files ---
-APP_HOME = os.getenv("LLM_REROUTER_HOME", os.path.expanduser("~/.llm_rerouter"))
+APP_HOME = os.getenv("REALITY_ROUTER_HOME", os.path.expanduser("~/.reality_router"))
 os.makedirs(APP_HOME, exist_ok=True)
 ENV_FILE = os.path.join(APP_HOME, ".env")
 DISABLED_MODELS_FILE = os.path.join(APP_HOME, "disabled_models.json")
@@ -440,7 +440,7 @@ def start_server(env_vars):
 
     env = os.environ.copy()
     env.update(env_vars)
-    env["PYTHONPATH"] = "llm-router"
+    env["PYTHONPATH"] = "reality-router"
 
     print(f"\n  {C_GREEN}{C_BOLD}Server active at http://0.0.0.0:8000{C_RESET}")
     sentiment_model = env_vars.get("SENTIMENT_MODEL_ID", "Not Configured")
@@ -461,7 +461,7 @@ def start_server(env_vars):
                 "8000",
                 "--no-access-log",
             ],
-            cwd="llm-router",
+            cwd="reality-router",
             env=env,
         )
     except KeyboardInterrupt:
@@ -475,7 +475,7 @@ def main():
 
     # Check if we should skip to start
     if os.path.exists(ENV_FILE):
-        print_header("LLM Rerouter")
+        print_header("Reality Router")
         print_status("Welcome back! Existing config detected.\n")
         if not env_vars.get("SENTIMENT_MODEL_ID"):
             print_status(
@@ -492,8 +492,8 @@ def main():
             return
 
     try:
-        print_header("LLM Rerouter Setup")
-        print(f"  Welcome to the {C_BOLD}LLM Rerouter{C_RESET} initialization wizard.")
+        print_header("Reality Router Setup")
+        print(f"  Welcome to the {C_BOLD}Reality Router{C_RESET} initialization wizard.")
         print(f"  Optimized for {C_GREEN}Utility{C_RESET}.\n")
         prompt("Press Enter to begin", "")
 
