@@ -56,5 +56,8 @@ class BaseAdapter(ABC):
             True if valid, False otherwise
         """
         if not request.query or len(request.query.strip()) == 0:
+            # Allow empty query if messages are provided in parameters (standard for chat completions)
+            if request.parameters and request.parameters.get("messages"):
+                return True
             return False
         return True

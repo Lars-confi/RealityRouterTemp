@@ -609,14 +609,14 @@ async def get_dashboard():
 
                     summaryGrid.innerHTML = `
                         <div class="stat"><div class="stat-label">Total Volume</div><div class="stat-value">${data.total_requests.toLocaleString()}</div><div class="stat-label">Requests</div></div>
-                        <div class="stat stat-expense"><div class="stat-label">Accrued Expense</div><div class="stat-value">$${data.total_cost.toFixed(4)}</div><div class="stat-label">Actual USD</div></div>
-                        <div class="stat stat-potential"><div class="stat-label">Potential Cost</div><div class="stat-value">$${data.potential_max_cost.toFixed(4)}</div><div class="stat-label">Max Model USD</div></div>
-                        <div class="stat stat-savings"><div class="stat-label">Total Savings</div><div class="stat-value">$${savings.toFixed(4)}</div><div class="stat-label">Retained Value</div></div>
+                        <div class="stat stat-expense"><div class="stat-label">Accrued Expense</div><div class="stat-value">$${data.total_cost.toFixed(2)}</div><div class="stat-label">Actual USD</div></div>
+                        <div class="stat stat-potential"><div class="stat-label">Potential Cost</div><div class="stat-value">$${data.potential_max_cost.toFixed(2)}</div><div class="stat-label">Max Model USD</div></div>
+                        <div class="stat stat-savings"><div class="stat-label">Total Savings</div><div class="stat-value">$${savings.toFixed(2)}</div><div class="stat-label">Retained Value</div></div>
                         <div class="stat"><div class="stat-label">Success Density</div><div class="stat-value">${(data.success_rate * 100).toFixed(1)}%</div><div class="stat-label">Operational</div></div>
-                        <div class="stat" style="border-left-color: #9b59b6; background: #2c1e36;"><div class="stat-label">Most Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #d2b4de;" title="${bestProbModel}">${bestProbModel}</div><div class="stat-label">${bestProbVal.toFixed(4)} (Med Prob)</div></div>
-                        <div class="stat" style="border-left-color: #f1c40f; background: #332b10;"><div class="stat-label">Most Economical</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f9e79f;" title="${bestCostModel}">${bestCostModel}</div><div class="stat-label">$${bestCostVal.toFixed(6)} (Med Cost)</div></div>
+                        <div class="stat" style="border-left-color: #9b59b6; background: #2c1e36;"><div class="stat-label">Most Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #d2b4de;" title="${bestProbModel}">${bestProbModel}</div><div class="stat-label">${bestProbVal.toFixed(2)} (Med Prob)</div></div>
+                        <div class="stat" style="border-left-color: #f1c40f; background: #332b10;"><div class="stat-label">Most Economical</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f9e79f;" title="${bestCostModel}">${bestCostModel}</div><div class="stat-label">$${bestCostVal.toFixed(2)} (Med Cost)</div></div>
                         <div class="stat" style="border-left-color: #1abc9c; background: #16332d;"><div class="stat-label">Fastest Response</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a3e4d7;" title="${bestTimeModel}">${bestTimeModel}</div><div class="stat-label">${bestTimeVal.toFixed(2)}s (Med Time)</div></div>
-                        <div class="stat" style="border-left-color: #7f8c8d; background: #2b2b2b;"><div class="stat-label">Least Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #bdc3c7;" title="${leastProbModel}">${leastProbModel}</div><div class="stat-label">${leastProbVal.toFixed(4)} (Med Prob)</div></div>
+                        <div class="stat" style="border-left-color: #7f8c8d; background: #2b2b2b;"><div class="stat-label">Least Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #bdc3c7;" title="${leastProbModel}">${leastProbModel}</div><div class="stat-label">${leastProbVal.toFixed(2)} (Med Prob)</div></div>
                         <div class="stat" style="border-left-color: #e67e22; background: #3d220f;"><div class="stat-label">Chattiest</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f5b041;" title="${chattiestModel}">${chattiestModel}</div><div class="stat-label">${chattiestVal.toFixed(0)} (Avg Tokens)</div></div>
                         <div class="stat" style="border-left-color: #3498db; background: #152b3c;"><div class="stat-label">Most Shy</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #85c1e9;" title="${shyestModel}">${shyestModel}</div><div class="stat-label">${shyestVal.toFixed(0)} (Avg Tokens)</div></div>
                         <div class="stat" style="border-left-color: #e74c3c; background: #3b1a1a;"><div class="stat-label">Clumsiest Model</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f1948a;" title="${confusedModel}">${confusedModel}</div><div class="stat-label">${(confusedVal * 100).toFixed(1)}% (Error Rate)</div></div>
@@ -632,7 +632,7 @@ async def get_dashboard():
                         row.innerHTML = `
                             <td style="font-weight: 600;">${id}</td>
                             <td>${stats.requests.toLocaleString()}</td>
-                            <td>$${stats.total_cost.toFixed(6)}</td>
+                            <td>$${stats.total_cost.toFixed(2)}</td>
                             <td>${stats.total_tokens.toLocaleString()}</td>
                             <td><span class="badge ${rate > 90 ? 'badge-success' : ''}">${rate}%</span></td>
                         `;
@@ -667,7 +667,7 @@ async def get_dashboard():
                         let pMax = (max / scale) * 100;
 
                         return `
-                        <div class="boxplot-container" title="Min: ${min.toFixed(4)}&#10;Q1: ${q1.toFixed(4)}&#10;Median: ${med.toFixed(4)}&#10;Q3: ${q3.toFixed(4)}&#10;Max: ${max.toFixed(4)}">
+                        <div class="boxplot-container" title="Min: ${min.toFixed(2)}&#10;Q1: ${q1.toFixed(2)}&#10;Median: ${med.toFixed(2)}&#10;Q3: ${q3.toFixed(2)}&#10;Max: ${max.toFixed(2)}">
                             <div class="boxplot-whisker" style="left: ${pMin}%; width: ${pMax - pMin}%;"></div>
                             <div class="boxplot-box" style="left: ${pQ1}%; width: ${Math.max(0.5, pQ3 - pQ1)}%;"></div>
                             <div class="boxplot-median" style="left: ${pMed}%;"></div>
@@ -684,7 +684,7 @@ async def get_dashboard():
                             </td>
                             <td>${stats.requests.toLocaleString()}</td>
                             <td>
-                                <div>$${stats.total_cost.toFixed(6)}</div>
+                                <div>$${stats.total_cost.toFixed(2)}</div>
                                 ${makeBoxplot(stats.cost_stats, maxCost, false)}
                             </td>
                             <td>
@@ -696,7 +696,7 @@ async def get_dashboard():
                                 <div style="font-size: 0.85em;">C: ${stats.total_completion_tokens.toLocaleString()}</div>
                             </td>
                             <td>
-                                <div style="margin-bottom: 4px;"><span class="badge badge-success">${avgUtil.toFixed(4)}</span></div>
+                                <div style="margin-bottom: 4px;"><span class="badge badge-success">${avgUtil.toFixed(2)}</span></div>
                                 ${makeBoxplot(stats.prob_stats, 1.0, true)}
                             </td>
                         `;

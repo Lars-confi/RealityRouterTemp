@@ -15,17 +15,28 @@ def mock_router():
         patch("src.router.core.load_balancer"),
         patch("src.router.core.get_settings"),
     ):
-        # Make the mocked DB return empty list for recent logs
+        # Make the mocked DB return empty list for recent logs by default
         mock_db = mock_session.return_value
-        mock_db.query.return_value.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
-        # Because we might chain filter twice or once depending on logic
+
+        # Mock a RoutingLog entry for statistics.mean to work
+        mock_log = MagicMock()
+        mock_log.time = 1.5
+        mock_log.completion_tokens = 100
+        mock_log.timestamp = "2023-01-01T12:00:00Z"
+
+        mock_query_result = [
+            mock_log,
+            mock_log, # Add a second entry
+        ]
+
+        # Configure mock_query for chained calls with dummy data
         mock_query = MagicMock()
-        mock_query.filter.return_value = mock_query
-        mock_query.order_by.return_value = mock_query
-        mock_query.limit.return_value = mock_query
-        mock_query.all.return_value = []
-        mock_query.first.return_value = None
-        mock_db.query.return_value = mock_query
+        mock_query.filter.return_value = mock_query  # Allow chaining .filter()
+        mock_query.order_by.return_value = mock_query  # Allow chaining .order_by()
+        mock_query.limit.return_value = mock_query  # Allow chaining .limit()
+        mock_query.all.return_value = mock_query_result  # Return dummy data for .all()
+        mock_query.first.return_value = mock_log  # For .first() calls in log_routing_decision
+        mock_db.query.return_value = mock_query # Set the initial query object
 
         router = RouterCore()
 
@@ -208,3 +219,147 @@ async def test_zed_prioritization(mock_router):
 
         assert claude_decision.expected_utility == 12.0
         assert other_decision.expected_utility == 10.0
+
+
+@pytest.mark.asyncio
+async def test_assess_user_sentiment_insufficient_messages(mock_router):
+    request = RoutingRequest(
+        query="Test query",
+        parameters={"messages": [{"role": "user", "content": "Hi"}]}
+    )
+    sentiment = await mock_router.assess_user_sentiment(request)
+    assert sentiment is None
+
+
+@pytest.mark.asyncio
+async def test_assess_user_sentiment_standard_flow(mock_router):
+    request = RoutingRequest(
+        query="Test query",
+        parameters={
+            "messages": [
+                {"role": "assistant", "content": "Here is the code."},
+                {"role": "user", "content": "Thanks, that works!"}
+            ]
+        }
+    )
+    mock_adapter = AsyncMock()
+    mock_adapter.forward_request.return_value = {"text": "happy"}
+    mock_router.adapters = {"sentiment-model": mock_adapter}
+    mock_router.models["sentiment-model"] = {"cost": 0.001}
+
+    with patch("src.router.core.get_settings") as mock_settings:
+        mock_settings.return_value.sentiment_model_id = "sentiment-model"
+        sentiment = await mock_router.assess_user_sentiment(request)
+        assert sentiment == "happy"
+
+
+@pytest.mark.asyncio
+async def test_assess_user_sentiment_agent_led_flow(mock_router):
+    request = RoutingRequest(
+        query="Test query",
+        parameters={
+            "messages": [
+                {"role": "user", "content": "Do you have the data?"},
+                {"role": "assistant", "content": "Here it is."}
+            ]
+        }
+    )
+    mock_adapter = AsyncMock()
+    mock_adapter.forward_request.return_value = {"text": "unhappy"}
+    mock_router.adapters = {"sentiment-model": mock_adapter}
+    mock_router.models["sentiment-model"] = {"cost": 0.001}
+
+    with patch("src.router.core.get_settings") as mock_settings:
+        mock_settings.return_value.sentiment_model_id = "sentiment-model"
+        sentiment = await mock_router.assess_user_sentiment(request)
+        assert sentiment == "unhappy"
+
+
+@pytest.mark.asyncio
+async def test_assess_user_sentiment_fallback_indeterminate(mock_router):
+    request = RoutingRequest(
+        query="Test query",
+        parameters={
+            "messages": [
+                {"role": "user", "content": "Hello"},
+                {"role": "assistant", "content": "Hi there."}
+            ]
+        }
+    )
+    mock_adapter = AsyncMock()
+    mock_adapter.forward_request.return_value = {"text": "some random output"}
+    mock_router.adapters = {"sentiment-model": mock_adapter}
+    mock_router.models["sentiment-model"] = {"cost": 0.001}
+
+    with patch("src.router.core.get_settings") as mock_settings:
+        mock_settings.return_value.sentiment_model_id = "sentiment-model"
+        sentiment = await mock_router.assess_user_sentiment(request)
+        assert sentiment == "indeterminate"
+
+
+@pytest.mark.asyncio
+async def test_integration_reality_check_feedback_loop(mock_router):
+    # Mock database session and log entry
+    mock_db = MagicMock()
+    mock_log_entry = MagicMock()
+    mock_log_entry.reality_check_id = 12345
+    mock_log_entry.user_sentiment = None
+    mock_db.query.return_value.filter.return_value.filter.return_value.order_by.return_value.first.return_value = mock_log_entry
+
+    with patch("src.router.core.SessionLocal", return_value=mock_db):
+        # Mock the routing request with a happy sentiment
+        request = RoutingRequest(
+            query="Test query",
+            agent_id="test_agent",
+            parameters={
+                "messages": [
+                    {"role": "assistant", "content": "Here is the solution."},
+                    {"role": "user", "content": "Thanks, this is great!"}
+                ]
+            }
+        )
+
+        # Mock the response
+        mock_router.assess_user_sentiment = AsyncMock(return_value="happy")
+
+        mock_adapter = AsyncMock()
+        mock_adapter.forward_request.return_value = {"text": "Response"}
+        mock_router.adapters = {"model-tool-supporter": mock_adapter}
+
+        mock_router.log_routing_decision = MagicMock()
+        mock_router._get_semaphore = MagicMock(return_value=None)
+        mock_router.extract_coding_features = MagicMock(return_value={})
+        mock_router.models = {
+            "model-tool-supporter": {
+                "name": "Tool Supporter",
+                "cost": 0.01,
+                "time": 1.0,
+                "probability": 0.9,
+                "supports_function_calling": True,
+            }
+        }
+        mock_router.utility_calculator.calculate_expected_utility = MagicMock(return_value=10.0)
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client_instance = mock_client.return_value.__aenter__.return_value
+            mock_resp = MagicMock()
+            mock_resp.status_code = 200
+            mock_resp.text = "Success"
+            mock_client_instance.post = AsyncMock(return_value=mock_resp)
+
+            # Call route_request to trigger feedback logic
+            response = await mock_router.route_request(request)
+
+            # Verify log entry was updated
+            assert mock_log_entry.user_sentiment == "happy"
+
+            # Verify the feedback API was called
+            mock_client_instance.post.assert_called_once_with(
+                "https://llmrouter-api.jollysand-1b9ed42e.swedencentral.azurecontainerapps.io/feedback",
+                json={
+                    "decision_id": 12345,
+                    "feedback": 1  # 1 for happy sentiment
+                },
+                headers={"x-api-key": "f7a2b9c8d1e3f5a2b9c8d1e3f5a2b9c8"},
+                timeout=3.0
+            )

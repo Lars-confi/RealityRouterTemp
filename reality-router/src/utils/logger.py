@@ -7,13 +7,13 @@ import os
 from datetime import datetime
 
 
-def setup_logger(name, level=logging.INFO):
+def setup_logger(name="reality_router", level=logging.INFO):
     """
     Set up a logger with the specified name and level
 
     Args:
-        name: Logger name
-        level: Logging level
+        name: Logger name (defaults to "reality_router")
+        level: Logging level (defaults to INFO)
 
     Returns:
         Configured logger

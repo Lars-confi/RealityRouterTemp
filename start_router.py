@@ -6,10 +6,17 @@ import subprocess
 import sys
 import time
 import urllib.request
+import logging
 
-# --- Configuration & Files ---
+import inquirer
+
+# Set up simple file logging
 APP_HOME = os.getenv("REALITY_ROUTER_HOME", os.path.expanduser("~/.reality_router"))
 os.makedirs(APP_HOME, exist_ok=True)
+logging.basicConfig(level=logging.DEBUG, filename=os.path.join(APP_HOME, "wizard_debug.log"))
+logger = logging.getLogger("wizard")
+
+# --- Configuration & Files ---
 ENV_FILE = os.path.join(APP_HOME, ".env")
 DISABLED_MODELS_FILE = os.path.join(APP_HOME, "disabled_models.json")
 
@@ -78,15 +85,18 @@ def save_disabled_models(disabled_set):
 
 
 def clear_screen():
+    logger.debug("Clearing screen: executing system('clear' or 'cls')")
     os.system("cls" if os.name == "nt" else "clear")
 
 
 def print_header(title):
     clear_screen()
     width = 64
-    print(f"{C_CYAN}┏" + "━" * (width - 2) + "┓")
-    print(f"┃ {C_BOLD}{title:^{width - 4}}{C_RESET}{C_CYAN} ┃")
-    print(f"{C_CYAN}┗" + "━" * (width - 2) + f"┛{C_RESET}\n")
+    header = f"{C_CYAN}┏" + "━" * (width - 2) + "┓\n" + \
+             f"┃ {C_BOLD}{title:^{width - 4}}{C_RESET}{C_CYAN} ┃\n" + \
+             f"{C_CYAN}┗" + "━" * (width - 2) + f"┛{C_RESET}\n"
+    print(header)
+    logger.debug(f"Printed header: {title}")
 
 
 def print_status(msg, type="info"):
@@ -97,15 +107,17 @@ def print_status(msg, type="info"):
         type, C_CYAN
     )
     print(f"  {color}{icon}{C_RESET} {msg}")
+    logger.debug(f"Printed status: {msg} [type={type}]")
 
 
 def prompt(text, default="", color=C_YELLOW):
-    p_text = f"  {C_BOLD}{text}{C_RESET}"
-    if default:
-        p_text += f" {C_CYAN}[{default}]{C_RESET}"
-    p_text += f" {ICON_ARROW} "
-    val = input(p_text).strip()
-    return val if val else default
+    questions = [
+        inquirer.Text('value', message=text, default=default)
+    ]
+    answers = inquirer.prompt(questions)
+    if answers:
+        return answers['value'].strip()
+    return default
 
 
 # --- Discovery Logic ---
@@ -136,6 +148,7 @@ def sync_discover_ollama(base_url="http://localhost:11434"):
                         )
     except Exception as e:
         print(f"  \033[93m[WARN] Failed to connect to Ollama at {base_url}: {e}\033[0m")
+        logger.error(f"Failed to discover Ollama models: {e}")
     return discovered
 
 
@@ -175,6 +188,7 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
         print(
             f"  \033[93m[WARN] Failed to connect to {provider_name} API at {base_url}: {e}\033[0m"
         )
+        logger.error(f"Failed to discover {provider_name} models: {e}")
     return discovered
 
 
@@ -211,10 +225,6 @@ def get_all_models(env_vars):
 
         # Also poll the native endpoint to catch missing 2.5/3.1 aliases that aren't on compat yet
         try:
-            import json
-            import ssl
-            import urllib.request
-
             url = f"https://generativelanguage.googleapis.com/v1beta/models?key={g_key}"
             req = urllib.request.Request(url)
             ctx = ssl.create_default_context()
@@ -238,7 +248,7 @@ def get_all_models(env_vars):
                                 )
         except:
             pass
-
+    logger.debug(f"Found {len(models)} models.")
     return models
 
 
@@ -254,13 +264,19 @@ def wizard_global_settings(env_vars):
         f"  {C_CYAN}EU(m) = p * {C_BOLD}R{C_RESET}{C_CYAN} - {C_BOLD}α{C_RESET}{C_CYAN} * cost - {C_BOLD}β{C_RESET}{C_CYAN} * time{C_RESET}\n"
     )
 
-    env_vars["REWARD"] = prompt("Success Value (R)", env_vars.get("REWARD", "1.0"))
-    env_vars["COST_SENSITIVITY"] = prompt(
-        "Cost Penalty (α)", env_vars.get("COST_SENSITIVITY", "0.5")
-    )
-    env_vars["TIME_SENSITIVITY"] = prompt(
-        "Time Penalty (β)", env_vars.get("TIME_SENSITIVITY", "0.5")
-    )
+    questions = [
+        inquirer.Text('reward', message="Success Value (R)", default=env_vars.get("REWARD", "1.0")),
+        inquirer.Text('alpha', message="Cost Penalty (α)", default=env_vars.get("COST_SENSITIVITY", "0.5")),
+        inquirer.Text('beta', message="Time Penalty (β)", default=env_vars.get("TIME_SENSITIVITY", "0.5"))
+    ]
+    answers = inquirer.prompt(questions)
+    if not answers:
+        print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+        sys.exit(0)
+
+    env_vars["REWARD"] = answers['reward'].strip()
+    env_vars["COST_SENSITIVITY"] = answers['alpha'].strip()
+    env_vars["TIME_SENSITIVITY"] = answers['beta'].strip()
 
     save_env(env_vars)
     print_status("Settings updated.", "success")
@@ -269,19 +285,29 @@ def wizard_global_settings(env_vars):
 
 def wizard_routing_strategy(env_vars):
     print_header("Step 1: Routing Strategy")
-    print(
-        f"  {C_CYAN}[1]{C_RESET} {C_BOLD}Expected Utility{C_RESET} (Single-shot, Fast)"
-    )
-    print(
-        f"  {C_CYAN}[2]{C_RESET} {C_BOLD}Tiered Assessment{C_RESET} (Sequential, Verified)\n"
-    )
-
-    choice = prompt("Select Strategy", env_vars.get("DEFAULT_STRATEGY", "1"))
-    if choice in ["2", "tiered_assessment"]:
-        env_vars["DEFAULT_STRATEGY"] = "tiered_assessment"
+    
+    questions = [
+        inquirer.List(
+            'strategy',
+            message="Select Routing Strategy",
+            choices=[
+                ('Expected Utility (Single-shot, Fast)', 'expected_utility'),
+                ('Tiered Assessment (Sequential, Verified)', 'tiered_assessment')
+            ],
+            default='expected_utility' if env_vars.get("DEFAULT_STRATEGY") != "tiered_assessment" else 'tiered_assessment'
+        )
+    ]
+    answers = inquirer.prompt(questions)
+    
+    if not answers:
+        print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+        sys.exit(0)
+        
+    env_vars["DEFAULT_STRATEGY"] = answers['strategy']
+    
+    if answers['strategy'] == "tiered_assessment":
         print_status("Strategy set to Tiered Assessment.", "success")
     else:
-        env_vars["DEFAULT_STRATEGY"] = "expected_utility"
         print_status("Strategy set to Expected Utility.", "success")
 
     save_env(env_vars)
@@ -289,149 +315,141 @@ def wizard_routing_strategy(env_vars):
 
 
 def wizard_providers(env_vars):
+    providers_list = [
+        ("openai", "OpenAI"),
+        ("gemini", "Google Gemini"),
+        ("anthropic", "Anthropic"),
+        ("cohere", "Cohere"),
+        ("custom/local", "Custom/Ollama")
+    ]
+    
     while True:
         print_header("Step 3: Provider Credentials")
 
-        providers = ["OpenAI", "Google Gemini", "Anthropic", "Cohere", "Custom/Ollama"]
-        for i, p in enumerate(providers, 1):
-            key_check = (
-                ICON_CHECK
-                if any(
-                    env_vars.get(k[0])
-                    for k in PROVIDER_KEYS[
-                        p.lower()
-                        .replace("google ", "")
-                        .replace("custom/ollama", "custom/local")
-                    ]
-                )
-                else ICON_X
+        choices = []
+        for p_id, p_name in providers_list:
+            is_configured = any(env_vars.get(k[0]) for k in PROVIDER_KEYS[p_id])
+            display = f"{p_name:<15} {'✓' if is_configured else '✗'}"
+            choices.append((display, p_id))
+            
+        choices.append(("Continue to Model Selection", "continue"))
+
+        questions = [
+            inquirer.List(
+                'provider',
+                message="Select Provider to Configure",
+                choices=choices
             )
-            print(f"  {C_CYAN}[{i}]{C_RESET} {p:<15} {key_check}")
-
-        print(f"\n  {C_CYAN}[c]{C_RESET} Continue to Model Selection")
-
-        choice = prompt("Action", "c").lower()
-        if choice == "c":
+        ]
+        
+        answers = inquirer.prompt(questions)
+        if not answers:
+            print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+            sys.exit(0)
+            
+        choice = answers['provider']
+        
+        if choice == "continue":
             break
 
-        mapping = {
-            "1": "openai",
-            "2": "gemini",
-            "3": "anthropic",
-            "4": "cohere",
-            "5": "custom/local",
-        }
-        if choice in mapping:
-            provider = mapping[choice]
-            print(f"\n  {C_MAGENTA}--- {provider.upper()} CONFIGURATION ---{C_RESET}")
-            for env_key, desc in PROVIDER_KEYS[provider]:
-                cur = env_vars.get(env_key, "")
-                masked = (
-                    cur
-                    if "URL" in env_key
-                    else (cur[:4] + "*" * 12 if len(cur) > 8 else "None")
+        print(f"\n  {C_MAGENTA}--- {choice.upper()} CONFIGURATION ---{C_RESET}")
+        
+        for env_key, desc in PROVIDER_KEYS[choice]:
+            cur = env_vars.get(env_key, "")
+            masked = cur if "URL" in env_key else (cur[:4] + "*" * 12 if len(cur) > 8 else "None")
+            
+            val_q = [
+                inquirer.Text(
+                    'value',
+                    message=f"{desc} (Current: {masked})",
                 )
-                new_val = prompt(f"{desc} (Current: {masked})")
-                if new_val:
-                    env_vars[env_key] = new_val
-            save_env(env_vars)
+            ]
+            val_a = inquirer.prompt(val_q)
+            if not val_a:
+                 print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+                 sys.exit(0)
+                 
+            new_val = val_a['value'].strip()
+            if new_val:
+                env_vars[env_key] = new_val
+        save_env(env_vars)
 
 
 def wizard_model_management(env_vars):
     disabled = load_disabled_models()
     all_models = get_all_models(env_vars)
-    page = 0
-    PAGE_SIZE = 10
-
+    
     while True:
         print_header("Step 4: Model Visibility & Sentiment")
-        print_status(
-            "Toggle models 'ON' or 'OFF' and select the Sentiment Analysis model.\n"
-        )
+        print_status("Toggle models 'ON' or 'OFF' and select the Sentiment Analysis model.\n")
 
         if not all_models:
             print_status("No models found! Check your API keys in Step 3.", "warn")
-            prompt("Press Enter to return", "")
-            return
-
-        total_pages = (len(all_models) + PAGE_SIZE - 1) // PAGE_SIZE
-        if page >= total_pages and total_pages > 0:
-            page = total_pages - 1
-
-        start_idx = page * PAGE_SIZE
-        end_idx = start_idx + PAGE_SIZE
-        current_page_models = all_models[start_idx:end_idx]
-
-        for i, m in enumerate(current_page_models, start_idx + 1):
-            status_icon = ICON_X if m["id"] in disabled else ICON_CHECK
-            status_text = (
-                f"{C_RED}[OFF]{C_RESET}"
-                if m["id"] in disabled
-                else f"{C_GREEN}[ ON]{C_RESET}"
-            )
-            cur_sentiment = env_vars.get("SENTIMENT_MODEL_ID", "")
-            sentiment_tag = (
-                f" {C_MAGENTA}[SENTIMENT]{C_RESET}" if m["id"] == cur_sentiment else ""
-            )
-            print(
-                f"  {C_CYAN}[{i:2}]{C_RESET} {status_text} {m['name']}{sentiment_tag}"
-            )
-
-        print(f"\n  Page {page + 1} of {total_pages}")
-        if page > 0:
-            print(f"  {C_CYAN}[p]{C_RESET} Previous Page")
-        if page < total_pages - 1:
-            print(f"  {C_CYAN}[n]{C_RESET} Next Page")
-
-        print(f"  {C_CYAN}[s]{C_RESET} {C_BOLD}Save & Start Server{C_RESET}")
-        print(f"  {C_CYAN}[r]{C_RESET} Refresh Discovery")
-        print(f"  {C_CYAN}[f]{C_RESET} Set # as Sentiment Model (Feedback Analysis)")
-        print(f"  {C_CYAN}[#]{C_RESET} Enter number to toggle model ON/OFF")
-
-        choice = prompt("Choice", "s").lower()
-
-        if choice == "s":
-            if not env_vars.get("SENTIMENT_MODEL_ID"):
-                print_status(
-                    "You must select a Sentiment Model (using 'f<number>') before starting.",
-                    "error",
+            questions = [
+                inquirer.List(
+                    'no_models',
+                    message="Options",
+                    choices=[('Refresh Discovery', 'r'), ('Go Back', 'b')]
                 )
-                time.sleep(2)
-                continue
-            save_disabled_models(disabled)
-            # We pass the disabled list to the env so the router can read it easily
-            env_vars["DISABLED_MODELS"] = ",".join(list(disabled))
-            save_env(env_vars)
-            break
-        elif choice == "n" and page < total_pages - 1:
-            page += 1
-            continue
-        elif choice == "p" and page > 0:
-            page -= 1
-            continue
-        elif choice == "r":
-            print_status("Scanning for models...")
-            all_models = get_all_models(env_vars)
-            page = 0
-            continue
-        elif choice.startswith("f") and len(choice) > 1:
-            try:
-                idx = int(choice[1:]) - 1
-                if 0 <= idx < len(all_models):
-                    m_id = all_models[idx]["id"]
-                    env_vars["SENTIMENT_MODEL_ID"] = m_id
-                    print_status(f"Sentiment model set to: {m_id}", "success")
-                    time.sleep(0.5)
-            except ValueError:
-                pass
-        elif choice.isdigit():
-            idx = int(choice) - 1
-            if 0 <= idx < len(all_models):
-                m_id = all_models[idx]["id"]
-                if m_id in disabled:
-                    disabled.remove(m_id)
-                else:
-                    disabled.add(m_id)
+            ]
+            ans = inquirer.prompt(questions)
+            if not ans or ans['no_models'] == 'b':
+                return
+            if ans['no_models'] == 'r':
+                 print_status("Scanning for models...")
+                 all_models = get_all_models(env_vars)
+                 continue
+
+        # Step 4.1: Toggle active models
+        model_choices = [(m['name'], m['id']) for m in all_models]
+        default_checked = [m['id'] for m in all_models if m['id'] not in disabled]
+        
+        questions = [
+            inquirer.Checkbox(
+                'active_models',
+                message="Toggle models ON [Space] and continue [Enter]",
+                choices=model_choices,
+                default=default_checked
+            )
+        ]
+        
+        answers = inquirer.prompt(questions)
+        if not answers:
+             print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+             sys.exit(0)
+             
+        active_ids = answers['active_models']
+        disabled = set(m['id'] for m in all_models if m['id'] not in active_ids)
+        
+        active_model_choices = [(m['name'], m['id']) for m in all_models if m['id'] in active_ids]
+        
+        if not active_model_choices:
+             print_status("You must have at least one active model.", "error")
+             time.sleep(2)
+             continue
+             
+        # Step 4.2: Select sentiment model
+        sentiment_all_choices = [(m['name'], m['id']) for m in all_models]
+        sentiment_q = [
+            inquirer.List(
+                'sentiment_model',
+                message="Select Sentiment Analysis model",
+                choices=sentiment_all_choices,
+                default=env_vars.get("SENTIMENT_MODEL_ID") if env_vars.get("SENTIMENT_MODEL_ID") in [m['id'] for m in all_models] else None
+            )
+        ]
+        
+        sentiment_a = inquirer.prompt(sentiment_q)
+        if not sentiment_a:
+             print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+             sys.exit(0)
+             
+        env_vars["SENTIMENT_MODEL_ID"] = sentiment_a['sentiment_model']
+        
+        save_disabled_models(disabled)
+        env_vars["DISABLED_MODELS"] = ",".join(list(disabled))
+        save_env(env_vars)
+        break
 
 
 def start_server(env_vars):
@@ -471,6 +489,7 @@ def start_server(env_vars):
 
 
 def main():
+    logger.debug("Starting Reality Router Setup Wizard.")
     env_vars = load_env()
 
     # Check if we should skip to start
@@ -485,7 +504,21 @@ def main():
             action = "r"
             time.sleep(2)
         else:
-            action = prompt("(s)tart server or (r)econfigure?", "s").lower()
+            action_q = [
+                inquirer.List(
+                    'action',
+                    message="Welcome back",
+                    choices=[
+                        ('Start Server', 's'),
+                        ('Reconfigure', 'r')
+                    ],
+                    default='s'
+                )
+            ]
+            action_a = inquirer.prompt(action_q)
+            if not action_a:
+                 sys.exit(0)
+            action = action_a['action']
 
         if action == "s":
             start_server(env_vars)
@@ -495,7 +528,17 @@ def main():
         print_header("Reality Router Setup")
         print(f"  Welcome to the {C_BOLD}Reality Router{C_RESET} initialization wizard.")
         print(f"  Optimized for {C_GREEN}Utility{C_RESET}.\n")
-        prompt("Press Enter to begin", "")
+        
+        begin_q = [
+            inquirer.List(
+                'begin',
+                message="Begin Setup?",
+                choices=[('Yes', 'y'), ('No, exit', 'n')]
+            )
+        ]
+        begin_a = inquirer.prompt(begin_q)
+        if not begin_a or begin_a['begin'] == 'n':
+            sys.exit(0)
 
         wizard_routing_strategy(env_vars)
         wizard_global_settings(env_vars)
@@ -505,6 +548,8 @@ def main():
 
     except (KeyboardInterrupt, EOFError):
         print(f"\n\n  {C_RED}Setup aborted.{C_RESET}")
+    except Exception as e:
+        logger.error(f"Fatal crash: {e}")
 
 
 if __name__ == "__main__":

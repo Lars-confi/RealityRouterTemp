@@ -56,6 +56,15 @@ class LoadBalancer:
         }
         logger.info(f"Added model {model_name} (ID: {model_id}) to load balancer")
 
+    def get_models(self) -> List[str]:
+        """
+        Get the list of all model IDs
+
+        Returns:
+            List of model IDs
+        """
+        return list(self.models.keys())
+
     def get_next_model_round_robin(self) -> Optional[str]:
         """
         Get the next model using round-robin algorithm
