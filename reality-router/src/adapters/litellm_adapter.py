@@ -90,7 +90,32 @@ class LiteLLMAdapter(BaseAdapter):
             # Extract main content
             choice = response.choices[0]
             message = choice.message
-            text = message.content or ""
+            text = getattr(message, "content", "") or ""
+
+            # Extract reasoning/reasoning_content if main content is empty
+            if not text:
+                # 1. Check for reasoning attributes directly on message object
+                for attr in ["reasoning_content", "reasoning", "thought", "refusal"]:
+                    val = getattr(message, attr, None)
+                    if val:
+                        text = val
+                        break
+
+                # 2. Check for provider_specific_fields (DeepSeek/Nemotron/Ollama)
+                if (
+                    not text
+                    and hasattr(message, "provider_specific_fields")
+                    and isinstance(message.provider_specific_fields, dict)
+                ):
+                    psf = message.provider_specific_fields
+                    text = (
+                        psf.get("reasoning_content")
+                        or psf.get("reasoning")
+                        or psf.get("thought")
+                        or psf.get("refusal")
+                        or ""
+                    )
+
             finish_reason = choice.finish_reason
 
             # Parse tool calls into the standard dictionary format expected by the router core
