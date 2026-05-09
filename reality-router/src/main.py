@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.models.database import init_db
+from src.router.core import get_agent_card
 from src.router.core import router as router_router
 from src.router.metrics import router as metrics_router
 
@@ -36,16 +37,22 @@ app.add_middleware(
 
 # Include routers
 app.include_router(router_router, prefix="/v1", tags=["routing"])
-    # app.include_router(router_router, tags=["routing_root"])
+# app.include_router(router_router, tags=["routing_root"])
 app.include_router(metrics_router, prefix="/metrics", tags=["metrics"])
 
+# Discovery endpoints
+app.get("/.well-known/agent-card.json", tags=["discovery"])(get_agent_card)
+
+
+import asyncio
 
 from src.router.core import router_core
-import asyncio
+
 
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(router_core.run_capability_probes())
+
 
 @app.get("/")
 async def root():
