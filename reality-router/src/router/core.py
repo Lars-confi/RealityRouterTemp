@@ -1352,7 +1352,7 @@ class RouterCore:
                     query="",  # Query is not used when messages are present
                     parameters={
                         "messages": [{"role": "user", "content": prompt}],
-                        "max_tokens": 15,
+                        "max_tokens": 256,
                         "temperature": 0,
                     },
                 )
@@ -1364,9 +1364,9 @@ class RouterCore:
             txt = raw_txt.replace("'", "").replace('"', "").replace("`", "").strip()
             print(f"DEBUG_SENTIMENT: Cleaned sentiment model output: '{txt}'")
 
-            if txt == "unhappy":
+            if "unhappy" in txt:
                 sentiment = "unhappy"
-            elif txt == "happy":
+            elif "happy" in txt:
                 sentiment = "happy"
             else:
                 sentiment = "indeterminate"
