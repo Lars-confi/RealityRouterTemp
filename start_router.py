@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 import json
+import logging
 import os
 import ssl
 import subprocess
 import sys
 import time
 import urllib.request
-import logging
 
 import inquirer
 
 # Set up simple file logging
 APP_HOME = os.getenv("REALITY_ROUTER_HOME", os.path.expanduser("~/.reality_router"))
 os.makedirs(APP_HOME, exist_ok=True)
-logging.basicConfig(level=logging.DEBUG, filename=os.path.join(APP_HOME, "wizard_debug.log"))
+logging.basicConfig(
+    level=logging.DEBUG, filename=os.path.join(APP_HOME, "wizard_debug.log")
+)
 logger = logging.getLogger("wizard")
 
 # --- Configuration & Files ---
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REALITY_ROUTER_DIR = os.path.join(SCRIPT_DIR, "reality-router")
 ENV_FILE = os.path.join(APP_HOME, ".env")
 DISABLED_MODELS_FILE = os.path.join(APP_HOME, "disabled_models.json")
 
@@ -92,9 +96,15 @@ def clear_screen():
 def print_header(title):
     clear_screen()
     width = 64
-    header = f"{C_CYAN}┏" + "━" * (width - 2) + "┓\n" + \
-             f"┃ {C_BOLD}{title:^{width - 4}}{C_RESET}{C_CYAN} ┃\n" + \
-             f"{C_CYAN}┗" + "━" * (width - 2) + f"┛{C_RESET}\n"
+    header = (
+        f"{C_CYAN}┏"
+        + "━" * (width - 2)
+        + "┓\n"
+        + f"┃ {C_BOLD}{title:^{width - 4}}{C_RESET}{C_CYAN} ┃\n"
+        + f"{C_CYAN}┗"
+        + "━" * (width - 2)
+        + f"┛{C_RESET}\n"
+    )
     print(header)
     logger.debug(f"Printed header: {title}")
 
@@ -111,12 +121,10 @@ def print_status(msg, type="info"):
 
 
 def prompt(text, default="", color=C_YELLOW):
-    questions = [
-        inquirer.Text('value', message=text, default=default)
-    ]
+    questions = [inquirer.Text("value", message=text, default=default)]
     answers = inquirer.prompt(questions)
     if answers:
-        return answers['value'].strip()
+        return answers["value"].strip()
     return default
 
 
@@ -265,18 +273,28 @@ def wizard_global_settings(env_vars):
     )
 
     questions = [
-        inquirer.Text('reward', message="Success Value (R)", default=env_vars.get("REWARD", "1.0")),
-        inquirer.Text('alpha', message="Cost Penalty (α)", default=env_vars.get("COST_SENSITIVITY", "0.5")),
-        inquirer.Text('beta', message="Time Penalty (β)", default=env_vars.get("TIME_SENSITIVITY", "0.5"))
+        inquirer.Text(
+            "reward", message="Success Value (R)", default=env_vars.get("REWARD", "1.0")
+        ),
+        inquirer.Text(
+            "alpha",
+            message="Cost Penalty (α)",
+            default=env_vars.get("COST_SENSITIVITY", "0.5"),
+        ),
+        inquirer.Text(
+            "beta",
+            message="Time Penalty (β)",
+            default=env_vars.get("TIME_SENSITIVITY", "0.5"),
+        ),
     ]
     answers = inquirer.prompt(questions)
     if not answers:
         print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
         sys.exit(0)
 
-    env_vars["REWARD"] = answers['reward'].strip()
-    env_vars["COST_SENSITIVITY"] = answers['alpha'].strip()
-    env_vars["TIME_SENSITIVITY"] = answers['beta'].strip()
+    env_vars["REWARD"] = answers["reward"].strip()
+    env_vars["COST_SENSITIVITY"] = answers["alpha"].strip()
+    env_vars["TIME_SENSITIVITY"] = answers["beta"].strip()
 
     save_env(env_vars)
     print_status("Settings updated.", "success")
@@ -285,27 +303,29 @@ def wizard_global_settings(env_vars):
 
 def wizard_routing_strategy(env_vars):
     print_header("Step 1: Routing Strategy")
-    
+
     questions = [
         inquirer.List(
-            'strategy',
+            "strategy",
             message="Select Routing Strategy",
             choices=[
-                ('Expected Utility (Single-shot, Fast)', 'expected_utility'),
-                ('Tiered Assessment (Sequential, Verified)', 'tiered_assessment')
+                ("Expected Utility (Single-shot, Fast)", "expected_utility"),
+                ("Tiered Assessment (Sequential, Verified)", "tiered_assessment"),
             ],
-            default='expected_utility' if env_vars.get("DEFAULT_STRATEGY") != "tiered_assessment" else 'tiered_assessment'
+            default="expected_utility"
+            if env_vars.get("DEFAULT_STRATEGY") != "tiered_assessment"
+            else "tiered_assessment",
         )
     ]
     answers = inquirer.prompt(questions)
-    
+
     if not answers:
         print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
         sys.exit(0)
-        
-    env_vars["DEFAULT_STRATEGY"] = answers['strategy']
-    
-    if answers['strategy'] == "tiered_assessment":
+
+    env_vars["DEFAULT_STRATEGY"] = answers["strategy"]
+
+    if answers["strategy"] == "tiered_assessment":
         print_status("Strategy set to Tiered Assessment.", "success")
     else:
         print_status("Strategy set to Expected Utility.", "success")
@@ -320,9 +340,9 @@ def wizard_providers(env_vars):
         ("gemini", "Google Gemini"),
         ("anthropic", "Anthropic"),
         ("cohere", "Cohere"),
-        ("custom/local", "Custom/Ollama")
+        ("custom/local", "Custom/Ollama"),
     ]
-    
+
     while True:
         print_header("Step 3: Provider Credentials")
 
@@ -331,45 +351,47 @@ def wizard_providers(env_vars):
             is_configured = any(env_vars.get(k[0]) for k in PROVIDER_KEYS[p_id])
             display = f"{p_name:<15} {'✓' if is_configured else '✗'}"
             choices.append((display, p_id))
-            
+
         choices.append(("Continue to Model Selection", "continue"))
 
         questions = [
             inquirer.List(
-                'provider',
-                message="Select Provider to Configure",
-                choices=choices
+                "provider", message="Select Provider to Configure", choices=choices
             )
         ]
-        
+
         answers = inquirer.prompt(questions)
         if not answers:
             print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
             sys.exit(0)
-            
-        choice = answers['provider']
-        
+
+        choice = answers["provider"]
+
         if choice == "continue":
             break
 
         print(f"\n  {C_MAGENTA}--- {choice.upper()} CONFIGURATION ---{C_RESET}")
-        
+
         for env_key, desc in PROVIDER_KEYS[choice]:
             cur = env_vars.get(env_key, "")
-            masked = cur if "URL" in env_key else (cur[:4] + "*" * 12 if len(cur) > 8 else "None")
-            
+            masked = (
+                cur
+                if "URL" in env_key
+                else (cur[:4] + "*" * 12 if len(cur) > 8 else "None")
+            )
+
             val_q = [
                 inquirer.Text(
-                    'value',
+                    "value",
                     message=f"{desc} (Current: {masked})",
                 )
             ]
             val_a = inquirer.prompt(val_q)
             if not val_a:
-                 print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
-                 sys.exit(0)
-                 
-            new_val = val_a['value'].strip()
+                print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+                sys.exit(0)
+
+            new_val = val_a["value"].strip()
             if new_val:
                 env_vars[env_key] = new_val
         save_env(env_vars)
@@ -378,74 +400,80 @@ def wizard_providers(env_vars):
 def wizard_model_management(env_vars):
     disabled = load_disabled_models()
     all_models = get_all_models(env_vars)
-    
+
     while True:
         print_header("Step 4: Model Visibility & Sentiment")
-        print_status("Toggle models 'ON' or 'OFF' and select the Sentiment Analysis model.\n")
+        print_status(
+            "Toggle models 'ON' or 'OFF' and select the Sentiment Analysis model.\n"
+        )
 
         if not all_models:
             print_status("No models found! Check your API keys in Step 3.", "warn")
             questions = [
                 inquirer.List(
-                    'no_models',
+                    "no_models",
                     message="Options",
-                    choices=[('Refresh Discovery', 'r'), ('Go Back', 'b')]
+                    choices=[("Refresh Discovery", "r"), ("Go Back", "b")],
                 )
             ]
             ans = inquirer.prompt(questions)
-            if not ans or ans['no_models'] == 'b':
+            if not ans or ans["no_models"] == "b":
                 return
-            if ans['no_models'] == 'r':
-                 print_status("Scanning for models...")
-                 all_models = get_all_models(env_vars)
-                 continue
+            if ans["no_models"] == "r":
+                print_status("Scanning for models...")
+                all_models = get_all_models(env_vars)
+                continue
 
         # Step 4.1: Toggle active models
-        model_choices = [(m['name'], m['id']) for m in all_models]
-        default_checked = [m['id'] for m in all_models if m['id'] not in disabled]
-        
+        model_choices = [(m["name"], m["id"]) for m in all_models]
+        default_checked = [m["id"] for m in all_models if m["id"] not in disabled]
+
         questions = [
             inquirer.Checkbox(
-                'active_models',
+                "active_models",
                 message="Toggle models ON [Space] and continue [Enter]",
                 choices=model_choices,
-                default=default_checked
+                default=default_checked,
             )
         ]
-        
+
         answers = inquirer.prompt(questions)
         if not answers:
-             print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
-             sys.exit(0)
-             
-        active_ids = answers['active_models']
-        disabled = set(m['id'] for m in all_models if m['id'] not in active_ids)
-        
-        active_model_choices = [(m['name'], m['id']) for m in all_models if m['id'] in active_ids]
-        
+            print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+            sys.exit(0)
+
+        active_ids = answers["active_models"]
+        disabled = set(m["id"] for m in all_models if m["id"] not in active_ids)
+
+        active_model_choices = [
+            (m["name"], m["id"]) for m in all_models if m["id"] in active_ids
+        ]
+
         if not active_model_choices:
-             print_status("You must have at least one active model.", "error")
-             time.sleep(2)
-             continue
-             
+            print_status("You must have at least one active model.", "error")
+            time.sleep(2)
+            continue
+
         # Step 4.2: Select sentiment model
-        sentiment_all_choices = [(m['name'], m['id']) for m in all_models]
+        sentiment_all_choices = [(m["name"], m["id"]) for m in all_models]
         sentiment_q = [
             inquirer.List(
-                'sentiment_model',
+                "sentiment_model",
                 message="Select Sentiment Analysis model",
                 choices=sentiment_all_choices,
-                default=env_vars.get("SENTIMENT_MODEL_ID") if env_vars.get("SENTIMENT_MODEL_ID") in [m['id'] for m in all_models] else None
+                default=env_vars.get("SENTIMENT_MODEL_ID")
+                if env_vars.get("SENTIMENT_MODEL_ID") in [m["id"] for m in all_models]
+                else None,
             )
         ]
-        
+
         sentiment_a = inquirer.prompt(sentiment_q)
         if not sentiment_a:
-             print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
-             sys.exit(0)
-             
-        env_vars["SENTIMENT_MODEL_ID"] = sentiment_a['sentiment_model']
-        
+            print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+            sys.exit(0)
+
+        env_vars["SENTIMENT_MODEL_ID"] = sentiment_a["sentiment_model"]
+
         save_disabled_models(disabled)
         env_vars["DISABLED_MODELS"] = ",".join(list(disabled))
         save_env(env_vars)
@@ -458,7 +486,8 @@ def start_server(env_vars):
 
     env = os.environ.copy()
     env.update(env_vars)
-    env["PYTHONPATH"] = "reality-router"
+    # Ensure PYTHONPATH includes the absolute path to the core source
+    env["PYTHONPATH"] = os.path.abspath(REALITY_ROUTER_DIR)
 
     print(f"\n  {C_GREEN}{C_BOLD}Server active at http://0.0.0.0:8000{C_RESET}")
     sentiment_model = env_vars.get("SENTIMENT_MODEL_ID", "Not Configured")
@@ -479,7 +508,7 @@ def start_server(env_vars):
                 "8000",
                 "--no-access-log",
             ],
-            cwd="reality-router",
+            cwd=REALITY_ROUTER_DIR,
             env=env,
         )
     except KeyboardInterrupt:
@@ -506,19 +535,16 @@ def main():
         else:
             action_q = [
                 inquirer.List(
-                    'action',
+                    "action",
                     message="Welcome back",
-                    choices=[
-                        ('Start Server', 's'),
-                        ('Reconfigure', 'r')
-                    ],
-                    default='s'
+                    choices=[("Start Server", "s"), ("Reconfigure", "r")],
+                    default="s",
                 )
             ]
             action_a = inquirer.prompt(action_q)
             if not action_a:
-                 sys.exit(0)
-            action = action_a['action']
+                sys.exit(0)
+            action = action_a["action"]
 
         if action == "s":
             start_server(env_vars)
@@ -526,18 +552,20 @@ def main():
 
     try:
         print_header("Reality Router Setup")
-        print(f"  Welcome to the {C_BOLD}Reality Router{C_RESET} initialization wizard.")
+        print(
+            f"  Welcome to the {C_BOLD}Reality Router{C_RESET} initialization wizard."
+        )
         print(f"  Optimized for {C_GREEN}Utility{C_RESET}.\n")
-        
+
         begin_q = [
             inquirer.List(
-                'begin',
+                "begin",
                 message="Begin Setup?",
-                choices=[('Yes', 'y'), ('No, exit', 'n')]
+                choices=[("Yes", "y"), ("No, exit", "n")],
             )
         ]
         begin_a = inquirer.prompt(begin_q)
-        if not begin_a or begin_a['begin'] == 'n':
+        if not begin_a or begin_a["begin"] == "n":
             sys.exit(0)
 
         wizard_routing_strategy(env_vars)
