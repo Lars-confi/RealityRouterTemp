@@ -83,6 +83,11 @@ class LiteLLMAdapter(BaseAdapter):
             if key in params:
                 litellm_args[key] = params[key]
 
+        # Force stream=False internally for the router's logic to work correctly.
+        # This prevents 'CustomStreamWrapper' attribute errors and allows the router
+        # to assess responses before sending them back to the client.
+        litellm_args["stream"] = False
+
         try:
             # Call LiteLLM async completion
             response = await litellm.acompletion(**litellm_args)
