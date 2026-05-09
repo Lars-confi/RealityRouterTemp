@@ -1215,18 +1215,13 @@ class RouterCore:
         """Assess user sentiment based on conversation history for feedback"""
         try:
             messages = (request.parameters or {}).get("messages", [])
-            logger.info(
-                f"DEBUG_SENTIMENT: Assessing sentiment for interaction with {len(messages)} messages. Agent: {request.agent_id}"
-            )
-            print(f"DEBUG_SENTIMENT: Raw messages received: {messages}")
+            # Limit context to last 5 messages to avoid blowing up context window and cost
+            messages = messages[-5:]
+
             logger.debug(
-                f"Assessing sentiment for interaction with {len(messages)} messages"
+                f"Assessing sentiment for interaction with {len(messages)} messages. Agent: {request.agent_id}"
             )
             if len(messages) < 2:
-                logger.debug("Not enough messages for sentiment assessment (need >= 2)")
-                print(
-                    "DEBUG_SENTIMENT: Not enough messages for sentiment assessment (need >= 2)"
-                )
                 return None
 
             def _get_text(msg):
@@ -1276,20 +1271,10 @@ class RouterCore:
             curr_role = curr_msg_data["role"]
             curr_content = curr_msg_data["content"]
 
-            print(f"DEBUG_SENTIMENT: Current Message (raw): {curr_msg_data['raw_msg']}")
-            print(f"DEBUG_SENTIMENT: Current Role (curr_role): {curr_role}")
-            print(f"DEBUG_SENTIMENT: Current Content (curr_content): {curr_content}")
-
             # Get the previous contentful message
             prev_msg_data = contentful_messages[-2]
             prev_role = prev_msg_data["role"]
             prev_content = prev_msg_data["content"]
-
-            print(
-                f"DEBUG_SENTIMENT: Previous Message (raw): {prev_msg_data['raw_msg']}"
-            )
-            print(f"DEBUG_SENTIMENT: Previous Role (prev_role): {prev_role}")
-            print(f"DEBUG_SENTIMENT: Previous Content (prev_content): {prev_content}")
 
             # Check for the standard user follow-up pattern first (OLD STYLE)
             # This allows backward compatibility with existing systems
@@ -1318,13 +1303,9 @@ class RouterCore:
                     f"Determine the overall sentiment of the final message with respect to the previous message.\n"
                     f"Respond with EXACTLY one word: happy, unhappy, or indeterminate."
                 )
-                logger.info(
+                logger.debug(
                     "Analyzing sentiment of message with respect to previous one (new style)"
                 )
-
-            print(
-                f"DEBUG_SENTIMENT: Final prompt being sent to sentiment model: {prompt}"
-            )
 
             # Use the configured sentiment model, or fall back to the cheapest available model
             settings = get_settings()
@@ -1335,21 +1316,13 @@ class RouterCore:
                 sentiment_id = min(
                     self.models.keys(), key=lambda m: self.models[m].get("cost", 0)
                 )
-                print(
-                    f"DEBUG_SENTIMENT: Falling back to cheapest model for sentiment: {sentiment_id}"
-                )
-
             adapter = self.adapters.get(sentiment_id)
             if not adapter:
-                print(
-                    f"DEBUG_SENTIMENT: No adapter found for sentiment model {sentiment_id}"
-                )
                 return None
 
-            logger.debug(f"Sending sentiment analysis prompt to model {sentiment_id}")
             resp = await adapter.forward_request(
                 RoutingRequest(
-                    query="",  # Query is not used when messages are present
+                    query="",
                     parameters={
                         "messages": [{"role": "user", "content": prompt}],
                         "max_tokens": 256,
@@ -1357,29 +1330,23 @@ class RouterCore:
                     },
                 )
             )
-            print(f"DEBUG_SENTIMENT: Raw response from sentiment model: {resp}")
 
             raw_txt = str(resp.get("text", "")).lower().strip()
-            # Clean up potential markdown or quotes for robust parsing
             txt = raw_txt.replace("'", "").replace('"', "").replace("`", "").strip()
-            print(f"DEBUG_SENTIMENT: Cleaned sentiment model output: '{txt}'")
 
-            if "unhappy" in txt:
+            # Improved keyword matching to avoid false positives in reasoning
+            # Ensure we match the word correctly even if it's in a sentence
+            if re.search(r"\bunhappy\b", txt):
                 sentiment = "unhappy"
-            elif "happy" in txt:
+            elif re.search(r"\bhappy\b", txt):
                 sentiment = "happy"
             else:
                 sentiment = "indeterminate"
-            logger.info(
-                f"Assessed user sentiment: {sentiment} (raw output: '{raw_txt}')"
-            )
-            print(f"DEBUG_SENTIMENT: Final assessed sentiment: {sentiment}")
+
+            logger.debug(f"Assessed user sentiment: {sentiment}")
             return sentiment
         except Exception as e:
-            logger.error(
-                f"Sentiment assessment failed with exception: {e}", exc_info=True
-            )
-            print(f"DEBUG_SENTIMENT: Sentiment assessment failed with exception: {e}")
+            logger.error(f"Sentiment assessment failed: {e}")
             return "indeterminate"
 
     async def route_request(
@@ -1477,10 +1444,6 @@ class RouterCore:
                         )
             ranked_decisions = await self.get_ranked_models(request, strategy)
             sentiment = await self.assess_user_sentiment(request)
-            logger.info(
-                f"DEBUG: Sentiment assessed as: {sentiment} for agent {request.agent_id}"
-            )
-            print(f"DEBUG: Sentiment assessed as: {sentiment}")
 
             if sentiment in ["happy", "unhappy"]:
                 try:
@@ -1492,17 +1455,8 @@ class RouterCore:
                         .order_by(RoutingLog.timestamp.desc())
                         .first()
                     )
-                    logger.info(
-                        f"DEBUG_FEEDBACK: Searching for log entry for agent {request.agent_id}. Found: {'Yes' if last_log else 'No'}"
-                    )
-                    print(
-                        f"DEBUG: Found log entry to update with feedback: {'Yes' if last_log else 'No'}"
-                    )
 
                     if last_log:
-                        logger.info(
-                            f"DEBUG_FEEDBACK: Updating log entry {last_log.id} with sentiment {sentiment} and RC ID {last_log.reality_check_id}"
-                        )
                         last_log.user_sentiment = sentiment
                         db.commit()
                         logger.info(
@@ -1594,10 +1548,10 @@ class RouterCore:
                     elif getattr(d, "is_random_exploration", False):
                         info_tags.append("Random")
                     info_str = ",".join(info_tags)
-                    print(
+                    # Log ranking to file, not stdout to keep console clean
+                    logger.debug(
                         f"{marker} {label:<39} | {d.expected_utility:>10.4f} | {d.probability:>8.4f} | {d.uncertainty:>8.4f} | {d.cost:>8.4f} | {d.time:>6.2f} | {info_str:>10}"
                     )
-                print("=" * 116 + "\n")
 
             routing_context = json.dumps([d.model_dump() for d in ranked_decisions])
             last_error = None
@@ -2053,9 +2007,6 @@ class RouterCore:
                                     logger.info(
                                         f"Post-hoc assessment for {decision.model_id}: p_actual={p_actual:.4f}, id={decision.reality_check_id}"
                                     )
-                                    print(
-                                        f"Post-hoc assessment for {decision.model_id}: p_actual={p_actual:.4f}, id={decision.reality_check_id}"
-                                    )
                                     # 2. Check if we should stop vs escalate
                                     current_idx = ranked_decisions.index(decision)
                                     if current_idx < len(ranked_decisions) - 1:
@@ -2182,6 +2133,20 @@ class ChatCompletionRequest(BaseModel):
     agent_id: Optional[str] = "default"
 
 
+class CompletionRequest(BaseModel):
+    model: str
+    prompt: Union[str, List[str]]
+    stream: bool = False
+    agent_id: Optional[str] = "default"
+    suffix: Optional[str] = None
+    max_tokens: Optional[int] = 16
+    temperature: Optional[float] = 1.0
+    top_p: Optional[float] = 1.0
+    n: Optional[int] = 1
+    logprobs: Optional[int] = None
+    stop: Optional[Union[str, List[str]]] = None
+
+
 class ChatCompletionResponse(BaseModel):
     id: str
     choices: List[Dict[str, Any]]
@@ -2269,35 +2234,68 @@ async def chat_completions(
 ):
     try:
         # Map ChatCompletionRequest to RoutingRequest
+        # Support agents that send messages as lists of content blocks
+        last_msg = request.messages[-1] if request.messages else {"content": ""}
+        content = last_msg.get("content", "")
+        if isinstance(content, list):
+            query_text = ""
+            for block in content:
+                if isinstance(block, dict) and block.get("type") == "text":
+                    query_text += block.get("text", "")
+            if not query_text and content:
+                query_text = str(content)
+        else:
+            query_text = str(content)
+
         routing_req = RoutingRequest(
-            query=request.messages[-1].get("content", ""),
+            query=query_text,
             agent_id=request.agent_id,
-            parameters={"messages": request.messages},
+            parameters=request.model_dump(exclude={"agent_id"}),
         )
 
         # Use the global router_core instance
         core = router_core
 
-        # Streaming response handling
+        # Streaming response handling (OpenAI SSE format)
         async def stream_generator():
-            # ... stream logic (simplified)
             routing_rsp = await core.route_request(routing_req)
-            yield json.dumps(
-                {
-                    "choices": [
-                        {"message": {"content": routing_rsp.response.get("text", "")}}
-                    ]
-                }
-            )
+            chunk_id = f"chatcmpl-{int(time.time())}"
+
+            chunk = {
+                "id": chunk_id,
+                "object": "chat.completion.chunk",
+                "created": int(time.time()),
+                "model": routing_rsp.model_id,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {"content": routing_rsp.response.get("text", "")},
+                        "finish_reason": "stop",
+                    }
+                ],
+            }
+            yield f"data: {json.dumps(chunk)}\n\n"
+            yield "data: [DONE]\n\n"
 
         if request.stream:
             return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
         routing_rsp = await core.route_request(routing_req)
         return {
-            "id": "chatcmpl-123",
-            "choices": [{"message": {"content": routing_rsp.response.get("text", "")}}],
+            "id": f"chatcmpl-{int(time.time())}",
+            "object": "chat.completion",
+            "created": int(time.time()),
             "model": routing_rsp.model_id,
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": routing_rsp.response.get("text", ""),
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
             "usage": routing_rsp.response.get("usage", {}),
         }
     except Exception as e:
@@ -2306,13 +2304,63 @@ async def chat_completions(
 
 @router.post("/completions")
 async def completions(
-    request: Any,
+    request: CompletionRequest,
     Authorization: str = Header(None),
 ):
     try:
-        # Similar mapping logic for /completions
-        query_text = ""
-        # ... logic ...
-        pass
+        # Map CompletionRequest to RoutingRequest
+        prompt_text = (
+            request.prompt
+            if isinstance(request.prompt, str)
+            else "\n".join(request.prompt)
+        )
+        routing_req = RoutingRequest(
+            query=prompt_text,
+            agent_id=request.agent_id,
+            parameters=request.model_dump(exclude={"agent_id"}),
+        )
+
+        core = router_core
+
+        # Streaming response handling (OpenAI SSE format)
+        async def stream_generator():
+            routing_rsp = await core.route_request(routing_req)
+            chunk_id = f"cmpl-{int(time.time())}"
+            chunk = {
+                "id": chunk_id,
+                "object": "text_completion",
+                "created": int(time.time()),
+                "model": routing_rsp.model_id,
+                "choices": [
+                    {
+                        "text": routing_rsp.response.get("text", ""),
+                        "index": 0,
+                        "logprobs": None,
+                        "finish_reason": "length",
+                    }
+                ],
+            }
+            yield f"data: {json.dumps(chunk)}\n\n"
+            yield "data: [DONE]\n\n"
+
+        if request.stream:
+            return StreamingResponse(stream_generator(), media_type="text/event-stream")
+
+        routing_rsp = await core.route_request(routing_req)
+        return {
+            "id": f"cmpl-{int(time.time())}",
+            "object": "text_completion",
+            "created": int(time.time()),
+            "model": routing_rsp.model_id,
+            "choices": [
+                {
+                    "text": routing_rsp.response.get("text", ""),
+                    "index": 0,
+                    "logprobs": None,
+                    "finish_reason": "length",
+                }
+            ],
+            "usage": routing_rsp.response.get("usage", {}),
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
