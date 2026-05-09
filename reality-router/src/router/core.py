@@ -1261,9 +1261,6 @@ class RouterCore:
 
             if len(contentful_messages) < 2:
                 logger.debug("Not enough contentful messages for sentiment assessment")
-                print(
-                    "DEBUG_SENTIMENT: Not enough contentful messages for sentiment assessment"
-                )
                 return None
 
             # Get the most recent contentful message
@@ -1484,9 +1481,6 @@ class RouterCore:
                             }
 
                             logger.info(
-                                f"Sending feedback to Reality Check ({fb_strategy}) for decision {rc_id_str}: {sentiment}"
-                            )
-                            print(
                                 f"Sending feedback to Reality Check ({fb_strategy}) for decision {rc_id_str}: {sentiment} (Payload: {fb_payload})"
                             )
                             async with httpx.AsyncClient() as client:
@@ -1501,10 +1495,8 @@ class RouterCore:
                                 logger.info(
                                     f"Reality Check feedback response: {fb_status}"
                                 )
-                                print(f"Reality Check feedback response: {fb_status}")
                                 if fb_status != 200:
                                     logger.warning(f"Feedback error detail: {fb_text}")
-                                    print(f"Feedback error detail: {fb_text}")
                         except ValueError:
                             logger.error(
                                 f"Invalid reality_check_id format: {last_log.reality_check_id}"
@@ -1518,40 +1510,28 @@ class RouterCore:
                     if strategy == "expected_utility"
                     else " REALITY REROUTER: RANKING MODELS "
                 )
-                print("\n" + "=" * 116)
-                print(title.center(116, "="))
-                print("-" * 116)
-                print(
+                logger.debug("=" * 116)
+                logger.debug(title.center(116, "="))
+                logger.debug("-" * 116)
+                logger.debug(
                     f"{'  Model Name (ID)':<42} | {'Utility':>10} | {'Prob':>8} | {'Uncert':>8} | {'Cost':>8} | {'Time':>6} | {'Info':>10}"
                 )
-                print(
-                    "-" * 42
-                    + " | "
-                    + "-" * 10
-                    + " | "
-                    + "-" * 8
-                    + " | "
-                    + "-" * 8
-                    + " | "
-                    + "-" * 8
-                    + " | "
-                    + "-" * 6
-                    + " | "
-                    + "-" * 10
-                )
+                logger.debug("-" * 116)
                 for d in ranked_decisions:
                     marker = ">>" if d == ranked_decisions[0] else "  "
-                    label = d.name if len(d.name) <= 39 else d.name[:36] + "..."
+                    label = f"{d.name} ({d.model_id})"
+                    if len(label) > 40:
+                        label = label[:37] + "..."
                     info_tags = []
-                    if d.feedback_required:
+                    if getattr(d, "feedback_required", False):
                         info_tags.append("FB_Req")
                     elif getattr(d, "is_random_exploration", False):
                         info_tags.append("Random")
                     info_str = ",".join(info_tags)
-                    # Log ranking to file, not stdout to keep console clean
                     logger.debug(
                         f"{marker} {label:<39} | {d.expected_utility:>10.4f} | {d.probability:>8.4f} | {d.uncertainty:>8.4f} | {d.cost:>8.4f} | {d.time:>6.2f} | {info_str:>10}"
                     )
+                logger.debug("=" * 116)
 
             routing_context = json.dumps([d.model_dump() for d in ranked_decisions])
             last_error = None
@@ -1906,9 +1886,6 @@ class RouterCore:
                                 logger.info(
                                     f"Sending auto-negative feedback for {status} response (decision {rc_id_str})"
                                 )
-                                print(
-                                    f"Sending auto-negative feedback for {status} response (decision {rc_id_str})"
-                                )
                                 async with httpx.AsyncClient() as client:
                                     url = (
                                         REALITY_ROUTING_URL
@@ -1931,14 +1908,10 @@ class RouterCore:
                                     logger.info(
                                         f"Auto-feedback (quality) response: {fb_status}"
                                     )
-                                    print(
-                                        f"Auto-feedback (quality) response: {fb_status}"
-                                    )
                                     if fb_status != 200:
                                         logger.warning(
                                             f"Auto-feedback error body: {fb_text}"
                                         )
-                                        print(f"Auto-feedback error body: {fb_text}")
                             except Exception as fe:
                                 logger.error(f"Auto-feedback failed: {fe}")
 
@@ -2029,7 +2002,7 @@ class RouterCore:
                                             actual_cost = (
                                                 response.get("cost", decision.cost)
                                                 if isinstance(response, dict)
-                                                and response.get("cost")
+                                                and response.get("cost") is not None
                                                 else decision.cost
                                             )
                                             self.log_routing_decision(
@@ -2258,8 +2231,29 @@ async def chat_completions(
 
         # Streaming response handling (OpenAI SSE format)
         async def stream_generator():
-            routing_rsp = await core.route_request(routing_req)
+            # Send initial empty chunk to keep connection alive during routing
             chunk_id = f"chatcmpl-{int(time.time())}"
+            initial_chunk = {
+                "id": chunk_id,
+                "object": "chat.completion.chunk",
+                "created": int(time.time()),
+                "model": "RealityRouter",
+                "choices": [
+                    {"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}
+                ],
+            }
+            yield f"data: {json.dumps(initial_chunk)}\n\n"
+
+            # Create a task for routing so we can send pings
+            routing_task = asyncio.create_task(core.route_request(routing_req))
+
+            while not routing_task.done():
+                # Send a comment as keep-alive ping every 2 seconds
+                await asyncio.sleep(2)
+                if not routing_task.done():
+                    yield ": ping\n\n"
+
+            routing_rsp = await routing_task
 
             chunk = {
                 "id": chunk_id,
@@ -2269,7 +2263,11 @@ async def chat_completions(
                 "choices": [
                     {
                         "index": 0,
-                        "delta": {"content": routing_rsp.response.get("text", "")},
+                        "delta": {
+                            "content": routing_rsp.response.get("text", "")
+                            or routing_rsp.response.get("reasoning_content", ""),
+                            "tool_calls": routing_rsp.response.get("tool_calls"),
+                        },
                         "finish_reason": "stop",
                     }
                 ],
@@ -2281,6 +2279,19 @@ async def chat_completions(
             return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
         routing_rsp = await core.route_request(routing_req)
+
+        # Ensure OpenAI compatibility for usage details
+        usage = (
+            routing_rsp.response.get("usage", {})
+            if isinstance(routing_rsp.response, dict)
+            else {}
+        )
+        if usage:
+            if "prompt_tokens_details" not in usage:
+                usage["prompt_tokens_details"] = {"cached_tokens": 0}
+            if "completion_tokens_details" not in usage:
+                usage["completion_tokens_details"] = {"reasoning_tokens": 0}
+
         return {
             "id": f"chatcmpl-{int(time.time())}",
             "object": "chat.completion",
@@ -2291,12 +2302,24 @@ async def chat_completions(
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": routing_rsp.response.get("text", ""),
+                        "content": (
+                            routing_rsp.response.get("text", "")
+                            if isinstance(routing_rsp.response, dict)
+                            else ""
+                        )
+                        or (
+                            routing_rsp.response.get("reasoning_content", "")
+                            if isinstance(routing_rsp.response, dict)
+                            else ""
+                        ),
+                        "tool_calls": routing_rsp.response.get("tool_calls")
+                        if isinstance(routing_rsp.response, dict)
+                        else None,
                     },
                     "finish_reason": "stop",
                 }
             ],
-            "usage": routing_rsp.response.get("usage", {}),
+            "usage": usage,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -2324,7 +2347,15 @@ async def completions(
 
         # Streaming response handling (OpenAI SSE format)
         async def stream_generator():
-            routing_rsp = await core.route_request(routing_req)
+            # Send keep-alive pings during routing
+            routing_task = asyncio.create_task(core.route_request(routing_req))
+
+            while not routing_task.done():
+                await asyncio.sleep(2)
+                if not routing_task.done():
+                    yield ": ping\n\n"
+
+            routing_rsp = await routing_task
             chunk_id = f"cmpl-{int(time.time())}"
             chunk = {
                 "id": chunk_id,
@@ -2333,10 +2364,13 @@ async def completions(
                 "model": routing_rsp.model_id,
                 "choices": [
                     {
-                        "text": routing_rsp.response.get("text", ""),
+                        "text": routing_rsp.response.get("text", "")
+                        or routing_rsp.response.get("reasoning_content", ""),
                         "index": 0,
                         "logprobs": None,
-                        "finish_reason": "length",
+                        "finish_reason": routing_rsp.response.get(
+                            "finish_reason", "stop"
+                        ),
                     }
                 ],
             }
@@ -2347,6 +2381,19 @@ async def completions(
             return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
         routing_rsp = await core.route_request(routing_req)
+
+        # Ensure OpenAI compatibility for usage details
+        usage = (
+            routing_rsp.response.get("usage", {})
+            if isinstance(routing_rsp.response, dict)
+            else {}
+        )
+        if usage:
+            if "prompt_tokens_details" not in usage:
+                usage["prompt_tokens_details"] = {"cached_tokens": 0}
+            if "completion_tokens_details" not in usage:
+                usage["completion_tokens_details"] = {"reasoning_tokens": 0}
+
         return {
             "id": f"cmpl-{int(time.time())}",
             "object": "text_completion",
@@ -2354,13 +2401,24 @@ async def completions(
             "model": routing_rsp.model_id,
             "choices": [
                 {
-                    "text": routing_rsp.response.get("text", ""),
+                    "text": (
+                        routing_rsp.response.get("text", "")
+                        if isinstance(routing_rsp.response, dict)
+                        else ""
+                    )
+                    or (
+                        routing_rsp.response.get("reasoning_content", "")
+                        if isinstance(routing_rsp.response, dict)
+                        else ""
+                    ),
                     "index": 0,
                     "logprobs": None,
-                    "finish_reason": "length",
+                    "finish_reason": routing_rsp.response.get("finish_reason", "stop")
+                    if isinstance(routing_rsp.response, dict)
+                    else "stop",
                 }
             ],
-            "usage": routing_rsp.response.get("usage", {}),
+            "usage": usage,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
