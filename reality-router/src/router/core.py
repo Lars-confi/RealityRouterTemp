@@ -1609,12 +1609,73 @@ class RouterCore:
                         response = await adapter.forward_request(current_request)
                     elapsed_time = time.time() - start_time
 
+                    # --- RESPONSE VALIDATION (STRICT GATEWAY) ---
+                    is_valid = True
+                    failure_reason = None
+
+                    if not response or not isinstance(response, dict):
+                        is_valid = False
+                        failure_reason = "Empty or malformed response object"
+                    else:
+                        # Rule 1: Content Leak Check
+                        # Models must not leak raw tool syntax into the standard content block
+                        resp_text = str(response.get("text", "")).strip()
+                        # Strict patterns that indicate native tag hallucinations instead of API usage
+                        leak_patterns = [r"<｜tool", r"<function", r"✿", r"<tool_call>"]
+                        for pattern in leak_patterns:
+                            if re.search(pattern, resp_text):
+                                is_valid = False
+                                failure_reason = (
+                                    f"Content leak detected: hallucinated {pattern}"
+                                )
+                                break
+
+                        # Rule 2 & 3: JSON Arguments & Ghost Tool Check
+                        if is_valid and response.get("tool_calls"):
+                            # Get expected tool names from original request to ensure strict adherence
+                            requested_tool_names = []
+                            if request.parameters and "tools" in request.parameters:
+                                for t in request.parameters["tools"]:
+                                    name = t.get("function", {}).get("name")
+                                    if name:
+                                        requested_tool_names.append(name)
+
+                            for tc in response["tool_calls"]:
+                                # Rule 3: Ghost Tool Check
+                                tool_name = tc.get("function", {}).get("name")
+                                if (
+                                    requested_tool_names
+                                    and tool_name not in requested_tool_names
+                                ):
+                                    is_valid = False
+                                    failure_reason = f"Ghost tool called: {tool_name}"
+                                    break
+
+                                # Rule 2: JSON Arguments Check
+                                # The arguments field must be a perfectly parseable JSON string
+                                args = tc.get("function", {}).get("arguments")
+                                try:
+                                    if isinstance(args, str):
+                                        json.loads(args)
+                                except (json.JSONDecodeError, TypeError):
+                                    is_valid = False
+                                    failure_reason = (
+                                        f"Malformed tool arguments for {tool_name}"
+                                    )
+                                    break
+
+                    if not is_valid:
+                        logger.warning(
+                            f"Model {decision.model_id} failed strict validation: {failure_reason}. Escalating..."
+                        )
+                        self.load_balancer.record_failure(decision.model_id)
+                        continue
+
+                    # Record success in circuit breaker
+                    self.load_balancer.record_success(decision.model_id)
+
                     # --- STRIP FRAGILE THOUGHT SIGNATURES ---
-                    if (
-                        response
-                        and isinstance(response, dict)
-                        and response.get("tool_calls")
-                    ):
+                    if response.get("tool_calls"):
                         for tc in response["tool_calls"]:
                             if (
                                 isinstance(tc, dict)
@@ -1627,12 +1688,6 @@ class RouterCore:
                     # --- RESPONSE VALIDATION & SMART CONTINUATION ---
                     resp_text = str(response.get("text", "")).strip()
                     finish_reason = response.get("finish_reason")
-
-                    # Record success/failure in circuit breaker
-                    if response:
-                        self.load_balancer.record_success(decision.model_id)
-                    else:
-                        self.load_balancer.record_failure(decision.model_id)
 
                     # Attempt continuation if truncated
                     continuation_count = 0
