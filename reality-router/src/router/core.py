@@ -2101,7 +2101,7 @@ router_core = RouterCore()
 
 class ChatCompletionRequest(BaseModel):
     model: str
-    messages: List[Dict[str, str]]
+    messages: List[Dict[str, Any]]
     stream: bool = False
     agent_id: Optional[str] = "default"
 
