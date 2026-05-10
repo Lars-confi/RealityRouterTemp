@@ -186,12 +186,56 @@ class LiteLLMAdapter(BaseAdapter):
                             t_name = parts[0].strip()
 
                         if t_name:
+                            # If name contains newlines, backticks or JSON, it likely merged arguments
+                            if (
+                                "\n" in t_name
+                                or "```" in t_name
+                                or "{" in t_name
+                                or "(" in t_name
+                            ):
+                                # Try to extract a clean name (alphanumeric only)
+                                name_match = re.search(
+                                    r"^([a-zA-Z0-9_-]+)", t_name.strip()
+                                )
+                                if name_match:
+                                    clean_name = name_match.group(1)
+                                    remaining = t_name.strip()[
+                                        len(clean_name) :
+                                    ].strip()
+                                    t_name = clean_name
+                                    if remaining:
+                                        t_args = (
+                                            remaining
+                                            if t_args == "{}"
+                                            else f"{remaining}\n{t_args}"
+                                        )
+
                             t_args = t_args.strip()
                             if not t_args.startswith("{"):
-                                # Attempt to extract just the JSON part from arguments
-                                start_idx, end_idx = t_args.find("{"), t_args.rfind("}")
-                                if start_idx != -1 and end_idx != -1:
-                                    t_args = t_args[start_idx : end_idx + 1]
+                                # If it's wrapped in backticks, extract content
+                                t_args = re.sub(
+                                    r"```[a-z]*\n?(.*?)\n?```",
+                                    r"\1",
+                                    t_args,
+                                    flags=re.DOTALL,
+                                ).strip()
+
+                                # Wrap in JSON based on common tool names
+                                if t_name == "shell_execute":
+                                    t_args = json.dumps({"command": t_args})
+                                elif t_name in ["python_execute", "python", "run_code"]:
+                                    t_args = json.dumps({"code": t_args})
+                                else:
+                                    # Attempt to find JSON in the remaining text
+                                    start_idx, end_idx = (
+                                        t_args.find("{"),
+                                        t_args.rfind("}"),
+                                    )
+                                    if start_idx != -1 and end_idx != -1:
+                                        t_args = t_args[start_idx : end_idx + 1]
+                                    else:
+                                        # Generic fallback
+                                        t_args = json.dumps({"arguments": t_args})
 
                             tool_calls.append(
                                 {
