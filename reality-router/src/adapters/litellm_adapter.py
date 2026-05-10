@@ -89,7 +89,14 @@ class LiteLLMAdapter(BaseAdapter):
         # Force stream=False internally for the router's logic to work correctly.
         # This prevents 'CustomStreamWrapper' attribute errors and allows the router
         # to assess responses before sending them back to the client.
+        litellm_args.pop("stream", None)
         litellm_args["stream"] = False
+
+        # Ensure it's also removed from extra_body if present to avoid confusion in some providers
+        if "extra_body" in litellm_args and isinstance(
+            litellm_args["extra_body"], dict
+        ):
+            litellm_args["extra_body"].pop("stream", None)
 
         try:
             # Call LiteLLM async completion
@@ -269,40 +276,82 @@ class LiteLLMAdapter(BaseAdapter):
                         except:
                             continue
 
-                    # Case C: Bare JSON object at the end of text
+                    # Case C: Bare JSON objects found in text via balanced brace scan
                     if not tool_calls:
-                        stripped_text = text.strip()
-                        if stripped_text.startswith("{") and stripped_text.endswith(
-                            "}"
-                        ):
-                            try:
-                                data = json.loads(stripped_text)
-                                name = data.get("action") or data.get("name")
-                                args = data.get("arguments") or data.get("parameters")
-                                if name:
-                                    tool_calls.append(
-                                        {
-                                            "id": f"bare_call_{int(time.time())}",
-                                            "type": "function",
-                                            "function": {
-                                                "name": str(name),
-                                                "arguments": json.dumps(args)
-                                                if isinstance(args, dict)
-                                                else str(args),
-                                            },
-                                        }
-                                    )
-                            except:
-                                pass
+                        for i in range(len(text)):
+                            if text[i] == "{":
+                                balance = 0
+                                for j in range(i, len(text)):
+                                    if text[j] == "{":
+                                        balance += 1
+                                    elif text[j] == "}":
+                                        balance -= 1
+
+                                    if balance == 0:
+                                        json_str = text[i : j + 1]
+                                        try:
+                                            # Check if it looks like a tool call before expensive parse
+                                            if any(
+                                                k in json_str
+                                                for k in [
+                                                    "action",
+                                                    "name",
+                                                    "tool",
+                                                    "terminal",
+                                                    "command",
+                                                ]
+                                            ):
+                                                data = json.loads(json_str)
+                                                name = (
+                                                    data.get("action")
+                                                    or data.get("name")
+                                                    or data.get("tool")
+                                                )
+                                                args = (
+                                                    data.get("arguments")
+                                                    or data.get("parameters")
+                                                    or data.get("args")
+                                                )
+                                                if not name:
+                                                    for cand in [
+                                                        "terminal",
+                                                        "shell_execute",
+                                                    ]:
+                                                        if cand in data:
+                                                            name, args = (
+                                                                cand,
+                                                                data[cand],
+                                                            )
+                                                            break
+                                                if name:
+                                                    tool_calls.append(
+                                                        {
+                                                            "id": f"bare_call_{i}_{int(time.time())}",
+                                                            "type": "function",
+                                                            "function": {
+                                                                "name": str(name),
+                                                                "arguments": json.dumps(
+                                                                    args
+                                                                )
+                                                                if isinstance(
+                                                                    args, dict
+                                                                )
+                                                                else str(args or "{}"),
+                                                            },
+                                                        }
+                                                    )
+                                        except:
+                                            pass
+                                        break
 
                     if tool_calls:
                         finish_reason = "tool_calls"
-                        # Clean up text if possible (strip the blocks and tags)
+                        # Clean up text by removing blocks that were converted to tool calls
                         text = re.sub(
                             r"<｜tool calls begin｜>.*", "", text, flags=re.DOTALL
                         )
                         text = re.sub(
-                            r"```json.*```", "", text, flags=re.DOTALL
+                            r"```json.*?```", "", text, flags=re.DOTALL
                         ).strip()
                         if not text:
                             text = ""

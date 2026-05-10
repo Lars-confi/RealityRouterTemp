@@ -1546,25 +1546,39 @@ class RouterCore:
                 try:
                     start_time = time.time()
 
+                    # Create a deep copy of the request for each model attempt to avoid
+                    # in-place modification leakage between models (especially for tool-stripping)
+                    current_request = request.model_copy(deep=True)
+                    if current_request.parameters:
+                        # Strictly enforce stream=False internally so we can evaluate full response
+                        current_request.parameters["stream"] = False
+
                     has_tools = bool(
-                        request.parameters and request.parameters.get("tools")
+                        current_request.parameters
+                        and current_request.parameters.get("tools")
                     )
                     if has_tools and not self.models[decision.model_id].get(
                         "supports_function_calling"
                     ):
                         import json
 
-                        tools_schema = request.parameters["tools"]
-                        del request.parameters["tools"]
-                        if "tool_choice" in request.parameters:
-                            del request.parameters["tool_choice"]
+                        tools_schema = current_request.parameters["tools"]
+                        del current_request.parameters["tools"]
+                        if "tool_choice" in current_request.parameters:
+                            del current_request.parameters["tool_choice"]
                         sys_msg = {
                             "role": "system",
                             "content": "The user has MCP tools available. Please respond with a JSON object that matches the following requested tool schemas:\n"
                             + json.dumps(tools_schema, indent=2),
                         }
-                        if request.parameters and "messages" in request.parameters:
-                            request.parameters["messages"].insert(0, sys_msg)
+                        if (
+                            current_request.parameters
+                            and "messages" in current_request.parameters
+                        ):
+                            # Use a new list to avoid any potential shared reference issues
+                            current_request.parameters["messages"] = [sys_msg] + list(
+                                current_request.parameters["messages"]
+                            )
 
                     # Check if model is healthy (circuit breaker check)
                     if not self.load_balancer.is_model_healthy(decision.model_id):
@@ -1581,9 +1595,9 @@ class RouterCore:
                             continue
 
                         async with semaphore:
-                            response = await adapter.forward_request(request)
+                            response = await adapter.forward_request(current_request)
                     else:
-                        response = await adapter.forward_request(request)
+                        response = await adapter.forward_request(current_request)
                     elapsed_time = time.time() - start_time
 
                     # --- STRIP FRAGILE THOUGHT SIGNATURES ---
@@ -2231,30 +2245,43 @@ async def chat_completions(
 
         # Streaming response handling (OpenAI SSE format)
         async def stream_generator():
-            # Send initial empty chunk to keep connection alive during routing
             chunk_id = f"chatcmpl-{int(time.time())}"
-            initial_chunk = {
-                "id": chunk_id,
-                "object": "chat.completion.chunk",
-                "created": int(time.time()),
-                "model": "RealityRouter",
-                "choices": [
-                    {"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}
-                ],
-            }
-            yield f"data: {json.dumps(initial_chunk)}\n\n"
 
             # Create a task for routing so we can send pings
             routing_task = asyncio.create_task(core.route_request(routing_req))
 
             while not routing_task.done():
                 # Send a comment as keep-alive ping every 2 seconds
+                # Some clients (like Hermes) use these to prevent timeouts
+                yield ": ping\n\n"
                 await asyncio.sleep(2)
-                if not routing_task.done():
-                    yield ": ping\n\n"
 
             routing_rsp = await routing_task
 
+            # Extract content and tool calls
+            content = (
+                routing_rsp.response.get("text", "")
+                if isinstance(routing_rsp.response, dict)
+                else ""
+            ) or (
+                routing_rsp.response.get("reasoning_content", "")
+                if isinstance(routing_rsp.response, dict)
+                else ""
+            )
+
+            tool_calls = (
+                routing_rsp.response.get("tool_calls")
+                if isinstance(routing_rsp.response, dict)
+                else None
+            )
+
+            finish_reason = (
+                routing_rsp.response.get("finish_reason")
+                if isinstance(routing_rsp.response, dict)
+                else "stop"
+            )
+
+            # Send the actual data chunk
             chunk = {
                 "id": chunk_id,
                 "object": "chat.completion.chunk",
@@ -2264,11 +2291,11 @@ async def chat_completions(
                     {
                         "index": 0,
                         "delta": {
-                            "content": routing_rsp.response.get("text", "")
-                            or routing_rsp.response.get("reasoning_content", ""),
-                            "tool_calls": routing_rsp.response.get("tool_calls"),
+                            "role": "assistant",
+                            "content": content,
+                            "tool_calls": tool_calls,
                         },
-                        "finish_reason": "stop",
+                        "finish_reason": finish_reason,
                     }
                 ],
             }
@@ -2347,16 +2374,33 @@ async def completions(
 
         # Streaming response handling (OpenAI SSE format)
         async def stream_generator():
+            chunk_id = f"cmpl-{int(time.time())}"
+
             # Send keep-alive pings during routing
             routing_task = asyncio.create_task(core.route_request(routing_req))
 
             while not routing_task.done():
+                yield ": ping\n\n"
                 await asyncio.sleep(2)
-                if not routing_task.done():
-                    yield ": ping\n\n"
 
             routing_rsp = await routing_task
-            chunk_id = f"cmpl-{int(time.time())}"
+
+            content = (
+                routing_rsp.response.get("text", "")
+                if isinstance(routing_rsp.response, dict)
+                else ""
+            ) or (
+                routing_rsp.response.get("reasoning_content", "")
+                if isinstance(routing_rsp.response, dict)
+                else ""
+            )
+
+            finish_reason = (
+                routing_rsp.response.get("finish_reason", "stop")
+                if isinstance(routing_rsp.response, dict)
+                else "stop"
+            )
+
             chunk = {
                 "id": chunk_id,
                 "object": "text_completion",
@@ -2364,13 +2408,10 @@ async def completions(
                 "model": routing_rsp.model_id,
                 "choices": [
                     {
-                        "text": routing_rsp.response.get("text", "")
-                        or routing_rsp.response.get("reasoning_content", ""),
+                        "text": content,
                         "index": 0,
                         "logprobs": None,
-                        "finish_reason": routing_rsp.response.get(
-                            "finish_reason", "stop"
-                        ),
+                        "finish_reason": finish_reason,
                     }
                 ],
             }
