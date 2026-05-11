@@ -162,7 +162,19 @@ RealityRouter can be installed on **Linux**, **macOS**, and **Windows**.
 Open your terminal (or Git Bash on Windows) and run:
 
 ```bash
-curl -fsSL http://spark-a0d3.tailcd6737.ts.net:3000/lc/RealityRouter/raw/branch/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Lars-confi/RealityRouterTemp/main/install.sh | bash
+```
+
+Open your terminal (or PowerShell on Windows) and run:
+
+**Linux / macOS / Git Bash:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/Lars-confi/RealityRouterTemp/main/install.sh | bash
+```
+
+**Windows (Native PowerShell):**
+```powershell
+git clone https://github.com/Lars-confi/RealityRouterTemp $HOME\.reality-router; cd $HOME\.reality-router; .\start.ps1
 ```
 
 The RealityRouter features an interactive setup wizard to configure your environment in minutes. You can choose between a standard **local process** or a **Docker container** with automatic restart policies.
