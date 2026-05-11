@@ -16,7 +16,7 @@ command_exists() {
 # IMPORTANT: Replace this with the actual raw content URL of your repository.
 # For GitHub, it would look like: https://raw.githubusercontent.com/user/repo/main
 REPO_URL="https://github.com/Lars-confi/RealityRouterTemp"
-TARGET_DIR="$HOME/.reality-router"
+TARGET_DIR="$HOME/.reality_router"
 
 # Detect OS
 OS_TYPE="linux"
@@ -52,15 +52,37 @@ echo "All dependencies are satisfied."
 
 
 # --- Installation ---
-if [ -d "$TARGET_DIR" ]; then
+# Handle migration from old hyphenated directory if it exists
+OLD_DIR="$HOME/.reality-router"
+if [ -d "$OLD_DIR" ] && [ "$OLD_DIR" != "$TARGET_DIR" ]; then
+    echo "Migrating installation from $OLD_DIR to $TARGET_DIR..."
+    if [ ! -d "$TARGET_DIR" ]; then
+        mv "$OLD_DIR" "$TARGET_DIR"
+    else
+        # Target exists (likely data folder), so merge content
+        cp -rn "$OLD_DIR/." "$TARGET_DIR/"
+        rm -rf "$OLD_DIR"
+    fi
+fi
+
+if [ -d "$TARGET_DIR/.git" ]; then
     echo "Found an existing installation in $TARGET_DIR."
     echo "Pulling latest changes from the repository..."
     cd "$TARGET_DIR"
     git pull
 else
     echo "Cloning repository to $TARGET_DIR..."
-    git clone "$REPO_URL" "$TARGET_DIR"
-    cd "$TARGET_DIR"
+    if [ -d "$TARGET_DIR" ] && [ "$(ls -A "$TARGET_DIR")" ]; then
+        # Directory exists and is not empty (likely data), so we init and fetch
+        git init "$TARGET_DIR"
+        cd "$TARGET_DIR"
+        git remote add origin "$REPO_URL"
+        git fetch
+        git checkout -f main
+    else
+        git clone "$REPO_URL" "$TARGET_DIR"
+        cd "$TARGET_DIR"
+    fi
 fi
 
 # --- Virtual Environment Setup ---

@@ -174,7 +174,7 @@ curl -fsSL https://raw.githubusercontent.com/Lars-confi/RealityRouterTemp/main/i
 
 **Windows (Native PowerShell):**
 ```powershell
-git clone https://github.com/Lars-confi/RealityRouterTemp $HOME\.reality-router; cd $HOME\.reality-router; .\start.ps1
+git clone https://github.com/Lars-confi/RealityRouterTemp $HOME\.reality_router; cd $HOME\.reality_router; .\start.ps1
 ```
 
 The RealityRouter features an interactive setup wizard to configure your environment in minutes. You can choose between a standard **local process** or a **Docker container** with automatic restart policies.
