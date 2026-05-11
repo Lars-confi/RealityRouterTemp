@@ -39,6 +39,28 @@ ICON_X = f"{C_RED}✗{C_RESET}"
 ICON_GEAR = "⚙"
 ICON_ARROW = "➜"
 
+
+def check_docker():
+    """Check if docker and docker compose are available"""
+    try:
+        subprocess.run(
+            ["docker", "info"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        # Check for 'docker compose' (v2)
+        subprocess.run(
+            ["docker", "compose", "version"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        return True
+    except:
+        return False
+
+
 # --- Provider Metadata ---
 PROVIDER_KEYS = {
     "openai": [("OPENAI_API_KEY", "OpenAI API Key")],
@@ -517,9 +539,65 @@ def start_server(env_vars):
         print_status(f"Crash detected: {e}", "error")
 
 
+def deploy_docker(env_vars):
+    print_header("Final Step: Docker Ignition")
+    print_status("Preparing Docker environment...")
+
+    # Generate docker-compose.yml in project root
+    compose_path = os.path.join(SCRIPT_DIR, "docker-compose.yml")
+
+    # Use absolute path for volumes to avoid Docker mounting issues
+    abs_app_home = os.path.abspath(APP_HOME)
+
+    compose_content = f"""version: '3.8'
+
+services:
+  reality-router:
+    build: .
+    image: reality-router:latest
+    container_name: reality-router
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - {abs_app_home}:/root/.reality_router
+    environment:
+      - REALITY_ROUTER_HOME=/root/.reality_router
+"""
+
+    try:
+        with open(compose_path, "w") as f:
+            f.write(compose_content)
+        print_status(f"Generated {compose_path}", "success")
+
+        print_status("Building and launching Docker containers...")
+        # Check for docker compose vs docker-compose
+        cmd = ["docker", "compose", "up", "-d", "--build"]
+
+        subprocess.run(cmd, cwd=SCRIPT_DIR, check=True)
+
+        print(f"\n  {C_GREEN}{C_BOLD}RealityRouter is now running in Docker!{C_RESET}")
+        print(f"  {C_CYAN}Endpoint: http://localhost:8000{C_RESET}")
+        print(f"  {C_CYAN}Auto-restart: ENABLED{C_RESET}")
+        print(f"\n  {C_YELLOW}Useful commands:{C_RESET}")
+        print(f"  - View Logs:  docker logs -f reality-router")
+        print(f"  - Stop:       docker compose down")
+        print(f"  - Rebuild:    docker compose up -d --build")
+        print(f"\n  {C_GREEN}Wizard complete. Goodbye!{C_RESET}\n")
+        sys.exit(0)
+    except subprocess.CalledProcessError as e:
+        print_status(f"Docker command failed: {e}", "error")
+        print(f"  Please ensure Docker is installed and your user has permissions.")
+        input(f"\n  Press [Enter] to return...")
+    except Exception as e:
+        print_status(f"Docker deployment failed: {e}", "error")
+        input(f"\n  Press [Enter] to return...")
+
+
 def main():
     logger.debug("Starting Reality Router Setup Wizard.")
     env_vars = load_env()
+    has_docker = check_docker()
 
     # Check if we should skip to start
     if os.path.exists(ENV_FILE):
@@ -533,11 +611,16 @@ def main():
             action = "r"
             time.sleep(2)
         else:
+            choices = [("Start Server (Local)", "s")]
+            if has_docker:
+                choices.append(("Start Server (Docker)", "d"))
+            choices.append(("Reconfigure", "r"))
+
             action_q = [
                 inquirer.List(
                     "action",
                     message="Welcome back",
-                    choices=[("Start Server", "s"), ("Reconfigure", "r")],
+                    choices=choices,
                     default="s",
                 )
             ]
@@ -548,6 +631,9 @@ def main():
 
         if action == "s":
             start_server(env_vars)
+            return
+        elif action == "d":
+            deploy_docker(env_vars)
             return
 
     try:
@@ -572,6 +658,25 @@ def main():
         wizard_global_settings(env_vars)
         wizard_providers(env_vars)
         wizard_model_management(env_vars)
+
+        if has_docker:
+            deploy_q = [
+                inquirer.List(
+                    "deploy",
+                    message="Choose Deployment Mode",
+                    choices=[
+                        ("Local Process (Manual Control)", "l"),
+                        ("Docker Container (Auto-Restart)", "d"),
+                    ],
+                    default="l",
+                )
+            ]
+            deploy_a = inquirer.prompt(deploy_q)
+
+            if deploy_a and deploy_a["deploy"] == "d":
+                deploy_docker(env_vars)
+                return
+
         start_server(env_vars)
 
     except (KeyboardInterrupt, EOFError):

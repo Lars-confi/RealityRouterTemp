@@ -155,7 +155,7 @@ All user-specific data (API keys, disabled models, database, logs, and capabilit
 
 ## Installation & Setup
 
-The RealityRouter features an interactive setup wizard to configure your environment in minutes.
+The RealityRouter features an interactive setup wizard to configure your environment in minutes. You can choose between a standard **local process** or a **Docker container** with automatic restart policies.
 
 1.  **Initialize**: Run the startup script `./start.sh`. This will also migrate any existing configuration files to `~/.reality_router/` if found in the project root.
 2.  **Select Strategy**: Choose between **LLM Routing** (Single-shot) or **LLM Rerouting** (Sequential).
@@ -176,15 +176,23 @@ To prevent overwhelming specific providers or local instances (like Ollama), you
 
 ### 1. Start the Server
 
-Run the router from the project root:
+Simply run the startup script:
 
 ```bash
 ./start.sh
 ```
 
-The server starts by default on `http://localhost:8000`.
+Follow the on-screen prompts to configure your routing preferences and API keys. At the final step, you can choose to:
+- **Run Locally**: Best for development and manual control.
+- **Run in Docker**: Recommended for production to ensure the router automatically restarts if the server reboots.
 
-### 2. Configure Your Client
+### 2. Docker Management (Optional)
+If you deployed via Docker, use these commands in the project root:
+- **View Logs**: `docker logs -f reality-router`
+- **Stop Server**: `docker compose down`
+- **Update Router**: `git pull && docker compose up -d --build`
+
+### 3. Configure Your Client
 
 Point your AI agent, IDE extension, or custom script to the router. Since the API is OpenAI-compatible, you usually only need to change the `Base URL`:
 
