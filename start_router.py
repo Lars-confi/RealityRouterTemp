@@ -189,36 +189,60 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
         url = f"{base_url}/models"
         req = urllib.request.Request(url)
         if api_key and api_key != "dummy":
-            req.add_header("Authorization", f"Bearer {api_key}")
+            if provider_name == "gemini":
+                req.add_header("x-goog-api-key", api_key)
+                req.add_header("Authorization", f"Bearer {api_key}")
+            elif provider_name == "anthropic":
+                req.add_header("x-api-key", api_key)
+                req.add_header("anthropic-version", "2023-06-01")
+            else:
+                req.add_header("Authorization", f"Bearer {api_key}")
+
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        with urllib.request.urlopen(req, timeout=3, context=ctx) as response:
+        with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
             if response.status == 200:
                 data = json.loads(response.read().decode())
-                for model in data.get("data", []):
-                    m_id = model.get("id")
-                    if m_id:
-                        if m_id.startswith("models/"):
-                            m_id = m_id[7:]
-                        if (
-                            provider_name == "openai"
-                            and "gpt" not in m_id
-                            and "o1" not in m_id
-                        ):
-                            continue
-                        discovered.append(
-                            {
-                                "id": m_id,
-                                "name": f"{provider_name.title()}: {m_id}",
-                                "provider": provider_name,
-                            }
-                        )
+
+                # Handle different response formats (data: [] or models: [])
+                models_list = data.get("data") or data.get("models")
+                if not models_list and isinstance(data, list):
+                    models_list = data
+
+                if models_list:
+                    for model in models_list:
+                        m_id = model.get("id") or model.get("name")
+                        if m_id:
+                            if m_id.startswith("models/"):
+                                m_id = m_id[7:]
+
+                            # Filter for OpenAI to avoid cluttering with non-chat models
+                            if (
+                                provider_name == "openai"
+                                and "gpt" not in m_id
+                                and "o1" not in m_id
+                            ):
+                                continue
+
+                            # Filter for Gemini to exclude embeddings
+                            if (
+                                provider_name == "gemini"
+                                and "embedding" in m_id.lower()
+                            ):
+                                continue
+
+                            discovered.append(
+                                {
+                                    "id": m_id,
+                                    "name": f"{provider_name.title()}: {m_id}",
+                                    "provider": provider_name,
+                                }
+                            )
     except Exception as e:
-        print(
-            f"  \033[93m[WARN] Failed to connect to {provider_name} API at {base_url}: {e}\033[0m"
-        )
-        logger.error(f"Failed to discover {provider_name} models: {e}")
+        error_msg = f"Failed to connect to {provider_name} API at {base_url}: {e}"
+        print(f"  \033[93m[WARN] {error_msg}\033[0m")
+        logger.error(error_msg)
     return discovered
 
 
@@ -241,43 +265,72 @@ def get_all_models(env_vars):
         models.extend(
             sync_discover_openai_compat("https://api.openai.com/v1", oa_key, "openai")
         )
+
     # Gemini
     g_key = env_vars.get("GEMINI_API_KEY")
     if g_key and g_key != "dummy":
-        # Get models from OpenAI compat endpoint
-        compat_models = sync_discover_openai_compat(
-            "https://generativelanguage.googleapis.com/v1beta/openai",
-            g_key,
-            "gemini",
-        )
-        compat_ids = {m["id"] for m in compat_models}
-        models.extend(compat_models)
+        gemini_ids = set()
+        # Get models from OpenAI compat endpoint - try both v1beta and v1
+        for version in ["v1beta", "v1"]:
+            compat_models = sync_discover_openai_compat(
+                f"https://generativelanguage.googleapis.com/{version}/openai",
+                g_key,
+                "gemini",
+            )
+            for m in compat_models:
+                if m["id"] not in gemini_ids:
+                    models.append(m)
+                    gemini_ids.add(m["id"])
+            if compat_models:
+                break
 
-        # Also poll the native endpoint to catch missing 2.5/3.1 aliases that aren't on compat yet
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models?key={g_key}"
-            req = urllib.request.Request(url)
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-            with urllib.request.urlopen(req, timeout=3, context=ctx) as response:
-                if response.status == 200:
-                    data = json.loads(response.read().decode())
-                    for model in data.get("models", []):
-                        m_id = model.get("name")
-                        if m_id:
-                            if m_id.startswith("models/"):
-                                m_id = m_id[7:]
-                            if m_id not in compat_ids:
-                                models.append(
-                                    {
-                                        "id": m_id,
-                                        "name": f"Gemini: {m_id}",
-                                        "provider": "gemini",
-                                    }
-                                )
-        except:
-            pass
+        # Also poll the native endpoint to catch missing aliases
+        for version in ["v1beta", "v1"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/{version}/models?key={g_key}"
+                req = urllib.request.Request(url)
+                req.add_header("x-goog-api-key", g_key)
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+                with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
+                    if response.status == 200:
+                        data = json.loads(response.read().decode())
+                        for model in data.get("models", []):
+                            m_id = model.get("name")
+                            if m_id:
+                                if m_id.startswith("models/"):
+                                    m_id = m_id[7:]
+                                if "embedding" in m_id.lower():
+                                    continue
+                                if m_id not in gemini_ids:
+                                    models.append(
+                                        {
+                                            "id": m_id,
+                                            "name": f"Gemini: {m_id}",
+                                            "provider": "gemini",
+                                        }
+                                    )
+                                    gemini_ids.add(m_id)
+            except Exception as e:
+                logger.debug(f"Gemini native discovery ({version}) failed: {e}")
+
+    # Anthropic
+    a_key = env_vars.get("ANTHROPIC_API_KEY")
+    if a_key and a_key != "dummy":
+        models.extend(
+            sync_discover_openai_compat(
+                "https://api.anthropic.com/v1", a_key, "anthropic"
+            )
+        )
+
+    # Cohere
+    co_key = env_vars.get("COHERE_API_KEY")
+    if co_key and co_key != "dummy":
+        models.extend(
+            sync_discover_openai_compat("https://api.cohere.ai/v1", co_key, "cohere")
+        )
+
     logger.debug(f"Found {len(models)} models.")
     return models
 
