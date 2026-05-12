@@ -187,18 +187,17 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
     try:
         base_url = base_url.rstrip("/")
         url = f"{base_url}/models"
-        # For Gemini, the most reliable auth is the key query parameter
-        if provider_name == "gemini" and api_key and api_key != "dummy":
-            url = f"{url}?key={api_key}"
-
         req = urllib.request.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        req.add_header(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        )
         req.add_header("Accept", "application/json")
-        
         if api_key and api_key != "dummy":
             if provider_name == "gemini":
-                # For Gemini, we already put the key in the URL
-                pass
+                # For Gemini OpenAI compat, use ONLY Authorization: Bearer
+                # Google's OpenAI endpoint rejects the ?key= parameter with 400 Bad Request
+                req.add_header("Authorization", f"Bearer {api_key}")
             elif provider_name == "anthropic":
                 req.add_header("x-api-key", api_key)
                 req.add_header("anthropic-version", "2023-06-01")
@@ -248,7 +247,6 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
                             )
     except Exception as e:
         error_msg = f"Failed to connect to {provider_name} API at {base_url}: {e}"
-        # All discovery failures are DEBUG now to avoid cluttering UI during probing
         logger.debug(error_msg)
     return discovered
 
@@ -296,9 +294,13 @@ def get_all_models(env_vars):
             try:
                 url = f"https://generativelanguage.googleapis.com/{version}/models?key={g_key}"
                 req = urllib.request.Request(url)
-                req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                req.add_header(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                )
                 req.add_header("Accept", "application/json")
-                # For Gemini native, we rely on the ?key= parameter in the URL
+                # For Gemini native, use both the ?key= parameter and the header
+                req.add_header("x-goog-api-key", g_key)
                 ctx = ssl.create_default_context()
                 ctx.check_hostname = False
                 ctx.verify_mode = ssl.CERT_NONE
