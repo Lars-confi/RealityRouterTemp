@@ -187,14 +187,18 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
     try:
         base_url = base_url.rstrip("/")
         url = f"{base_url}/models"
+        # For Gemini, the most reliable auth is the key query parameter
+        if provider_name == "gemini" and api_key and api_key != "dummy":
+            url = f"{url}?key={api_key}"
+
         req = urllib.request.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (compatible; RealityRouter/1.0)")
+        req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
         req.add_header("Accept", "application/json")
+        
         if api_key and api_key != "dummy":
             if provider_name == "gemini":
-                # For Gemini OpenAI compat, send BOTH headers
-                req.add_header("Authorization", f"Bearer {api_key}")
-                req.add_header("x-goog-api-key", api_key)
+                # For Gemini, we already put the key in the URL
+                pass
             elif provider_name == "anthropic":
                 req.add_header("x-api-key", api_key)
                 req.add_header("anthropic-version", "2023-06-01")
@@ -292,12 +296,9 @@ def get_all_models(env_vars):
             try:
                 url = f"https://generativelanguage.googleapis.com/{version}/models?key={g_key}"
                 req = urllib.request.Request(url)
-                req.add_header(
-                    "User-Agent", "Mozilla/5.0 (compatible; RealityRouter/1.0)"
-                )
+                req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 req.add_header("Accept", "application/json")
-                # For Gemini native, use BOTH the ?key= parameter and the x-goog-api-key header
-                req.add_header("x-goog-api-key", g_key)
+                # For Gemini native, we rely on the ?key= parameter in the URL
                 ctx = ssl.create_default_context()
                 ctx.check_hostname = False
                 ctx.verify_mode = ssl.CERT_NONE
