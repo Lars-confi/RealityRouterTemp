@@ -188,6 +188,12 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
         base_url = base_url.rstrip("/")
         url = f"{base_url}/models"
         req = urllib.request.Request(url)
+        # Standard User-Agent to avoid 403 Forbidden blocks
+        req.add_header(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        )
+        req.add_header("Accept", "application/json")
 
         if api_key and api_key != "dummy":
             if provider_name == "gemini":
@@ -272,11 +278,16 @@ def get_all_models(env_vars):
     if g_key and g_key != "dummy":
         gemini_ids = set()
 
-        # 1. Try Native Discovery First (Most reliable)
-        for version in ["v1", "v1beta"]:
+        # 1. Try Native Discovery (Matches backend logic, prioritize v1beta)
+        for version in ["v1beta", "v1"]:
             try:
                 url = f"https://generativelanguage.googleapis.com/{version}/models?key={g_key}"
                 req = urllib.request.Request(url)
+                req.add_header(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                )
+                req.add_header("Accept", "application/json")
                 ctx = ssl.create_default_context()
                 ctx.check_hostname = False
                 ctx.verify_mode = ssl.CERT_NONE
@@ -299,12 +310,14 @@ def get_all_models(env_vars):
                                         }
                                     )
                                     gemini_ids.add(m_id)
+                        if gemini_ids:
+                            break  # Success with this version
             except Exception as e:
                 logger.debug(f"Gemini native discovery ({version}) failed: {e}")
 
-        # 2. Try OpenAI compat endpoint if needed (skip if native found models)
+        # 2. Try OpenAI compat endpoint if needed (fallback if native found nothing)
         if not models:
-            for version in ["v1", "v1beta"]:
+            for version in ["v1beta", "v1"]:
                 compat_models = sync_discover_openai_compat(
                     f"https://generativelanguage.googleapis.com/{version}/openai",
                     g_key,
