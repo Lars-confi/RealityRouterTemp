@@ -188,9 +188,10 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
         base_url = base_url.rstrip("/")
         url = f"{base_url}/models"
         req = urllib.request.Request(url)
+        req.add_header("User-Agent", "RealityRouter/1.0")
         if api_key and api_key != "dummy":
             if provider_name == "gemini":
-                req.add_header("x-goog-api-key", api_key)
+                # For Gemini OpenAI compat, use ONLY Authorization: Bearer
                 req.add_header("Authorization", f"Bearer {api_key}")
             elif provider_name == "anthropic":
                 req.add_header("x-api-key", api_key)
@@ -201,7 +202,7 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as response:
             if response.status == 200:
                 data = json.loads(response.read().decode())
 
@@ -241,8 +242,12 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
                             )
     except Exception as e:
         error_msg = f"Failed to connect to {provider_name} API at {base_url}: {e}"
-        print(f"  \033[93m[WARN] {error_msg}\033[0m")
-        logger.error(error_msg)
+        # Change ERROR to DEBUG for 404 errors (common when probing endpoints)
+        if hasattr(e, "code") and e.code == 404:
+            logger.debug(error_msg)
+        else:
+            print(f"  \033[93m[WARN] {error_msg}\033[0m")
+            logger.error(error_msg)
     return discovered
 
 
@@ -289,11 +294,12 @@ def get_all_models(env_vars):
             try:
                 url = f"https://generativelanguage.googleapis.com/{version}/models?key={g_key}"
                 req = urllib.request.Request(url)
-                req.add_header("x-goog-api-key", g_key)
+                req.add_header("User-Agent", "RealityRouter/1.0")
+                # For Gemini native, use ONLY the ?key= parameter, no header
                 ctx = ssl.create_default_context()
                 ctx.check_hostname = False
                 ctx.verify_mode = ssl.CERT_NONE
-                with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
+                with urllib.request.urlopen(req, timeout=10, context=ctx) as response:
                     if response.status == 200:
                         data = json.loads(response.read().decode())
                         for model in data.get("models", []):
