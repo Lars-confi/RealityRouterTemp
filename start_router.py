@@ -188,11 +188,13 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
         base_url = base_url.rstrip("/")
         url = f"{base_url}/models"
         req = urllib.request.Request(url)
-        req.add_header("User-Agent", "RealityRouter/1.0")
+        req.add_header("User-Agent", "Mozilla/5.0 (compatible; RealityRouter/1.0)")
+        req.add_header("Accept", "application/json")
         if api_key and api_key != "dummy":
             if provider_name == "gemini":
-                # For Gemini OpenAI compat, use ONLY Authorization: Bearer
+                # For Gemini OpenAI compat, send BOTH headers
                 req.add_header("Authorization", f"Bearer {api_key}")
+                req.add_header("x-goog-api-key", api_key)
             elif provider_name == "anthropic":
                 req.add_header("x-api-key", api_key)
                 req.add_header("anthropic-version", "2023-06-01")
@@ -242,12 +244,8 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
                             )
     except Exception as e:
         error_msg = f"Failed to connect to {provider_name} API at {base_url}: {e}"
-        # Change ERROR to DEBUG for 404 errors (common when probing endpoints)
-        if hasattr(e, "code") and e.code == 404:
-            logger.debug(error_msg)
-        else:
-            print(f"  \033[93m[WARN] {error_msg}\033[0m")
-            logger.error(error_msg)
+        # All discovery failures are DEBUG now to avoid cluttering UI during probing
+        logger.debug(error_msg)
     return discovered
 
 
@@ -294,8 +292,12 @@ def get_all_models(env_vars):
             try:
                 url = f"https://generativelanguage.googleapis.com/{version}/models?key={g_key}"
                 req = urllib.request.Request(url)
-                req.add_header("User-Agent", "RealityRouter/1.0")
-                # For Gemini native, use ONLY the ?key= parameter, no header
+                req.add_header(
+                    "User-Agent", "Mozilla/5.0 (compatible; RealityRouter/1.0)"
+                )
+                req.add_header("Accept", "application/json")
+                # For Gemini native, use BOTH the ?key= parameter and the x-goog-api-key header
+                req.add_header("x-goog-api-key", g_key)
                 ctx = ssl.create_default_context()
                 ctx.check_hostname = False
                 ctx.verify_mode = ssl.CERT_NONE
