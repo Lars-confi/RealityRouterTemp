@@ -200,8 +200,14 @@ class RouterCore:
                 if "gemini" in model_id.lower() or "generativelanguage" in base_url:
                     if model_name_for_adapter.startswith("models/"):
                         model_name_for_adapter = model_name_for_adapter[7:]
-                    if not model_name_for_adapter.startswith("gemini/"):
-                        model_name_for_adapter = f"gemini/{model_name_for_adapter}"
+                    if model_name_for_adapter.startswith("gemini/"):
+                        model_name_for_adapter = model_name_for_adapter[7:]
+                    if not model_name_for_adapter.startswith("openai/"):
+                        model_name_for_adapter = f"openai/{model_name_for_adapter}"
+                    if not base_url:
+                        base_url = (
+                            "https://generativelanguage.googleapis.com/v1beta/openai/"
+                        )
                 elif (
                     "11434" in base_url
                     or "localhost" in base_url
@@ -482,7 +488,9 @@ class RouterCore:
                                 from src.adapters.litellm_adapter import LiteLLMAdapter
 
                                 self.adapters[name] = LiteLLMAdapter(
-                                    model_name=f"gemini/{name}", api_key=gemini_key
+                                    model_name=f"openai/{name}",
+                                    api_key=gemini_key,
+                                    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
                                 )
                             if name in settings.disabled_models:
                                 continue
@@ -545,7 +553,9 @@ class RouterCore:
                         api_key = settings.openai_api_key
                     elif "gemini" in sentiment_model_id:
                         api_key = settings.gemini_api_key
-                        model_name_for_adapter = f"gemini/{sentiment_model_id}"
+                        model_name_for_adapter = f"openai/{sentiment_model_id}"
+                        if not base_url:
+                            base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
                     # Add other providers as necessary
 
                 if api_key:
@@ -2554,12 +2564,35 @@ async def chat_completions(
             )
 
             finish_reason = (
-                routing_rsp.response.get("finish_reason")
+                routing_rsp.response.get("finish_reason") or "stop"
                 if isinstance(routing_rsp.response, dict)
                 else "stop"
             )
 
             # Send the actual data chunk
+            delta = {
+                "role": "assistant",
+                "content": content,
+            }
+            if tool_calls is not None:
+                indexed_tool_calls = []
+                for i, tc in enumerate(tool_calls):
+                    tc_copy = tc.copy()
+                    if "index" not in tc_copy:
+                        tc_copy["index"] = i
+                    indexed_tool_calls.append(tc_copy)
+                delta["tool_calls"] = indexed_tool_calls
+
+            logprobs = None
+            if isinstance(routing_rsp.response, dict):
+                raw_resp = routing_rsp.response.get("raw_response", {})
+                if isinstance(raw_resp, dict):
+                    choices = raw_resp.get("choices", [])
+                    if isinstance(choices, list) and len(choices) > 0:
+                        choice = choices[0]
+                        if isinstance(choice, dict):
+                            logprobs = choice.get("logprobs")
+
             chunk = {
                 "id": chunk_id,
                 "object": "chat.completion.chunk",
@@ -2568,11 +2601,8 @@ async def chat_completions(
                 "choices": [
                     {
                         "index": 0,
-                        "delta": {
-                            "role": "assistant",
-                            "content": content,
-                            "tool_calls": tool_calls,
-                        },
+                        "delta": delta,
+                        "logprobs": logprobs,
                         "finish_reason": finish_reason,
                     }
                 ],
@@ -2597,6 +2627,37 @@ async def chat_completions(
             if "completion_tokens_details" not in usage:
                 usage["completion_tokens_details"] = {"reasoning_tokens": 0}
 
+        message = {
+            "role": "assistant",
+            "content": (
+                routing_rsp.response.get("text", "")
+                if isinstance(routing_rsp.response, dict)
+                else ""
+            )
+            or (
+                routing_rsp.response.get("reasoning_content", "")
+                if isinstance(routing_rsp.response, dict)
+                else ""
+            ),
+        }
+        tool_calls = (
+            routing_rsp.response.get("tool_calls")
+            if isinstance(routing_rsp.response, dict)
+            else None
+        )
+        if tool_calls is not None:
+            message["tool_calls"] = tool_calls
+
+        logprobs = None
+        if isinstance(routing_rsp.response, dict):
+            raw_resp = routing_rsp.response.get("raw_response", {})
+            if isinstance(raw_resp, dict):
+                choices = raw_resp.get("choices", [])
+                if isinstance(choices, list) and len(choices) > 0:
+                    choice = choices[0]
+                    if isinstance(choice, dict):
+                        logprobs = choice.get("logprobs")
+
         return {
             "id": f"chatcmpl-{int(time.time())}",
             "object": "chat.completion",
@@ -2605,23 +2666,13 @@ async def chat_completions(
             "choices": [
                 {
                     "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": (
-                            routing_rsp.response.get("text", "")
-                            if isinstance(routing_rsp.response, dict)
-                            else ""
-                        )
-                        or (
-                            routing_rsp.response.get("reasoning_content", "")
-                            if isinstance(routing_rsp.response, dict)
-                            else ""
-                        ),
-                        "tool_calls": routing_rsp.response.get("tool_calls")
+                    "message": message,
+                    "logprobs": logprobs,
+                    "finish_reason": (
+                        routing_rsp.response.get("finish_reason") or "stop"
                         if isinstance(routing_rsp.response, dict)
-                        else None,
-                    },
-                    "finish_reason": "stop",
+                        else "stop"
+                    ),
                 }
             ],
             "usage": usage,
@@ -2675,10 +2726,20 @@ async def completions(
             )
 
             finish_reason = (
-                routing_rsp.response.get("finish_reason", "stop")
+                routing_rsp.response.get("finish_reason") or "stop"
                 if isinstance(routing_rsp.response, dict)
                 else "stop"
             )
+
+            logprobs = None
+            if isinstance(routing_rsp.response, dict):
+                raw_resp = routing_rsp.response.get("raw_response", {})
+                if isinstance(raw_resp, dict):
+                    choices = raw_resp.get("choices", [])
+                    if isinstance(choices, list) and len(choices) > 0:
+                        choice = choices[0]
+                        if isinstance(choice, dict):
+                            logprobs = choice.get("logprobs")
 
             chunk = {
                 "id": chunk_id,
@@ -2689,7 +2750,7 @@ async def completions(
                     {
                         "text": content,
                         "index": 0,
-                        "logprobs": None,
+                        "logprobs": logprobs,
                         "finish_reason": finish_reason,
                     }
                 ],
@@ -2714,6 +2775,16 @@ async def completions(
             if "completion_tokens_details" not in usage:
                 usage["completion_tokens_details"] = {"reasoning_tokens": 0}
 
+        logprobs = None
+        if isinstance(routing_rsp.response, dict):
+            raw_resp = routing_rsp.response.get("raw_response", {})
+            if isinstance(raw_resp, dict):
+                choices = raw_resp.get("choices", [])
+                if isinstance(choices, list) and len(choices) > 0:
+                    choice = choices[0]
+                    if isinstance(choice, dict):
+                        logprobs = choice.get("logprobs")
+
         return {
             "id": f"cmpl-{int(time.time())}",
             "object": "text_completion",
@@ -2732,10 +2803,12 @@ async def completions(
                         else ""
                     ),
                     "index": 0,
-                    "logprobs": None,
-                    "finish_reason": routing_rsp.response.get("finish_reason", "stop")
-                    if isinstance(routing_rsp.response, dict)
-                    else "stop",
+                    "logprobs": logprobs,
+                    "finish_reason": (
+                        routing_rsp.response.get("finish_reason") or "stop"
+                        if isinstance(routing_rsp.response, dict)
+                        else "stop"
+                    ),
                 }
             ],
             "usage": usage,
