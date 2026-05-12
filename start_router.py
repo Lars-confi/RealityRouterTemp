@@ -249,6 +249,8 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
                             )
     except Exception as e:
         error_msg = f"Failed to connect to {provider_name} API at {base_url}: {e}"
+        if hasattr(e, 'read'):
+            error_msg += f" - Body: {e.read().decode()}"
         logger.debug(error_msg)
     return discovered
 
@@ -313,7 +315,10 @@ def get_all_models(env_vars):
                         if gemini_ids:
                             break  # Success with this version
             except Exception as e:
-                logger.debug(f"Gemini native discovery ({version}) failed: {e}")
+                error_body = ""
+                if hasattr(e, 'read'):
+                    error_body = f" - Body: {e.read().decode()}"
+                logger.debug(f"Gemini native discovery ({version}) failed: {e}{error_body}")
 
         # 2. Try OpenAI compat endpoint if needed (fallback if native found nothing)
         if not models:
