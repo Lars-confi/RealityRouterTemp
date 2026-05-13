@@ -30,6 +30,7 @@ build/
 *.zip
 *.tar.gz
 reality_router_dist.zip
+local_run.sh
 
 # Project Meta
 plans/

@@ -86,6 +86,11 @@ class LiteLLMAdapter(BaseAdapter):
             if key in params:
                 litellm_args[key] = params[key]
 
+        # Google's strict OpenAI compatibility endpoint throws 400 Bad Request if penalty parameters are included
+        if "gemini" in self.model_name.lower():
+            litellm_args.pop("frequency_penalty", None)
+            litellm_args.pop("presence_penalty", None)
+
         # Force stream=False internally for the router's logic to work correctly.
         # This prevents 'CustomStreamWrapper' attribute errors and allows the router
         # to assess responses before sending them back to the client.
