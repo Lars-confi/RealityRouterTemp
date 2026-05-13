@@ -263,6 +263,8 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
                     "total_time": 0.0,
                     "success_count": 0,
                     "total_utility": 0.0,
+                    "positive_feedback_count": 0,
+                    "feedback_count": 0,
                     "raw_costs": [],
                     "raw_times": [],
                     "raw_probs": [],
@@ -281,6 +283,11 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
             model_stats[model_id]["raw_probs"].append(log.probability)
             if log.success:
                 model_stats[model_id]["success_count"] += 1
+
+            if log.user_sentiment:
+                model_stats[model_id]["feedback_count"] += 1
+                if log.user_sentiment == "happy":
+                    model_stats[model_id]["positive_feedback_count"] += 1
 
             # Agent grouping
             a_id = log.agent_id or "default"
@@ -521,6 +528,7 @@ async def get_dashboard():
                             <tr>
                                 <th>Intelligence Provider</th>
                                 <th>Calls</th>
+                                <th>Positive Feedback</th>
                                 <th>Total Cost & Dist</th>
                                 <th>Avg Latency & Dist</th>
                                 <th>Throughput (Tokens)</th>
@@ -683,6 +691,12 @@ async def get_dashboard():
                                 <div style="font-size: 0.75em; color: #95a5a6;">${id}</div>
                             </td>
                             <td>${stats.requests.toLocaleString()}</td>
+                            <td>
+                                <div style="font-weight: 600; color: ${stats.feedback_count > 0 && stats.positive_feedback_count / stats.feedback_count >= 0.5 ? '#2ecc71' : (stats.feedback_count > 0 ? '#e74c3c' : '#95a5a6')};">
+                                    ${stats.feedback_count ? Math.round((stats.positive_feedback_count / stats.feedback_count) * 100) + '%' : 'N/A'}
+                                </div>
+                                <div style="font-size: 0.75em; color: #95a5a6;">${stats.positive_feedback_count} / ${stats.feedback_count}</div>
+                            </td>
                             <td>
                                 <div>$${stats.total_cost.toFixed(2)}</div>
                                 ${makeBoxplot(stats.cost_stats, maxCost, false)}
