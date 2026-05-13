@@ -453,6 +453,62 @@ async def log_metric(entry: MetricEntry, db: Session = Depends(get_db)):
         return {"status": "error", "message": str(e)}
 
 
+class PreferenceUpdate(BaseModel):
+    value: int
+
+
+@router.get("/preferences")
+async def get_preferences():
+    from src.router.core import router_core
+
+    calc = router_core.utility_calculator
+    alpha = calc.cost_sensitivity
+    beta = calc.time_sensitivity
+
+    if alpha >= beta:
+        # Left side or middle: beta is lower (or equal)
+        # alpha/beta is between 1 and 100
+        ratio = alpha / max(beta, 1e-6)
+        # Clamp ratio to [1, 100]
+        ratio = max(1.0, min(100.0, ratio))
+        # v=0 -> ratio=100; v=50 -> ratio=1
+        value = 50 * (100 - ratio) / 99
+    else:
+        # Right side: alpha is lower
+        ratio = beta / max(alpha, 1e-6)
+        ratio = max(1.0, min(100.0, ratio))
+        # v=50 -> ratio=1; v=100 -> ratio=100
+        value = 50 + 50 * (ratio - 1) / 99
+
+    return {"value": int(value)}
+
+
+@router.post("/preferences")
+async def update_preferences(pref: PreferenceUpdate):
+    val = max(0, min(100, pref.value))
+
+    if val <= 50:
+        # Left side: cost/preference priority
+        # ratio 100:1 at 0, 1:1 at 50
+        ratio = 100 - (99 * val / 50.0)
+        alpha = ratio
+        beta = 1.0
+    else:
+        # Right side: time priority
+        # ratio 1:1 at 50, 1:100 at 100
+        ratio = 1 + (99 * (val - 50) / 50.0)
+        alpha = 1.0
+        beta = ratio
+
+    from src.router.core import router_core
+
+    if hasattr(router_core, "utility_calculator"):
+        router_core.utility_calculator.cost_sensitivity = alpha
+        router_core.utility_calculator.time_sensitivity = beta
+
+    return {"status": "success", "alpha": alpha, "beta": beta}
+
+
 @router.get("/dashboard", response_class=HTMLResponse)
 async def get_dashboard():
     """
@@ -494,6 +550,23 @@ async def get_dashboard():
     <body>
         <div style="max-width: 1200px; margin: 0 auto;">
             <h1>Reality Router Control Center</h1>
+
+            <div id="preferences" class="card">
+                <h2>Routing Preferences</h2>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+                    <div style="font-weight: bold; color: #e67e22; width: 140px; text-align: right;">Preference & Cost</div>
+                    <div style="flex-grow: 1; margin: 0 20px; text-align: center;">
+                        <input type="range" id="pref-slider" min="0" max="100" value="50" style="width: 100%; cursor: pointer;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #7f8c8d; margin-top: 8px;">
+                            <span>100:1</span>
+                            <span>1:1</span>
+                            <span>1:100</span>
+                        </div>
+                    </div>
+                    <div style="font-weight: bold; color: #e74c3c; width: 140px; text-align: left;">Time</div>
+                </div>
+                <div id="pref-status" style="text-align: center; font-size: 0.85em; color: #3498db; margin-top: 10px; height: 1em;"></div>
+            </div>
 
             <div id="summary" class="card">
                 <h2>System Health & Usage</h2>
@@ -545,6 +618,45 @@ async def get_dashboard():
         </div>
 
         <script>
+            // Load and handle preferences
+            async function initPreferences() {
+                const slider = document.getElementById('pref-slider');
+                const statusEl = document.getElementById('pref-status');
+
+                try {
+                    const res = await fetch('/metrics/preferences');
+                    const data = await res.json();
+                    if (data && data.value !== undefined) {
+                        slider.value = data.value;
+                    }
+                } catch (e) { console.error("Failed to load preferences", e); }
+
+                let timeout = null;
+                slider.addEventListener('input', () => {
+                    statusEl.innerText = "Pending update...";
+                    clearTimeout(timeout);
+                    timeout = setTimeout(async () => {
+                        statusEl.innerText = "Saving...";
+                        try {
+                            const res = await fetch('/metrics/preferences', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ value: parseInt(slider.value) })
+                            });
+                            if (res.ok) {
+                                statusEl.innerText = "Preferences updated successfully!";
+                                setTimeout(() => statusEl.innerText = "", 2000);
+                            } else {
+                                statusEl.innerText = "Failed to update.";
+                            }
+                        } catch (err) {
+                            statusEl.innerText = "Error communicating with server.";
+                        }
+                    }, 300);
+                });
+            }
+            initPreferences();
+
             async function loadData() {
                 try {
                     const res = await fetch('/metrics/summary');
