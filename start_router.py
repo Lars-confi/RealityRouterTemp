@@ -65,7 +65,7 @@ def check_docker():
 PROVIDER_KEYS = {
     "openai": [("OPENAI_API_KEY", "OpenAI API Key")],
     "anthropic": [("ANTHROPIC_API_KEY", "Anthropic API Key")],
-    "cohere": [("COHERE_API_KEY", "Cohere API Key")],
+    "mistral": [("MISTRAL_API_KEY", "Mistral API Key")],
     "huggingface": [("HUGGINGFACE_API_KEY", "Hugging Face API Key")],
     "gemini": [("GEMINI_API_KEY", "Google Gemini API Key")],
     "custom/local": [
@@ -357,11 +357,11 @@ def get_all_models(env_vars):
             )
         )
 
-    # Cohere
-    co_key = env_vars.get("COHERE_API_KEY")
-    if co_key and co_key != "dummy":
+    # Mistral
+    mi_key = env_vars.get("MISTRAL_API_KEY")
+    if mi_key and mi_key != "dummy":
         models.extend(
-            sync_discover_openai_compat("https://api.cohere.ai/v1", co_key, "cohere")
+            sync_discover_openai_compat("https://api.mistral.ai/v1", mi_key, "mistral")
         )
 
     logger.debug(f"Found {len(models)} models.")
@@ -433,7 +433,7 @@ def wizard_providers(env_vars):
         ("openai", "OpenAI"),
         ("gemini", "Google Gemini"),
         ("anthropic", "Anthropic"),
-        ("cohere", "Cohere"),
+        ("mistral", "Mistral"),
         ("custom/local", "Custom/Ollama"),
     ]
 
