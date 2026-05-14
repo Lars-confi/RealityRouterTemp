@@ -159,6 +159,16 @@ if [ -n "$SHELL_PROFILE" ]; then
     echo "Please run 'source $SHELL_PROFILE' or restart your terminal to use the 'reality-router' command."
 fi
 
+if [ "$OS_TYPE" = "windows" ]; then
+    echo ""
+    echo "--------------------------------------------------------"
+    echo "🪟 Windows PowerShell detected!"
+    echo "To use 'reality-router' in PowerShell, run this command once:"
+    echo ""
+    echo "Add-Content \$PROFILE \"function reality-router { Push-Location '$TARGET_DIR'; .\\venv\\Scripts\\Activate.ps1; python start_router.py; deactivate; Pop-Location }\""
+    echo "--------------------------------------------------------"
+fi
+
 
 # --- Completion ---
 echo ""
