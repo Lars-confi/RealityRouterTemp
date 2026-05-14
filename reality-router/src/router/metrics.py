@@ -236,6 +236,7 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
                 success_rate=0.0,
                 models={},
                 agents={},
+                recent_events=[],
                 timestamp=datetime.utcnow().isoformat(),
             )
 
