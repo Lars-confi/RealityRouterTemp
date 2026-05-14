@@ -1,11 +1,12 @@
 """
-Metrics collection for LLM routing system
+Metrics collection and dashboard for Reality Router system
 """
 
 import json
 import logging
+import os
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
@@ -101,13 +102,12 @@ class MetricsCollector:
         second_token_top_logprobs: str = None,
     ):
         """
-        Collect routing metrics for a single request
+        Collect routing metrics and update model performance in database
         """
         try:
             # Create a new routing log entry
             log_entry = RoutingLog(
-                query=query,
-                agent_id=agent_id,
+                timestamp=datetime.utcnow(),
                 model_id=model_id,
                 model_name=model_name,
                 expected_utility=expected_utility,
@@ -115,14 +115,16 @@ class MetricsCollector:
                 time=time,
                 probability=probability,
                 success=success,
-                response_text=response_text,
+                query=query[:1000] if query else None,
+                strategy=strategy,
+                agent_id=agent_id,
+                response_text=response_text[:1000] if response_text else None,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 total_tokens=total_tokens,
                 request_payload=request_payload,
                 response_payload=response_payload,
                 routing_context=routing_context,
-                strategy=strategy,
                 confidence=confidence,
                 entropy=entropy,
                 logprobs_mean=logprobs_mean,
@@ -134,79 +136,61 @@ class MetricsCollector:
             )
 
             db.add(log_entry)
+
+            # Update aggregate model performance
+            self.update_model_performance(db, model_id, model_name, time, cost, success)
+
             db.commit()
-            db.refresh(log_entry)
-
-            logger.info(f"Logged routing decision for model {model_id}")
-
-            # Update model performance metrics
-            self.update_model_performance(db, model_id, model_name, cost, time, success)
+            logger.info(f"Collected metrics for model {model_id} (Success: {success})")
 
         except Exception as e:
-            logger.error(f"Error collecting routing metrics: {str(e)}")
+            logger.error(f"Error collecting metrics: {str(e)}")
+            db.rollback()
 
     def update_model_performance(
         self,
         db: Session,
         model_id: str,
         model_name: str,
-        cost: float,
         time: float,
+        cost: float,
         success: bool,
     ):
-        """
-        Update performance metrics for a specific model
+        """Update aggregate performance metrics for a model"""
+        perf = (
+            db.query(ModelPerformance)
+            .filter(ModelPerformance.model_id == model_id)
+            .first()
+        )
 
-        Args:
-            db: Database session
-            model_id: ID of the model
-            cost: Cost of the request
-            time: Time taken for the request
-            success: Whether the request was successful
-        """
-        try:
-            # Try to find existing performance record
-            perf_record = (
-                db.query(ModelPerformance).filter_by(model_id=model_id).first()
+        if not perf:
+            perf = ModelPerformance(
+                model_id=model_id,
+                model_name=model_name,
+                total_requests=1,
+                success_rate=1.0 if success else 0.0,
+                average_time=time,
+                total_cost=cost,
+                last_updated=datetime.utcnow(),
             )
+            db.add(perf)
+        else:
+            # Update moving average and counts
+            n = perf.total_requests
+            perf.total_requests += 1
 
-            if perf_record:
-                # Update existing record
-                perf_record.model_name = model_name
-                perf_record.total_requests += 1
-                perf_record.total_cost += cost
-                perf_record.average_time = (
-                    perf_record.average_time * (perf_record.total_requests - 1) + time
-                ) / perf_record.total_requests
-                perf_record.last_updated = datetime.utcnow()
+            # Update success rate
+            success_val = 1.0 if success else 0.0
+            perf.success_rate = (perf.success_rate * n + success_val) / (n + 1)
 
-                if success:
-                    perf_record.success_rate = (
-                        perf_record.success_rate * (perf_record.total_requests - 1) + 1
-                    ) / perf_record.total_requests
-                else:
-                    perf_record.success_rate = (
-                        perf_record.success_rate * (perf_record.total_requests - 1) + 0
-                    ) / perf_record.total_requests
-            else:
-                # Create new record
-                perf_record = ModelPerformance(
-                    model_id=model_id,
-                    model_name=model_name,
-                    total_requests=1,
-                    total_cost=cost,
-                    average_time=time,
-                    success_rate=1.0 if success else 0.0,
-                )
-                db.add(perf_record)
+            # Update average time
+            perf.average_time = (perf.average_time * n + time) / (n + 1)
 
-            db.commit()
-
-        except Exception as e:
-            logger.error(f"Error updating model performance: {str(e)}")
+            # Update total cost
+            perf.total_cost += cost
+            perf.last_updated = datetime.utcnow()
 
 
-# Global metrics collector instance
 metrics_collector = MetricsCollector()
 
 
@@ -214,9 +198,6 @@ metrics_collector = MetricsCollector()
 async def get_metrics_summary(db: Session = Depends(get_db)):
     """
     Get summary of routing metrics from database
-
-    Returns:
-        MetricsSummary with aggregated statistics
     """
     try:
         # Get all routing logs from database
@@ -338,7 +319,7 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
         avg_time = total_time / total_requests if total_requests > 0 else 0.0
         success_rate = success_count / total_requests if total_requests > 0 else 0.0
 
-        # Calculate potential max cost based on the maximum cost available at the time of each request
+        # Calculate potential max cost
         potential_max_cost = sum(
             (
                 log.potential_cost
@@ -393,7 +374,7 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error getting metrics summary: {str(e)}")
         raise HTTPException(
-            status_code=500, detail=f"Error retrieving metrics: {str(e)}"
+            status_code=500, detail=f"Error retrieving metrics summary: {str(e)}"
         )
 
 
@@ -401,12 +382,8 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
 async def get_model_metrics(db: Session = Depends(get_db)):
     """
     Get metrics for all models
-
-    Returns:
-        List of model metrics
     """
     try:
-        # Get all model performance records
         perf_records = db.query(ModelPerformance).all()
 
         model_metrics = []
@@ -437,9 +414,6 @@ async def get_model_metrics(db: Session = Depends(get_db)):
 async def get_metrics_history():
     """
     Get complete history of routing metrics
-
-    Returns:
-        List of all metric entries
     """
     return metrics_collector.metrics_storage
 
@@ -448,16 +422,8 @@ async def get_metrics_history():
 async def log_metric(entry: MetricEntry, db: Session = Depends(get_db)):
     """
     Log a metric entry to database
-
-    Args:
-        entry: MetricEntry to log
-        db: Database session
-
-    Returns:
-        Success confirmation
     """
     try:
-        # Convert MetricEntry to RoutingLog model
         db_entry = RoutingLog(
             timestamp=datetime.fromisoformat(entry.timestamp),
             model_id=entry.model_id,
@@ -496,18 +462,12 @@ async def get_preferences():
     beta = calc.time_sensitivity
 
     if alpha >= beta:
-        # Left side or middle: beta is lower (or equal)
-        # alpha/beta is between 1 and 100
         ratio = alpha / max(beta, 1e-6)
-        # Clamp ratio to [1, 100]
         ratio = max(1.0, min(100.0, ratio))
-        # v=0 -> ratio=100; v=50 -> ratio=1
         value = 50 * (100 - ratio) / 99
     else:
-        # Right side: alpha is lower
         ratio = beta / max(alpha, 1e-6)
         ratio = max(1.0, min(100.0, ratio))
-        # v=50 -> ratio=1; v=100 -> ratio=100
         value = 50 + 50 * (ratio - 1) / 99
 
     return {"value": int(value)}
@@ -518,14 +478,10 @@ async def update_preferences(pref: PreferenceUpdate):
     val = max(0, min(100, pref.value))
 
     if val <= 50:
-        # Left side: cost/preference priority
-        # ratio 100:1 at 0, 1:1 at 50
         ratio = 100 - (99 * val / 50.0)
         alpha = ratio
         beta = 1.0
     else:
-        # Right side: time priority
-        # ratio 1:1 at 50, 1:100 at 100
         ratio = 1 + (99 * (val - 50) / 50.0)
         alpha = 1.0
         beta = ratio
@@ -550,56 +506,56 @@ async def get_dashboard():
     <head>
         <title>Reality Router Dashboard</title>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 2em; background: #121212; color: #e0e0e0; }
-            .card { background: #1e1e1e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 30px; }
-            h1 { color: #ecf0f1; margin-bottom: 0.5em; }
-            h2 { color: #bdc3c7; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 2em; background: radial-gradient(circle at center, #1a234a 0%, #0d1117 100%); background-attachment: fixed; color: #e6edf3; }
+            .card { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); margin-bottom: 30px; }
+            h1 { color: #ffffff; margin-bottom: 0.5em; text-shadow: 0 0 15px rgba(112, 177, 255, 0.5); }
+            h2 { color: #bdc3c7; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; margin-top: 0; }
             .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-            .stat { background: #2c2c2c; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; }
-            .stat-savings { border-left-color: #2ecc71; background: #1a3b2b; }
-            .stat-expense { border-left-color: #e67e22; background: #3a2518; }
-            .stat-potential { border-left-color: #e74c3c; background: #3b1a1a; }
-            .stat-value { font-size: 1.8em; font-weight: bold; color: #5dade2; margin: 5px 0; }
-            .stat-savings .stat-value { color: #2ecc71; }
-            .stat-expense .stat-value { color: #e67e22; }
-            .stat-potential .stat-value { color: #e74c3c; }
-            .stat-label { color: #95a5a6; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
+            .stat { background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; border-left: 4px solid #70b1ff; }
+            .stat-savings { border-left-color: #1abc9c; background: rgba(26, 188, 156, 0.1); }
+            .stat-expense { border-left-color: #70b1ff; background: rgba(112, 177, 255, 0.1); }
+            .stat-potential { border-left-color: #70b1ff; background: rgba(112, 177, 255, 0.1); }
+            .stat-value { font-size: 1.8em; font-weight: bold; color: #ffffff; margin: 5px 0; }
+            .stat-label { color: #8b949e; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
             table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid #333; }
-            th { background: #2c2c2c; color: #bdc3c7; font-weight: 600; text-transform: uppercase; font-size: 0.75em; }
+            th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+            th { background: rgba(255, 255, 255, 0.05); color: #8b949e; font-weight: 600; text-transform: uppercase; font-size: 0.75em; }
             tr:last-child td { border-bottom: none; }
-            tr:hover { background: #2a2a2a; }
+            tr:hover { background: rgba(255, 255, 255, 0.03); }
             .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
-            .badge-success { background: #064e3b; color: #34d399; }
+            .badge-success { background: rgba(26, 188, 156, 0.2); color: #1abc9c; }
             .boxplot-container { width: 120px; height: 18px; position: relative; margin-top: 6px; background: rgba(255,255,255,0.03); border-radius: 2px; }
-            .boxplot-whisker { position: absolute; height: 2px; background: #7f8c8d; top: 8px; }
-            .boxplot-box { position: absolute; height: 10px; background: #3498db; top: 4px; opacity: 0.8; }
+            .boxplot-whisker { position: absolute; height: 2px; background: #8b949e; top: 8px; }
+            .boxplot-box { position: absolute; height: 10px; background: #70b1ff; top: 4px; opacity: 0.8; }
             .boxplot-median { position: absolute; height: 14px; width: 2px; background: #fff; top: 2px; }
+            #pref-slider { -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.1); border-radius: 5px; outline: none; accent-color: #70b1ff; height: 6px; }
+            #pref-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: #ffffff; border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px rgba(112, 177, 255, 0.8); }
+            #pref-slider::-moz-range-thumb { width: 18px; height: 18px; background: #ffffff; border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px rgba(112, 177, 255, 0.8); }
             .dashboard-row { display: flex; gap: 20px; margin-bottom: 30px; }
-            .dashboard-row .card { flex: 1; min-width: 0; margin-bottom: 0; display: flex; flex-direction: column; max-height: 600px; }
+            .dashboard-row .card { flex: 1; min-width: 0; margin-bottom: 0; display: flex; flex-direction: column; max-height: 700px; }
             .table-container { overflow: auto; flex-grow: 1; }
             @media (max-width: 1100px) { .dashboard-row { flex-direction: column; } .dashboard-row .card { max-height: none; } }
         </style>
     </head>
     <body>
         <div style="max-width: 1200px; margin: 0 auto;">
-            <h1>Reality Router Control Center</h1>
+            <h1 style="text-align: center; margin-bottom: 40px; letter-spacing: 2px;">REALITY ROUTER CONTROL CENTER</h1>
 
             <div id="preferences" class="card">
                 <h2>Routing Preferences</h2>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
-                    <div style="font-weight: bold; color: #e67e22; width: 140px; text-align: right;">Preference & Cost</div>
+                    <div style="font-weight: bold; color: #e6edf3; width: 140px; text-align: right;">Preference & Cost</div>
                     <div style="flex-grow: 1; margin: 0 20px; text-align: center;">
                         <input type="range" id="pref-slider" min="0" max="100" value="50" style="width: 100%; cursor: pointer;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #7f8c8d; margin-top: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #8b949e; margin-top: 8px;">
                             <span>100:1</span>
                             <span>1:1</span>
                             <span>1:100</span>
                         </div>
                     </div>
-                    <div style="font-weight: bold; color: #e74c3c; width: 140px; text-align: left;">Time</div>
+                    <div style="font-weight: bold; color: #e6edf3; width: 140px; text-align: left;">Time</div>
                 </div>
-                <div id="pref-status" style="text-align: center; font-size: 0.85em; color: #3498db; margin-top: 10px; height: 1em;"></div>
+                <div id="pref-status" style="text-align: center; font-size: 0.85em; color: #70b1ff; margin-top: 10px; height: 1em;"></div>
             </div>
 
             <div id="summary" class="card">
@@ -627,8 +583,8 @@ async def get_dashboard():
                         <tbody id="models-body"></tbody>
                     </table>
                 </div>
-                <div style="text-align: right; margin-top: 10px; font-size: 0.8em; color: #7f8c8d;">
-                    *Pricing data provided by <a href="https://github.com/BerriAI/litellm" target="_blank" style="color: #3498db; text-decoration: none;">LiteLLM</a>
+                <div style="text-align: right; margin-top: 10px; font-size: 0.8em; color: #8b949e;">
+                    *Pricing data powered by <a href="https://github.com/BerriAI/litellm" target="_blank" style="color: #70b1ff; text-decoration: none;">LiteLLM</a>
                 </div>
             </div>
 
@@ -776,13 +732,13 @@ async def get_dashboard():
                         <div class="stat stat-potential"><div class="stat-label">Potential Cost</div><div class="stat-value">$${data.potential_max_cost.toFixed(2)}</div><div class="stat-label">Max Model USD</div></div>
                         <div class="stat stat-savings"><div class="stat-label">Total Savings</div><div class="stat-value">$${savings.toFixed(2)}</div><div class="stat-label">Retained Value</div></div>
                         <div class="stat"><div class="stat-label">Success Density</div><div class="stat-value">${(data.success_rate * 100).toFixed(1)}%</div><div class="stat-label">Operational</div></div>
-                        <div class="stat" style="border-left-color: #9b59b6; background: #2c1e36;"><div class="stat-label">Most Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #d2b4de;" title="${bestProbModel}">${bestProbModel}</div><div class="stat-label">${bestProbVal.toFixed(2)} (Med Prob)</div></div>
-                        <div class="stat" style="border-left-color: #f1c40f; background: #332b10;"><div class="stat-label">Most Economical</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f9e79f;" title="${bestCostModel}">${bestCostModel}</div><div class="stat-label">$${bestCostVal.toFixed(2)} (Med Cost)</div></div>
-                        <div class="stat" style="border-left-color: #1abc9c; background: #16332d;"><div class="stat-label">Fastest Response</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a3e4d7;" title="${bestTimeModel}">${bestTimeModel}</div><div class="stat-label">${bestTimeVal.toFixed(2)}s (Med Time)</div></div>
-                        <div class="stat" style="border-left-color: #7f8c8d; background: #2b2b2b;"><div class="stat-label">Least Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #bdc3c7;" title="${leastProbModel}">${leastProbModel}</div><div class="stat-label">${leastProbVal.toFixed(2)} (Med Prob)</div></div>
-                        <div class="stat" style="border-left-color: #e67e22; background: #3d220f;"><div class="stat-label">Chattiest</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f5b041;" title="${chattiestModel}">${chattiestModel}</div><div class="stat-label">${chattiestVal.toFixed(0)} (Avg Tokens)</div></div>
-                        <div class="stat" style="border-left-color: #3498db; background: #152b3c;"><div class="stat-label">Most Shy</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #85c1e9;" title="${shyestModel}">${shyestModel}</div><div class="stat-label">${shyestVal.toFixed(0)} (Avg Tokens)</div></div>
-                        <div class="stat" style="border-left-color: #e74c3c; background: #3b1a1a;"><div class="stat-label">Clumsiest Model</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f1948a;" title="${confusedModel}">${confusedModel}</div><div class="stat-label">${(confusedVal * 100).toFixed(1)}% (Error Rate)</div></div>
+                        <div class="stat" style="border-left-color: #70b1ff; background: rgba(112, 177, 255, 0.05);"><div class="stat-label">Most Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;" title="${bestProbModel}">${bestProbModel}</div><div class="stat-label" style="color: #8b949e;">${bestProbVal.toFixed(2)} (Med Prob)</div></div>
+                        <div class="stat" style="border-left-color: #70b1ff; background: rgba(112, 177, 255, 0.05);"><div class="stat-label">Most Economical</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;" title="${bestCostModel}">${bestCostModel}</div><div class="stat-label" style="color: #8b949e;">$${bestCostVal.toFixed(2)} (Med Cost)</div></div>
+                        <div class="stat" style="border-left-color: #70b1ff; background: rgba(112, 177, 255, 0.05);"><div class="stat-label">Fastest Response</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;" title="${bestTimeModel}">${bestTimeModel}</div><div class="stat-label" style="color: #8b949e;">${bestTimeVal.toFixed(2)}s (Med Time)</div></div>
+                        <div class="stat" style="border-left-color: #8b949e; background: rgba(139, 148, 158, 0.05);"><div class="stat-label">Least Reliable</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;" title="${leastProbModel}">${leastProbModel}</div><div class="stat-label" style="color: #8b949e;">${leastProbVal.toFixed(2)} (Med Prob)</div></div>
+                        <div class="stat" style="border-left-color: #70b1ff; background: rgba(112, 177, 255, 0.05);"><div class="stat-label">Chattiest</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;" title="${chattiestModel}">${chattiestModel}</div><div class="stat-label" style="color: #8b949e;">${chattiestVal.toFixed(0)} (Avg Tokens)</div></div>
+                        <div class="stat" style="border-left-color: #70b1ff; background: rgba(112, 177, 255, 0.05);"><div class="stat-label">Most Shy</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;" title="${shyestModel}">${shyestModel}</div><div class="stat-label" style="color: #8b949e;">${shyestVal.toFixed(0)} (Avg Tokens)</div></div>
+                        <div class="stat" style="border-left-color: #70b1ff; background: rgba(112, 177, 255, 0.05);"><div class="stat-label">Clumsiest Model</div><div class="stat-value" style="font-size: 1.2em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;" title="${confusedModel}">${confusedModel}</div><div class="stat-label" style="color: #8b949e;">${(confusedVal * 100).toFixed(1)}% (Error Rate)</div></div>
                     `;
 
                     // Update Agents Table
@@ -831,8 +787,8 @@ async def get_dashboard():
 
                         return `
                         <div class="boxplot-container" title="Min: ${min.toFixed(2)}&#10;Q1: ${q1.toFixed(2)}&#10;Median: ${med.toFixed(2)}&#10;Q3: ${q3.toFixed(2)}&#10;Max: ${max.toFixed(2)}">
-                            <div class="boxplot-whisker" style="left: ${pMin}%; width: ${pMax - pMin}%;"></div>
-                            <div class="boxplot-box" style="left: ${pQ1}%; width: ${Math.max(0.5, pQ3 - pQ1)}%;"></div>
+                            <div class="boxplot-whisker" style="left: ${pMin}%; width: ${pMax - pMin}%; background: #8b949e;"></div>
+                            <div class="boxplot-box" style="left: ${pQ1}%; width: ${Math.max(0.5, pQ3 - pQ1)}%; background: #70b1ff;"></div>
                             <div class="boxplot-median" style="left: ${pMed}%;"></div>
                         </div>`;
                     }
@@ -842,15 +798,15 @@ async def get_dashboard():
                         const avgUtil = stats.requests ? (stats.total_utility / stats.requests) : 0;
                         row.innerHTML = `
                             <td>
-                                <div style="font-weight: 600; color: #ecf0f1;">${stats.name || id}</div>
-                                <div style="font-size: 0.75em; color: #95a5a6;">${id}</div>
+                                <div style="font-weight: 600; color: #ffffff;">${stats.name || id}</div>
+                                <div style="font-size: 0.75em; color: #8b949e;">${id}</div>
                             </td>
                             <td>${stats.requests.toLocaleString()}</td>
                             <td>
-                                <div style="font-weight: 600; color: ${stats.feedback_count > 0 && stats.positive_feedback_count / stats.feedback_count >= 0.5 ? '#2ecc71' : (stats.feedback_count > 0 ? '#e74c3c' : '#95a5a6')};">
+                                <div style="font-weight: 600; color: ${stats.feedback_count > 0 && stats.positive_feedback_count / stats.feedback_count >= 0.5 ? '#1abc9c' : (stats.feedback_count > 0 ? '#e74c3c' : '#8b949e')};">
                                     ${stats.feedback_count ? Math.round((stats.positive_feedback_count / stats.feedback_count) * 100) + '%' : 'N/A'}
                                 </div>
-                                <div style="font-size: 0.75em; color: #95a5a6;">${stats.positive_feedback_count} / ${stats.feedback_count}</div>
+                                <div style="font-size: 0.75em; color: #8b949e;">${stats.positive_feedback_count} / ${stats.feedback_count}</div>
                             </td>
                             <td>
                                 <div>$${stats.total_cost.toFixed(2)}</div>
@@ -881,29 +837,30 @@ async def get_dashboard():
                             const eventDiv = document.createElement('div');
                             eventDiv.style.marginBottom = '30px';
                             eventDiv.style.padding = '20px';
-                            eventDiv.style.border = '1px solid #444';
+                            eventDiv.style.border = '1px solid rgba(255, 255, 255, 0.1)';
                             eventDiv.style.borderRadius = '8px';
-                            eventDiv.style.background = '#111';
+                            eventDiv.style.background = 'rgba(255, 255, 255, 0.05)';
+                            eventDiv.style.backdropFilter = 'blur(10px)';
                             eventDiv.style.fontFamily = "'Courier New', Courier, monospace";
 
                             let html = `
-                                <div style="color: #555; text-align: center; margin-bottom: 4px;">=====================================================</div>
-                                <div style="color: #fff; text-align: center; font-weight: bold; margin-bottom: 4px; letter-spacing: 2px;">Event Detail View</div>
-                                <div style="color: #555; text-align: center; margin-bottom: 12px;">=====================================================</div>
+                                <div style="color: rgba(255,255,255,0.2); text-align: center; margin-bottom: 4px;">=====================================================</div>
+                                <div style="color: #ffffff; text-align: center; font-weight: bold; margin-bottom: 4px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(112, 177, 255, 0.5);">Event Detail View</div>
+                                <div style="color: rgba(255,255,255,0.2); text-align: center; margin-bottom: 12px;">=====================================================</div>
 
                                 <div style="font-size: 0.9em; line-height: 1.4; margin-bottom: 20px; color: #ccc;">
                                     <strong>Timestamp:</strong> ${event.timestamp}<br>
-                                    <strong>Status:</strong>    <span style="color: ${event.success ? '#2ecc71' : '#e74c3c'};">${event.success ? '✅ SUCCESS' : '❌ FAILED'}</span><br>
+                                    <strong>Status:</strong>    <span style="color: ${event.success ? '#1abc9c' : '#e74c3c'};">${event.success ? '✅ SUCCESS' : '❌ FAILED'}</span><br>
                                     <strong>Agent:</strong>     ${event.agent_id}<br>
                                     <strong>Model:</strong>     ${event.model_name} (${event.model_id})<br>
                                     <strong>Metrics:</strong>   Time: ${event.time.toFixed(2)}s | Cost: $${event.cost.toFixed(6)} | Utility: ${event.expected_utility.toFixed(4)}<br>
                                     <strong>Tokens:</strong>    ${event.prompt_tokens} prompt + ${event.completion_tokens} completion = ${event.total_tokens} total
                                 </div>
 
-                                <div style="color: #5dade2; font-weight: bold; margin-bottom: 8px;">[MODEL COMPARISON]</div>
+                                <div style="color: #70b1ff; font-weight: bold; margin-bottom: 8px;">[MODEL COMPARISON]</div>
                                 <table style="font-size: 0.85em; width: 100%; border-collapse: collapse;">
                                     <thead>
-                                        <tr style="border-bottom: 1px solid #333; color: #95a5a6;">
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #8b949e;">
                                             <th style="text-align: left; padding: 4px;">Model Name</th>
                                             <th style="text-align: right; padding: 4px;">Utility</th>
                                             <th style="text-align: right; padding: 4px;">Prob</th>
@@ -940,13 +897,13 @@ async def get_dashboard():
                             html += `
                                     </tbody>
                                 </table>
-                                <div style="color: #444; margin-top: 10px;">----------------------------------------------------------------------</div>
+                                <div style="color: rgba(255,255,255,0.1); margin-top: 10px;">----------------------------------------------------------------------</div>
                             `;
                             eventDiv.innerHTML = html;
                             eventsContainer.appendChild(eventDiv);
                         }
                     } else {
-                        eventsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #7f8c8d;">No events recorded in this session...</div>';
+                        eventsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #8b949e;">No events recorded in this session...</div>';
                     }
                 } catch (e) {
                     console.error("Dashboard sync failed", e);
