@@ -403,8 +403,8 @@ def wizard_routing_strategy(env_vars):
             "strategy",
             message="Select Routing Strategy",
             choices=[
-                ("Expected Utility (Single-shot, Fast)", "expected_utility"),
-                ("Tiered Assessment (Sequential, Verified)", "tiered_assessment"),
+                ("Snap (Single shot)", "expected_utility"),
+                ("Ladder (Sequential)", "tiered_assessment"),
             ],
             default="expected_utility"
             if env_vars.get("DEFAULT_STRATEGY") != "tiered_assessment"
@@ -420,9 +420,9 @@ def wizard_routing_strategy(env_vars):
     env_vars["DEFAULT_STRATEGY"] = answers["strategy"]
 
     if answers["strategy"] == "tiered_assessment":
-        print_status("Strategy set to Tiered Assessment.", "success")
+        print_status("Strategy set to Ladder.", "success")
     else:
-        print_status("Strategy set to Expected Utility.", "success")
+        print_status("Strategy set to Snap.", "success")
 
     save_env(env_vars)
     time.sleep(0.8)
