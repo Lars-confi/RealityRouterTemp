@@ -545,6 +545,10 @@ async def get_dashboard():
             .boxplot-whisker { position: absolute; height: 2px; background: #7f8c8d; top: 8px; }
             .boxplot-box { position: absolute; height: 10px; background: #3498db; top: 4px; opacity: 0.8; }
             .boxplot-median { position: absolute; height: 14px; width: 2px; background: #fff; top: 2px; }
+            .dashboard-row { display: flex; gap: 20px; margin-bottom: 30px; }
+            .dashboard-row .card { flex: 1; min-width: 0; margin-bottom: 0; display: flex; flex-direction: column; max-height: 600px; }
+            .table-container { overflow: auto; flex-grow: 1; }
+            @media (max-width: 1100px) { .dashboard-row { flex-direction: column; } .dashboard-row .card { max-height: none; } }
         </style>
     </head>
     <body>
@@ -575,45 +579,45 @@ async def get_dashboard():
                 </div>
             </div>
 
-            <div id="agents" class="card">
-                <h2>Agent Activity</h2>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Agent ID</th>
-                                <th>Requests</th>
-                                <th>Total Cost</th>
-                                <th>Total Tokens</th>
-                                <th>Success Rate</th>
-                            </tr>
-                        </thead>
-                        <tbody id="agents-body"></tbody>
-                    </table>
+            <div class="dashboard-row">
+                <div id="agents" class="card">
+                    <h2>Agent Activity</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Agent ID</th>
+                                    <th>Requests</th>
+                                    <th>Total Cost</th>
+                                    <th>Total Tokens</th>
+                                    <th>Success Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="agents-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="models" class="card">
+                    <h2>Model Performance & Unit Economics</h2>
+                    <div class="table-container">
+                        <table id="models-table">
+                            <thead>
+                                <tr>
+                                    <th>Intelligence Provider</th>
+                                    <th>Calls</th>
+                                    <th>Positive Feedback</th>
+                                    <th>Total Cost & Dist</th>
+                                    <th>Avg Latency & Dist</th>
+                                    <th>Throughput (Tokens)</th>
+                                    <th>Avg Utility & Prob Dist</th>
+                                </tr>
+                            </thead>
+                            <tbody id="models-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-
-            <div id="models" class="card">
-                <h2>Model Performance & Unit Economics</h2>
-                <div style="overflow-x: auto;">
-                    <table id="models-table">
-                        <thead>
-                            <tr>
-                                <th>Intelligence Provider</th>
-                                <th>Calls</th>
-                                <th>Positive Feedback</th>
-                                <th>Total Cost & Dist</th>
-                                <th>Avg Latency & Dist</th>
-                                <th>Throughput (Tokens)</th>
-                                <th>Avg Utility & Prob Dist</th>
-                            </tr>
-                        </thead>
-                        <tbody id="models-body"></tbody>
-                    </table>
-                </div>
-                <div style="text-align: right; margin-top: 10px; font-size: 0.8em; color: #7f8c8d;">
-                    *Pricing data provided by <a href="https://github.com/BerriAI/litellm" target="_blank" style="color: #3498db; text-decoration: none;">LiteLLM</a>
-                </div>
             </div>
         </div>
 
