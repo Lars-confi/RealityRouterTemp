@@ -142,12 +142,23 @@ def print_status(msg, type="info"):
     logger.debug(f"Printed status: {msg} [type={type}]")
 
 
+def stable_prompt(message, default="", color=C_YELLOW):
+    """A standard input() based prompt that doesn't flicker/re-render like inquirer.Text."""
+    prompt_msg = f"  {color}[?]{C_RESET} {message}"
+    if default:
+        prompt_msg += f" {C_BOLD}(Default: {default}){C_RESET}"
+    prompt_msg += ": "
+
+    try:
+        val = input(prompt_msg).strip()
+        return val if val else default
+    except (EOFError, KeyboardInterrupt):
+        print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
+        sys.exit(0)
+
+
 def prompt(text, default="", color=C_YELLOW):
-    questions = [inquirer.Text("value", message=text, default=default)]
-    answers = inquirer.prompt(questions)
-    if answers:
-        return answers["value"].strip()
-    return default
+    return stable_prompt(text, default, color)
 
 
 # --- Discovery Logic ---
@@ -249,7 +260,7 @@ def sync_discover_openai_compat(base_url, api_key, provider_name):
                             )
     except Exception as e:
         error_msg = f"Failed to connect to {provider_name} API at {base_url}: {e}"
-        if hasattr(e, 'read'):
+        if hasattr(e, "read"):
             error_msg += f" - Body: {e.read().decode()}"
         logger.debug(error_msg)
     return discovered
@@ -316,9 +327,11 @@ def get_all_models(env_vars):
                             break  # Success with this version
             except Exception as e:
                 error_body = ""
-                if hasattr(e, 'read'):
+                if hasattr(e, "read"):
                     error_body = f" - Body: {e.read().decode()}"
-                logger.debug(f"Gemini native discovery ({version}) failed: {e}{error_body}")
+                logger.debug(
+                    f"Gemini native discovery ({version}) failed: {e}{error_body}"
+                )
 
         # 2. Try OpenAI compat endpoint if needed (fallback if native found nothing)
         if not models:
@@ -367,29 +380,15 @@ def wizard_global_settings(env_vars):
         f"  {C_CYAN}EU(m) = p * {C_BOLD}R{C_RESET}{C_CYAN} - {C_BOLD}α{C_RESET}{C_CYAN} * cost - {C_BOLD}β{C_RESET}{C_CYAN} * time{C_RESET}\n"
     )
 
-    questions = [
-        inquirer.Text(
-            "reward", message="Success Value (R)", default=env_vars.get("REWARD", "1.0")
-        ),
-        inquirer.Text(
-            "alpha",
-            message="Cost Penalty (α)",
-            default=env_vars.get("COST_SENSITIVITY", "0.5"),
-        ),
-        inquirer.Text(
-            "beta",
-            message="Time Penalty (β)",
-            default=env_vars.get("TIME_SENSITIVITY", "0.5"),
-        ),
-    ]
-    answers = inquirer.prompt(questions)
-    if not answers:
-        print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
-        sys.exit(0)
-
-    env_vars["REWARD"] = answers["reward"].strip()
-    env_vars["COST_SENSITIVITY"] = answers["alpha"].strip()
-    env_vars["TIME_SENSITIVITY"] = answers["beta"].strip()
+    env_vars["REWARD"] = stable_prompt(
+        "Success Value (R)", default=env_vars.get("REWARD", "1.0")
+    )
+    env_vars["COST_SENSITIVITY"] = stable_prompt(
+        "Cost Penalty (α)", default=env_vars.get("COST_SENSITIVITY", "0.5")
+    )
+    env_vars["TIME_SENSITIVITY"] = stable_prompt(
+        "Time Penalty (β)", default=env_vars.get("TIME_SENSITIVITY", "0.5")
+    )
 
     save_env(env_vars)
     print_status("Settings updated.", "success")
@@ -475,18 +474,7 @@ def wizard_providers(env_vars):
                 else (cur[:4] + "*" * 12 if len(cur) > 8 else "None")
             )
 
-            val_q = [
-                inquirer.Text(
-                    "value",
-                    message=f"{desc} (Current: {masked})",
-                )
-            ]
-            val_a = inquirer.prompt(val_q)
-            if not val_a:
-                print(f"\n  {C_RED}Wizard aborted.{C_RESET}")
-                sys.exit(0)
-
-            new_val = val_a["value"].strip()
+            new_val = stable_prompt(f"{desc} (Current: {masked})")
             if new_val:
                 env_vars[env_key] = new_val
         save_env(env_vars)
