@@ -544,7 +544,7 @@ async def get_dashboard():
             <div id="preferences" class="card">
                 <h2>Routing Preferences</h2>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
-                    <div style="font-weight: bold; color: #e6edf3; width: 140px; text-align: right;">Preference & Cost</div>
+                    <div style="font-weight: bold; color: #e6edf3; width: 140px; text-align: right;">Cost</div>
                     <div style="flex-grow: 1; margin: 0 20px; text-align: center;">
                         <input type="range" id="pref-slider" min="0" max="100" value="50" style="width: 100%; cursor: pointer;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #8b949e; margin-top: 8px;">
@@ -554,6 +554,9 @@ async def get_dashboard():
                         </div>
                     </div>
                     <div style="font-weight: bold; color: #e6edf3; width: 140px; text-align: left;">Time</div>
+                </div>
+                <div style="text-align: center; margin-top: 15px; font-size: 0.9em; color: #8b949e; font-style: italic;">
+                    Prioritize your objective: lower cost on the left, or faster response on the right.
                 </div>
                 <div id="pref-status" style="text-align: center; font-size: 0.85em; color: #70b1ff; margin-top: 10px; height: 1em;"></div>
             </div>
