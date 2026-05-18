@@ -514,7 +514,7 @@ def wizard_model_management(env_vars):
         questions = [
             inquirer.Checkbox(
                 "active_models",
-                message="Toggle models ON [Space] and continue [Enter]",
+                message="Select models to ENABLE ([X] = enabled). Press [Space] to toggle, [Enter] to confirm.",
                 choices=model_choices,
                 default=default_checked,
             )
