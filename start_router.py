@@ -575,7 +575,7 @@ def wizard_reality_check_auth(env_vars):
     )
     print(f"  To obtain your token, visit the following URL in your browser:")
     print(
-        f"  {C_CYAN}https://snap-api.swedencentral.azurecontainerapps.io/.auth/me{C_RESET}"
+        f"  {C_CYAN}https://snap-api.jollysand-1b9ed42e.swedencentral.azurecontainerapps.io/.auth/me{C_RESET}"
     )
     print(f"  (Log in if prompted, then copy the 'access_token' value)\n")
 
