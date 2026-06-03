@@ -95,14 +95,8 @@ def resolve_agent_id(
 
 
 # Reality Check API Configuration - Hardcoded per v1.0.0.0 Spec
-REALITY_ROUTING_URL = (
-    "https://llmrouter-api.jollysand-1b9ed42e.swedencentral.azurecontainerapps.io"
-)
-REALITY_REROUTING_URL = (
-    "https://llmrerouter-api.jollysand-1b9ed42e.swedencentral.azurecontainerapps.io"
-)
-REALITY_CHECK_ROUTING_KEY = "f7a2b9c8d1e3f5a2b9c8d1e3f5a2b9c8"
-REALITY_CHECK_REROUTING_KEY = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+REALITY_ROUTING_URL = "https://snap-api.swedencentral.azurecontainerapps.io"
+REALITY_REROUTING_URL = "https://ladder-api.swedencentral.azurecontainerapps.io"
 
 # Infrastructure failure detection patterns
 INFRA_FAILURE_PATTERNS = [
@@ -115,12 +109,6 @@ INFRA_FAILURE_PATTERNS = [
     "429",
     "high demand",
 ]
-
-
-def get_reality_check_key(url: str) -> str:
-    if url == REALITY_ROUTING_URL:
-        return REALITY_CHECK_ROUTING_KEY
-    return REALITY_CHECK_REROUTING_KEY
 
 
 class ModelMetrics(BaseModel):
@@ -1017,7 +1005,6 @@ class RouterCore:
                         resp = await client.post(
                             f"{url}/decide",
                             json={"features": m["features"]},
-                            headers={"x-api-key": get_reality_check_key(url)},
                             timeout=5.0,
                         )
                         if resp.status_code == 200:
@@ -1565,7 +1552,6 @@ class RouterCore:
                                 fb_resp = await client.post(
                                     f"{url}/feedback",
                                     json=fb_payload,
-                                    headers={"x-api-key": get_reality_check_key(url)},
                                     timeout=3.0,
                                 )
                                 fb_status = fb_resp.status_code
@@ -1888,9 +1874,6 @@ class RouterCore:
                                             "decision_id": int(rc_id_str),
                                             "feedback": 0,
                                         },
-                                        headers={
-                                            "x-api-key": get_reality_check_key(url)
-                                        },
                                         timeout=2.0,
                                     )
                             except Exception as fe:
@@ -1917,7 +1900,6 @@ class RouterCore:
                                         "decision_id": int(rc_id_str),
                                         "feedback": 1,
                                     },
-                                    headers={"x-api-key": get_reality_check_key(url)},
                                     timeout=2.0,
                                 )
                         except Exception as fe:
@@ -2225,9 +2207,6 @@ class RouterCore:
                                             "decision_id": int(rc_id_str),
                                             "feedback": 0,
                                         },
-                                        headers={
-                                            "x-api-key": get_reality_check_key(url)
-                                        },
                                         timeout=2.0,
                                     )
                                     fb_status = fb_resp.status_code
@@ -2289,11 +2268,6 @@ class RouterCore:
                                 rc_resp = await client.post(
                                     f"{REALITY_REROUTING_URL}/decide",
                                     json={"features": final_features},
-                                    headers={
-                                        "x-api-key": get_reality_check_key(
-                                            REALITY_REROUTING_URL
-                                        )
-                                    },
                                     timeout=3.0,
                                 )
                                 if rc_resp.status_code == 200:

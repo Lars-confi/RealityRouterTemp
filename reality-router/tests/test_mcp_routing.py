@@ -26,7 +26,7 @@ def mock_router():
 
         mock_query_result = [
             mock_log,
-            mock_log, # Add a second entry
+            mock_log,  # Add a second entry
         ]
 
         # Configure mock_query for chained calls with dummy data
@@ -35,8 +35,10 @@ def mock_router():
         mock_query.order_by.return_value = mock_query  # Allow chaining .order_by()
         mock_query.limit.return_value = mock_query  # Allow chaining .limit()
         mock_query.all.return_value = mock_query_result  # Return dummy data for .all()
-        mock_query.first.return_value = mock_log  # For .first() calls in log_routing_decision
-        mock_db.query.return_value = mock_query # Set the initial query object
+        mock_query.first.return_value = (
+            mock_log  # For .first() calls in log_routing_decision
+        )
+        mock_db.query.return_value = mock_query  # Set the initial query object
 
         router = RouterCore()
 
@@ -116,6 +118,7 @@ async def test_sticky_routing(mock_router):
     session_hash = hashlib.sha256(session_str.encode("utf-8")).hexdigest()
     session_id = f"zed_{session_hash}"
     import src.router.core as rc
+
     print("FILE:", rc.__file__)
 
     mock_router.active_sessions[session_id] = "model-tool-supporter"
@@ -224,8 +227,7 @@ async def test_zed_prioritization(mock_router):
 @pytest.mark.asyncio
 async def test_assess_user_sentiment_insufficient_messages(mock_router):
     request = RoutingRequest(
-        query="Test query",
-        parameters={"messages": [{"role": "user", "content": "Hi"}]}
+        query="Test query", parameters={"messages": [{"role": "user", "content": "Hi"}]}
     )
     sentiment = await mock_router.assess_user_sentiment(request)
     assert sentiment is None
@@ -238,9 +240,9 @@ async def test_assess_user_sentiment_standard_flow(mock_router):
         parameters={
             "messages": [
                 {"role": "assistant", "content": "Here is the code."},
-                {"role": "user", "content": "Thanks, that works!"}
+                {"role": "user", "content": "Thanks, that works!"},
             ]
-        }
+        },
     )
     mock_adapter = AsyncMock()
     mock_adapter.forward_request.return_value = {"text": "happy"}
@@ -260,9 +262,9 @@ async def test_assess_user_sentiment_agent_led_flow(mock_router):
         parameters={
             "messages": [
                 {"role": "user", "content": "Do you have the data?"},
-                {"role": "assistant", "content": "Here it is."}
+                {"role": "assistant", "content": "Here it is."},
             ]
-        }
+        },
     )
     mock_adapter = AsyncMock()
     mock_adapter.forward_request.return_value = {"text": "unhappy"}
@@ -282,9 +284,9 @@ async def test_assess_user_sentiment_fallback_indeterminate(mock_router):
         parameters={
             "messages": [
                 {"role": "user", "content": "Hello"},
-                {"role": "assistant", "content": "Hi there."}
+                {"role": "assistant", "content": "Hi there."},
             ]
-        }
+        },
     )
     mock_adapter = AsyncMock()
     mock_adapter.forward_request.return_value = {"text": "some random output"}
@@ -314,9 +316,9 @@ async def test_integration_reality_check_feedback_loop(mock_router):
             parameters={
                 "messages": [
                     {"role": "assistant", "content": "Here is the solution."},
-                    {"role": "user", "content": "Thanks, this is great!"}
+                    {"role": "user", "content": "Thanks, this is great!"},
                 ]
-            }
+            },
         )
 
         # Mock the response
@@ -338,7 +340,9 @@ async def test_integration_reality_check_feedback_loop(mock_router):
                 "supports_function_calling": True,
             }
         }
-        mock_router.utility_calculator.calculate_expected_utility = MagicMock(return_value=10.0)
+        mock_router.utility_calculator.calculate_expected_utility = MagicMock(
+            return_value=10.0
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_client_instance = mock_client.return_value.__aenter__.return_value
@@ -355,11 +359,10 @@ async def test_integration_reality_check_feedback_loop(mock_router):
 
             # Verify the feedback API was called
             mock_client_instance.post.assert_called_once_with(
-                "https://llmrouter-api.jollysand-1b9ed42e.swedencentral.azurecontainerapps.io/feedback",
+                "https://snap-api.swedencentral.azurecontainerapps.io/feedback",
                 json={
                     "decision_id": 12345,
-                    "feedback": 1  # 1 for happy sentiment
+                    "feedback": 1,  # 1 for happy sentiment
                 },
-                headers={"x-api-key": "f7a2b9c8d1e3f5a2b9c8d1e3f5a2b9c8"},
-                timeout=3.0
+                timeout=3.0,
             )
