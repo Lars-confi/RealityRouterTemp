@@ -570,14 +570,28 @@ def wizard_reality_check_auth(env_vars):
     print_status(
         "Authenticate with Reality Check to enable Snap and Ladder calibration."
     )
+    print(
+        f"  {C_YELLOW}Note:{C_RESET} Reality Check (Snap & Ladder) requires a valid SSO token."
+    )
+    print(f"  To obtain your token, visit the following URL in your browser:")
+    print(
+        f"  {C_CYAN}https://snap-api.swedencentral.azurecontainerapps.io/.auth/me{C_RESET}"
+    )
+    print(f"  (Log in if prompted, then copy the 'access_token' value)\n")
 
-    choices = [("Login with Microsoft", "m"), ("Skip for now", "s")]
+    choices = [
+        ("Enter Token Manually (Recommended)", "p"),
+        ("Login with Microsoft (Device Code)", "m"),
+        ("Login with GitHub (Device Code)", "g"),
+        ("Login with Google (Device Code)", "o"),
+        ("Skip for now", "s"),
+    ]
     auth_q = [
         inquirer.List(
             "auth_type",
-            message="Calibration Authentication",
+            message="Reality Check Authentication",
             choices=choices,
-            default="m",
+            default="p",
         )
     ]
     auth_a = inquirer.prompt(auth_q)
@@ -585,39 +599,109 @@ def wizard_reality_check_auth(env_vars):
     if not auth_a or auth_a["auth_type"] == "s":
         return
 
-    # Microsoft Device Code Flow (using Snap Client ID as standard)
-    client_id = "0a4ce96f-47ee-446e-9179-bf2f03bdb416"
-    tenant = "common"
+    if auth_a["auth_type"] == "p":
+        raw_token = stable_prompt("Enter Access Token (copied from /.auth/me)")
+        if raw_token:
+            # Ensure it has the Bearer prefix
+            token = (
+                raw_token if raw_token.startswith("Bearer ") else f"Bearer {raw_token}"
+            )
+            env_vars["REALITY_CHECK_TOKEN"] = token
+            save_env(env_vars)
+            print_status("Token saved successfully.", "success")
+        return
+
+    # Device Code Flow
+    auth_type = auth_a["auth_type"]
+    is_github = auth_type == "g"
+    is_google = auth_type == "o"
+
+    client_id = "0a4ce96f-47ee-446e-9179-bf2f03bdb416"  # Microsoft default
+    if is_github:
+        client_id = "Ov23liogPYmpr7KatoHc"
+    elif is_google:
+        client_id = (
+            "877967713575-gipvls0ffja785qkdo9l00gk207frpeb.apps.googleusercontent.com"
+        )
+        client_secret = stable_prompt("Enter Google Client Secret")
+        if not client_secret:
+            print_status("Client secret required for Google login.", "error")
+            return
 
     try:
-        # 1. Request Device Code
-        data = urllib.parse.urlencode(
-            {"client_id": client_id, "scope": "User.Read"}
-        ).encode()
+        if is_google:
+            # Google Device Code Flow
+            data = urllib.parse.urlencode(
+                {
+                    "client_id": client_id,
+                    "scope": "https://www.googleapis.com/auth/userinfo.email openid",
+                }
+            ).encode()
+            req = urllib.request.Request(
+                "https://oauth2.googleapis.com/device/code", data=data
+            )
+            with urllib.request.urlopen(req) as response:
+                device_data = json.loads(response.read().decode())
 
-        req = urllib.request.Request(
-            f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/devicecode",
-            data=data,
-        )
-        with urllib.request.urlopen(req) as response:
-            device_data = json.loads(response.read().decode())
+            verification_uri = device_data["verification_url"]
+            user_code = device_data["user_code"]
+            device_code = device_data["device_code"]
+            poll_url = "https://oauth2.googleapis.com/token"
+            poll_params = {
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "device_code": device_code,
+                "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            }
+        elif is_github:
+            # GitHub Device Code Flow
+            data = urllib.parse.urlencode(
+                {"client_id": client_id, "scope": "user"}
+            ).encode()
+            req = urllib.request.Request(
+                "https://github.com/login/device/code",
+                data=data,
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req) as response:
+                device_data = json.loads(response.read().decode())
 
-        print(f"\n  {C_BOLD}Action Required:{C_RESET}")
-        print(f"  1. Go to: {C_CYAN}{device_data['verification_uri']}{C_RESET}")
-        print(
-            f"  2. Enter code: {C_BOLD}{C_GREEN}{device_data['user_code']}{C_RESET}\n"
-        )
+            verification_uri = device_data["verification_uri"]
+            user_code = device_data["user_code"]
+            device_code = device_data["device_code"]
+            poll_url = "https://github.com/login/oauth/access_token"
+            poll_params = {
+                "client_id": client_id,
+                "device_code": device_code,
+                "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            }
+        else:
+            # Microsoft Device Code Flow
+            data = urllib.parse.urlencode(
+                {"client_id": client_id, "scope": "User.Read"}
+            ).encode()
+            req = urllib.request.Request(
+                "https://login.microsoftonline.com/common/oauth2/v2.0/devicecode",
+                data=data,
+            )
+            with urllib.request.urlopen(req) as response:
+                device_data = json.loads(response.read().decode())
 
-        # 2. Poll for token
-        poll_url = f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
-        poll_data = urllib.parse.urlencode(
-            {
+            verification_uri = device_data["verification_uri"]
+            user_code = device_data["user_code"]
+            device_code = device_data["device_code"]
+            poll_url = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+            poll_params = {
                 "client_id": client_id,
                 "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-                "device_code": device_data["device_code"],
+                "device_code": device_code,
             }
-        ).encode()
 
+        print(f"\n  {C_BOLD}Action Required:{C_RESET}")
+        print(f"  1. Go to: {C_CYAN}{verification_uri}{C_RESET}")
+        print(f"  2. Enter code: {C_BOLD}{C_GREEN}{user_code}{C_RESET}\n")
+
+        # Poll for token
         interval = device_data.get("interval", 5)
         expires_in = device_data.get("expires_in", 900)
         start_time = time.time()
@@ -626,21 +710,38 @@ def wizard_reality_check_auth(env_vars):
         while time.time() - start_time < expires_in:
             time.sleep(interval)
             try:
-                poll_req = urllib.request.Request(poll_url, data=poll_data)
+                poll_data = urllib.parse.urlencode(poll_params).encode()
+                poll_req = urllib.request.Request(
+                    poll_url, data=poll_data, headers={"Accept": "application/json"}
+                )
                 with urllib.request.urlopen(poll_req) as response:
                     token_data = json.loads(response.read().decode())
-                    token = token_data.get("access_token")
-                    break
+                    if "access_token" in token_data:
+                        token = token_data["access_token"]
+                        break
+                    elif "error" in token_data:
+                        error_code = token_data.get("error")
+                        if error_code == "authorization_pending":
+                            continue
+                        if error_code == "slow_down":
+                            interval += 2
+                            continue
+                        raise Exception(
+                            f"Auth failed: {token_data.get('error_description', error_code)}"
+                        )
             except urllib.error.HTTPError as e:
                 body = e.read().decode()
                 try:
                     err_json = json.loads(body)
-                    if err_json.get("error") == "authorization_pending":
+                    error_code = err_json.get("error")
+                    if error_code == "authorization_pending":
                         continue
-                    raise Exception(f"Auth failed: {err_json.get('error_description')}")
-                except Exception:
-                    if e.code != 400:
-                        raise Exception(f"HTTP Error {e.code}")
+                    if error_code == "slow_down":
+                        interval += 2
+                        continue
+                except:
+                    pass
+                raise Exception(f"HTTP Error {e.code}: {body}")
 
         if token:
             env_vars["REALITY_CHECK_TOKEN"] = f"Bearer {token}"
