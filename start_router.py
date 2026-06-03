@@ -6,6 +6,8 @@ import ssl
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.parse
 import urllib.request
 
 import inquirer
@@ -563,6 +565,96 @@ def wizard_model_management(env_vars):
         break
 
 
+def wizard_reality_check_auth(env_vars):
+    print_header("Step 3: Reality Check Authentication")
+    print_status(
+        "Authenticate with Reality Check to enable Snap and Ladder calibration."
+    )
+
+    choices = [("Login with Microsoft", "m"), ("Skip for now", "s")]
+    auth_q = [
+        inquirer.List(
+            "auth_type",
+            message="Calibration Authentication",
+            choices=choices,
+            default="m",
+        )
+    ]
+    auth_a = inquirer.prompt(auth_q)
+
+    if not auth_a or auth_a["auth_type"] == "s":
+        return
+
+    # Microsoft Device Code Flow (using Snap Client ID as standard)
+    client_id = "0a4ce96f-47ee-446e-9179-bf2f03bdb416"
+    tenant = "common"
+
+    try:
+        # 1. Request Device Code
+        data = urllib.parse.urlencode(
+            {"client_id": client_id, "scope": "User.Read"}
+        ).encode()
+
+        req = urllib.request.Request(
+            f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/devicecode",
+            data=data,
+        )
+        with urllib.request.urlopen(req) as response:
+            device_data = json.loads(response.read().decode())
+
+        print(f"\n  {C_BOLD}Action Required:{C_RESET}")
+        print(f"  1. Go to: {C_CYAN}{device_data['verification_uri']}{C_RESET}")
+        print(
+            f"  2. Enter code: {C_BOLD}{C_GREEN}{device_data['user_code']}{C_RESET}\n"
+        )
+
+        # 2. Poll for token
+        poll_url = f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
+        poll_data = urllib.parse.urlencode(
+            {
+                "client_id": client_id,
+                "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                "device_code": device_data["device_code"],
+            }
+        ).encode()
+
+        interval = device_data.get("interval", 5)
+        expires_in = device_data.get("expires_in", 900)
+        start_time = time.time()
+
+        token = None
+        while time.time() - start_time < expires_in:
+            time.sleep(interval)
+            try:
+                poll_req = urllib.request.Request(poll_url, data=poll_data)
+                with urllib.request.urlopen(poll_req) as response:
+                    token_data = json.loads(response.read().decode())
+                    token = token_data.get("access_token")
+                    break
+            except urllib.error.HTTPError as e:
+                body = e.read().decode()
+                try:
+                    err_json = json.loads(body)
+                    if err_json.get("error") == "authorization_pending":
+                        continue
+                    raise Exception(f"Auth failed: {err_json.get('error_description')}")
+                except Exception:
+                    if e.code != 400:
+                        raise Exception(f"HTTP Error {e.code}")
+
+        if token:
+            env_vars["REALITY_CHECK_TOKEN"] = f"Bearer {token}"
+            save_env(env_vars)
+            print_status("Authentication successful!", "success")
+        else:
+            print_status("Authentication timed out.", "error")
+
+    except Exception as e:
+        print_status(f"Login failed: {e}", "error")
+
+    time.sleep(1.5)
+
+
 def start_server(env_vars):
     print_header("Final Step: Ignition")
     print_status("Building environment and launching core...")
@@ -717,6 +809,7 @@ def main():
 
         wizard_routing_strategy(env_vars)
         wizard_global_settings(env_vars)
+        wizard_reality_check_auth(env_vars)
         wizard_providers(env_vars)
         wizard_model_management(env_vars)
 
