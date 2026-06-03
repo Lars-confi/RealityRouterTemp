@@ -15,9 +15,9 @@ The central orchestrator implementing multi-strategy routing logic.
 - **Validation Layer**: Intercepts model responses to verify schema compliance (JSON, XML, Markdown) before delivery.
 
 #### 2. Reality Check Integration
-The system integrates with Reality Check calibration endpoints to obtain success probabilities ($p_i$).
-- **LLM Routing Endpoint**: Used for single-shot calibration during initial ranking.
-- **LLM Rerouting Endpoint**: Used for high-fidelity post-hoc assessment in tiered strategies.
+The system integrates with Reality Check **Snap** and **Ladder** endpoints to obtain success probabilities ($p_i$).
+- **Snap Endpoint**: Used for single-shot calibration during initial ranking.
+- **Ladder Endpoint**: Used for high-fidelity post-hoc assessment in tiered strategies.
 - **Sentiment Feedback Loop**: Asynchronous submission of user feedback to reinforce or penalize model performance.
 
 #### 3. Adapter Layer (`src.adapters`)

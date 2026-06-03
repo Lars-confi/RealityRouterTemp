@@ -1,12 +1,17 @@
-import aiohttp
 import os
+from typing import Any, Dict, List
+
+import aiohttp
 import openai
-from typing import List, Dict, Any
+
 from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-async def discover_ollama_models(base_url: str = "http://localhost:11434") -> List[Dict[str, Any]]:
+
+async def discover_ollama_models(
+    base_url: str = "http://localhost:11434",
+) -> List[Dict[str, Any]]:
     """Discover models available on a local Ollama instance."""
     discovered = []
     try:
@@ -31,6 +36,7 @@ async def discover_ollama_models(base_url: str = "http://localhost:11434") -> Li
         logger.debug(f"Could not discover Ollama models at {base_url}: {e}")
     return discovered
 
+
 async def discover_openai_models(api_key: str) -> List[Dict[str, Any]]:
     """Discover models available on OpenAI API."""
     if not api_key: return []
@@ -40,15 +46,18 @@ async def discover_openai_models(api_key: str) -> List[Dict[str, Any]]:
         models = await client.models.list()
         for model in models.data:
             if "gpt" in model.id:
-                discovered.append({
-                    "id": f"openai_{model.id.replace('.', '-')}",
-                    "name": f"OpenAI {model.id}",
-                    "provider": "openai",
-                    "model": model.id
-                })
+                discovered.append(
+                    {
+                        "id": f"openai_{model.id.replace('.', '-')}",
+                        "name": f"OpenAI {model.id}",
+                        "provider": "openai",
+                        "model": model.id,
+                    }
+                )
     except Exception as e:
         logger.debug(f"Could not discover OpenAI models: {e}")
     return discovered
+
 
 async def discover_gemini_models(api_key: str) -> List[Dict[str, Any]]:
     """Discover models available on Gemini via OpenAI compat."""
@@ -57,17 +66,18 @@ async def discover_gemini_models(api_key: str) -> List[Dict[str, Any]]:
     try:
         client = openai.AsyncOpenAI(
             api_key=api_key,
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
         )
         models = await client.models.list()
         for model in models.data:
-            discovered.append({
-                "id": f"gemini_{model.id.replace('.', '-')}",
-                "name": f"Google {model.id}",
-                "provider": "gemini",
-                "model": model.id
-            })
+            discovered.append(
+                {
+                    "id": f"gemini_{model.id.replace('.', '-')}",
+                    "name": f"Google {model.id}",
+                    "provider": "gemini",
+                    "model": model.id,
+                }
+            )
     except Exception as e:
         logger.debug(f"Could not discover Gemini models: {e}")
     return discovered
-
