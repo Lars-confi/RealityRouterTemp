@@ -997,29 +997,27 @@ class RouterCore:
                     }
                 )
 
-            async def call_rc(m):
+            async def call_rc(client, m):
+                url = (
+                    REALITY_ROUTING_URL
+                    if strategy == "expected_utility"
+                    else REALITY_REROUTING_URL
+                )
                 try:
-                    async with httpx.AsyncClient() as client:
-                        # Strategy 1 (Reality Routing) uses the realityrouter endpoint
-                        url = (
-                            REALITY_ROUTING_URL
-                            if strategy == "expected_utility"
-                            else REALITY_REROUTING_URL
-                        )
-                        # Use stored token from settings or forwarded header
-                        auth_token = (
-                            request.authorization or settings.reality_check_token
-                        )
-                        headers = {}
-                        if auth_token:
-                            headers["Authorization"] = auth_token
+                    # Use stored token from settings or forwarded header
+                    auth_token = (
+                        request.authorization or settings.reality_check_token
+                    )
+                    headers = {}
+                    if auth_token:
+                        headers["Authorization"] = auth_token
 
-                        resp = await client.post(
-                            f"{url}/decide",
-                            json={"features": m["features"]},
-                            headers=headers,
-                            timeout=5.0,
-                        )
+                    resp = await client.post(
+                        f"{url}/decide",
+                        json={"features": m["features"]},
+                        headers=headers,
+                        timeout=15.0,
+                    )
                         if resp.status_code == 200:
                             r = resp.json()
                             # Support multiple possible keys for probability and uncertainty
@@ -1049,11 +1047,11 @@ class RouterCore:
                         else:
                             error_body = resp.text
                             logger.warning(
-                                f"Reality Check API returned {resp.status_code} for {m['id']}: {error_body}"
+                                f"Reality Check API returned {resp.status_code} for {m['id']} at {url}: {error_body}"
                             )
                 except Exception as e:
                     logger.exception(
-                        f"Reality Check call failed for {m['id']}: {repr(e)}"
+                        f"Reality Check call failed for {m['id']} at {url}: {repr(e)}"
                     )
 
                 return {
@@ -1064,7 +1062,10 @@ class RouterCore:
                     "fb_req": False,
                 }
 
-            results = await asyncio.gather(*[call_rc(m) for m in model_tasks])
+            async with httpx.AsyncClient() as client:
+                results = await asyncio.gather(
+                    *[call_rc(client, m) for m in model_tasks]
+                )
 
             decisions = []
             feedback_candidates = []
@@ -1578,7 +1579,7 @@ class RouterCore:
                                     f"{url}/feedback",
                                     json=fb_payload,
                                     headers=headers,
-                                    timeout=3.0,
+                                    timeout=10.0,
                                 )
                                 fb_status = fb_resp.status_code
                                 fb_text = fb_resp.text
@@ -1909,7 +1910,7 @@ class RouterCore:
                                             "feedback": 0,
                                         },
                                         headers=headers,
-                                        timeout=2.0,
+                                        timeout=10.0,
                                     )
                             except Exception as fe:
                                 logger.error(f"Auto-negative feedback failed: {fe}")
@@ -1944,7 +1945,7 @@ class RouterCore:
                                         "feedback": 1,
                                     },
                                     headers=headers,
-                                    timeout=2.0,
+                                    timeout=10.0,
                                 )
                         except Exception as fe:
                             logger.error(f"Auto-positive feedback failed: {fe}")
@@ -2261,7 +2262,7 @@ class RouterCore:
                                             "feedback": 0,
                                         },
                                         headers=headers,
-                                        timeout=2.0,
+                                        timeout=10.0,
                                     )
                                     fb_status = fb_resp.status_code
                                     fb_text = fb_resp.text
@@ -2331,7 +2332,7 @@ class RouterCore:
                                     f"{REALITY_REROUTING_URL}/decide",
                                     json={"features": final_features},
                                     headers=headers,
-                                    timeout=3.0,
+                                    timeout=10.0,
                                 )
                                 if rc_resp.status_code == 200:
                                     rc_data = rc_resp.json()
@@ -2391,7 +2392,7 @@ class RouterCore:
                                 else:
                                     error_body = rc_resp.text
                                     logger.warning(
-                                        f"Post-hoc assessment failed with {rc_resp.status_code}: {error_body}"
+                                        f"Post-hoc assessment failed with {rc_resp.status_code} at {REALITY_REROUTING_URL}: {error_body}"
                                     )
                                     # Fallback to local confidence if RC fails
                                     if local_confidence > 0:
@@ -2400,7 +2401,7 @@ class RouterCore:
 
                         except Exception as e:
                             logger.exception(
-                                f"Post-hoc tiered assessment failed: {repr(e)}"
+                                f"Post-hoc tiered assessment failed for {decision.model_id} at {REALITY_REROUTING_URL}: {repr(e)}"
                             )
 
                         # If we reached here, this model is deemed sufficient, stop escalation.
