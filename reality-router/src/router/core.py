@@ -1005,9 +1005,7 @@ class RouterCore:
                 )
                 try:
                     # Use stored token from settings or forwarded header
-                    auth_token = (
-                        request.authorization or settings.reality_check_token
-                    )
+                    auth_token = request.authorization or settings.reality_check_token
                     headers = {}
                     if auth_token:
                         headers["Authorization"] = auth_token
@@ -1018,37 +1016,37 @@ class RouterCore:
                         headers=headers,
                         timeout=15.0,
                     )
-                        if resp.status_code == 200:
-                            r = resp.json()
-                            # Support multiple possible keys for probability and uncertainty
-                            # Support multiple possible keys for probability and uncertainty from Reality Check API
-                            prob = r.get("prob_true")
-                            if prob is None:
-                                prob = r.get("probability")
-                            if prob is None:
-                                prob = r.get("p")
-                            if prob is None:
-                                prob = r.get("prob")
-                            if prob is None:
-                                prob = 0.5
+                    if resp.status_code == 200:
+                        r = resp.json()
+                        # Support multiple possible keys for probability and uncertainty
+                        # Support multiple possible keys for probability and uncertainty from Reality Check API
+                        prob = r.get("prob_true")
+                        if prob is None:
+                            prob = r.get("probability")
+                        if prob is None:
+                            prob = r.get("p")
+                        if prob is None:
+                            prob = r.get("prob")
+                        if prob is None:
+                            prob = 0.5
 
-                            uncertainty = r.get("uncertainty", 0.0)
+                        uncertainty = r.get("uncertainty", 0.0)
 
-                            logger.debug(
-                                f"Reality Check calibration for {m['id']}: prob={prob:.4f}, uncert={uncertainty:.4f}, id={r.get('decision_id')}"
-                            )
-                            return {
-                                **m,
-                                "prob": prob,
-                                "uncertainty": uncertainty,
-                                "rc_id": r.get("decision_id"),
-                                "fb_req": r.get("feedback_requested", False),
-                            }
-                        else:
-                            error_body = resp.text
-                            logger.warning(
-                                f"Reality Check API returned {resp.status_code} for {m['id']} at {url}: {error_body}"
-                            )
+                        logger.debug(
+                            f"Reality Check calibration for {m['id']}: prob={prob:.4f}, uncert={uncertainty:.4f}, id={r.get('decision_id')}"
+                        )
+                        return {
+                            **m,
+                            "prob": prob,
+                            "uncertainty": uncertainty,
+                            "rc_id": r.get("decision_id"),
+                            "fb_req": r.get("feedback_requested", False),
+                        }
+                    else:
+                        error_body = resp.text
+                        logger.warning(
+                            f"Reality Check API returned {resp.status_code} for {m['id']} at {url}: {error_body}"
+                        )
                 except Exception as e:
                     logger.exception(
                         f"Reality Check call failed for {m['id']} at {url}: {repr(e)}"
