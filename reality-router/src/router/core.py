@@ -998,11 +998,8 @@ class RouterCore:
                 )
 
             async def call_rc(client, m):
-                url = (
-                    REALITY_ROUTING_URL
-                    if strategy == "expected_utility"
-                    else REALITY_REROUTING_URL
-                )
+                # Initial model ranking always uses the Snap endpoint
+                url = REALITY_ROUTING_URL
                 try:
                     # Use stored token from settings or forwarded header
                     auth_token = request.authorization or settings.reality_check_token
@@ -1045,7 +1042,7 @@ class RouterCore:
                     else:
                         error_body = resp.text
                         logger.warning(
-                            f"Reality Check API returned {resp.status_code} for {m['id']} at {url}: {error_body}"
+                            f"Reality Check API ERROR {resp.status_code} for model {m['id']} at {url}. Response: {error_body}"
                         )
                 except Exception as e:
                     logger.exception(
@@ -2390,7 +2387,7 @@ class RouterCore:
                                 else:
                                     error_body = rc_resp.text
                                     logger.warning(
-                                        f"Post-hoc assessment failed with {rc_resp.status_code} at {REALITY_REROUTING_URL}: {error_body}"
+                                        f"Post-hoc assessment ERROR {rc_resp.status_code} at {REALITY_REROUTING_URL}. Response: {error_body}"
                                     )
                                     # Fallback to local confidence if RC fails
                                     if local_confidence > 0:
