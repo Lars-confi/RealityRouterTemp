@@ -69,6 +69,8 @@ if [ -d "$TARGET_DIR/.git" ]; then
     echo "Found an existing installation in $TARGET_DIR."
     echo "Pulling latest changes from the repository..."
     cd "$TARGET_DIR"
+    git fetch --all
+    git reset --hard origin/main
     git pull
 else
     echo "Cloning repository to $TARGET_DIR..."
@@ -107,8 +109,8 @@ fi
 
 echo "Installing project dependencies from requirements.txt..."
 # Upgrade pip to prevent issues with older versions
-pip install --upgrade pip --quiet
-pip install -r "reality-router/requirements.txt"
+pip install --no-cache-dir --upgrade pip --quiet
+pip install --no-cache-dir -r "reality-router/requirements.txt"
 
 echo "Installation of dependencies complete."
 
