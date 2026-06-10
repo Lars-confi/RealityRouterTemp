@@ -905,7 +905,7 @@ class RouterCore:
     ) -> List[RoutingDecision]:
         """Select models and rank them using Reality Check calibration"""
         settings = get_settings()
-        logger.debug(f"Ranking models using strategy: {strategy}")
+        logger.info(f"Ranking models using strategy: {strategy}")
         if not self.models:
             raise HTTPException(
                 status_code=500, detail="No models available for routing"
@@ -1004,11 +1004,11 @@ class RouterCore:
                 try:
                     # Use stored token from settings or forwarded header
                     auth_token = request.authorization or settings.reality_check_token
-                    logger.debug(
+                    logger.info(
                         f"RC Call Token source: {'request' if request.authorization else 'settings'}"
                     )
                     if auth_token:
-                        logger.debug(f"RC Call Token starts with: {auth_token[:15]}...")
+                        logger.info(f"RC Call Token starts with: {auth_token[:15]}...")
 
                     headers = {
                         "Content-Type": "application/json",
@@ -1053,7 +1053,7 @@ class RouterCore:
 
                         uncertainty = r.get("uncertainty", 0.0)
 
-                        logger.debug(
+                        logger.info(
                             f"Reality Check calibration for {m['id']}: prob={prob:.4f}, uncert={uncertainty:.4f}, id={r.get('decision_id')}"
                         )
                         return {
@@ -1309,11 +1309,11 @@ class RouterCore:
                     log_entry.reality_check_id = str(decision.reality_check_id)
                 log_entry.potential_cost = potential_max_cost
                 db.commit()
-                logger.debug(
+                logger.info(
                     f"Updated log entry {log_entry.id} with RC ID and features"
                 )
 
-            logger.debug(f"Logged routing decision for model {decision.model_id}")
+            logger.info(f"Logged routing decision for model {decision.model_id}")
         except Exception as e:
             logger.error(f"Error logging routing decision: {str(e)}")
 
@@ -1324,7 +1324,7 @@ class RouterCore:
             # Limit context to last 5 messages to avoid blowing up context window and cost
             messages = messages[-5:]
 
-            logger.debug(
+            logger.info(
                 f"Assessing sentiment for interaction with {len(messages)} messages. Agent: {request.agent_id}"
             )
             if len(messages) < 2:
@@ -1366,7 +1366,7 @@ class RouterCore:
                     )
 
             if len(contentful_messages) < 2:
-                logger.debug("Not enough contentful messages for sentiment assessment")
+                logger.info("Not enough contentful messages for sentiment assessment")
                 return None
 
             # Get the most recent contentful message
@@ -1406,7 +1406,7 @@ class RouterCore:
                     f"Determine the overall sentiment of the final message with respect to the previous message.\n"
                     f"Respond with EXACTLY one word: happy, unhappy, or indeterminate."
                 )
-                logger.debug(
+                logger.info(
                     "Analyzing sentiment of message with respect to previous one (new style)"
                 )
 
@@ -1448,7 +1448,7 @@ class RouterCore:
             else:
                 sentiment = "indeterminate"
 
-            logger.debug(f"Assessed user sentiment: {sentiment}")
+            logger.info(f"Assessed user sentiment: {sentiment}")
             return sentiment
         except Exception as e:
             logger.error(f"Sentiment assessment failed: {e}")
@@ -1461,7 +1461,7 @@ class RouterCore:
         if strategy is None:
             strategy = settings.default_strategy
 
-        logger.debug(f"Routing request with strategy: {strategy}")
+        logger.info(f"Routing request with strategy: {strategy}")
         db = SessionLocal()
         try:
             # Strip fragile thought signatures from incoming messages to prevent Google 400 errors
@@ -1639,13 +1639,13 @@ class RouterCore:
                     if strategy == "expected_utility"
                     else " REALITY REROUTER: RANKING MODELS "
                 )
-                logger.debug("=" * 116)
-                logger.debug(title.center(116, "="))
-                logger.debug("-" * 116)
-                logger.debug(
+                logger.info("=" * 116)
+                logger.info(title.center(116, "="))
+                logger.info("-" * 116)
+                logger.info(
                     f"{'  Model Name (ID)':<42} | {'Utility':>10} | {'Prob':>8} | {'Uncert':>8} | {'Cost':>8} | {'Time':>6} | {'Info':>10}"
                 )
-                logger.debug("-" * 116)
+                logger.info("-" * 116)
                 for d in ranked_decisions:
                     marker = ">>" if d == ranked_decisions[0] else "  "
                     label = f"{d.name} ({d.model_id})"
@@ -1657,10 +1657,10 @@ class RouterCore:
                     elif getattr(d, "is_random_exploration", False):
                         info_tags.append("Random")
                     info_str = ",".join(info_tags)
-                    logger.debug(
+                    logger.info(
                         f"{marker} {label:<39} | {d.expected_utility:>10.4f} | {d.probability:>8.4f} | {d.uncertainty:>8.4f} | {d.cost:>8.4f} | {d.time:>6.2f} | {info_str:>10}"
                     )
-                logger.debug("=" * 116)
+                logger.info("=" * 116)
 
             routing_context = json.dumps([d.model_dump() for d in ranked_decisions])
             last_error = None
@@ -2565,7 +2565,7 @@ class RouterCore:
                     self.models[model_id]["supports_logprobs"] = caps.get(
                         "supports_logprobs", False
                     )
-                    logger.debug(
+                    logger.info(
                         f"Updated capabilities for {model_id}: tools={caps.get('supports_tools')}, logprobs={caps.get('supports_logprobs')}"
                     )
             except Exception as e:
