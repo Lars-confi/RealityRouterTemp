@@ -573,16 +573,10 @@ def wizard_reality_check_auth(env_vars):
     print(
         f"  {C_YELLOW}Note:{C_RESET} Reality Check (Snap & Ladder) requires a valid SSO token."
     )
-    print(f"  To obtain your token, visit the following URL in your browser:")
-    print(
-        f"  {C_CYAN}https://snap-api.blackglacier-173a252d.swedencentral.azurecontainerapps.io/.auth/me{C_RESET}"
-    )
-    print(f"  (Log in if prompted, then copy the 'access_token' value)\n")
-
     choices = [
-        ("Login with Microsoft (Device Code)", "m"),
-        ("Login with GitHub (Device Code)", "g"),
-        ("Login with Google (Device Code)", "o"),
+        ("Login with Microsoft", "m"),
+        ("Login with GitHub", "g"),
+        ("Login with Google", "o"),
     ]
     auth_q = [
         inquirer.List(
@@ -609,10 +603,6 @@ def wizard_reality_check_auth(env_vars):
         client_id = (
             "877967713575-gipvls0ffja785qkdo9l00gk207frpeb.apps.googleusercontent.com"
         )
-        client_secret = stable_prompt("Enter Google Client Secret")
-        if not client_secret:
-            print_status("Client secret required for Google login.", "error")
-            return
 
     try:
         if is_google:
@@ -635,7 +625,6 @@ def wizard_reality_check_auth(env_vars):
             poll_url = "https://oauth2.googleapis.com/token"
             poll_params = {
                 "client_id": client_id,
-                "client_secret": client_secret,
                 "device_code": device_code,
                 "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
             }
