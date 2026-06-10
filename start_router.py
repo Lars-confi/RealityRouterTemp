@@ -580,35 +580,21 @@ def wizard_reality_check_auth(env_vars):
     print(f"  (Log in if prompted, then copy the 'access_token' value)\n")
 
     choices = [
-        ("Enter Token Manually (Recommended)", "p"),
         ("Login with Microsoft (Device Code)", "m"),
         ("Login with GitHub (Device Code)", "g"),
         ("Login with Google (Device Code)", "o"),
-        ("Skip for now", "s"),
     ]
     auth_q = [
         inquirer.List(
             "auth_type",
             message="Reality Check Authentication",
             choices=choices,
-            default="p",
+            default="m",
         )
     ]
     auth_a = inquirer.prompt(auth_q)
 
     if not auth_a or auth_a["auth_type"] == "s":
-        return
-
-    if auth_a["auth_type"] == "p":
-        raw_token = stable_prompt("Enter Access Token (copied from /.auth/me)")
-        if raw_token:
-            # Ensure it has the Bearer prefix
-            token = (
-                raw_token if raw_token.startswith("Bearer ") else f"Bearer {raw_token}"
-            )
-            env_vars["REALITY_CHECK_TOKEN"] = token
-            save_env(env_vars)
-            print_status("Token saved successfully.", "success")
         return
 
     # Device Code Flow
@@ -716,8 +702,14 @@ def wizard_reality_check_auth(env_vars):
                 )
                 with urllib.request.urlopen(poll_req) as response:
                     token_data = json.loads(response.read().decode())
-                    if "access_token" in token_data:
-                        token = token_data["access_token"]
+                    if "access_token" in token_data or "id_token" in token_data:
+                        if is_github:
+                            token = token_data.get("access_token")
+                        else:
+                            # Microsoft and Google Easy Auth often require id_token to pass JWT validation
+                            token = token_data.get("id_token") or token_data.get(
+                                "access_token"
+                            )
                         break
                     elif "error" in token_data:
                         error_code = token_data.get("error")
