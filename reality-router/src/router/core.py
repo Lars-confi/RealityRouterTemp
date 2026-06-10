@@ -216,12 +216,16 @@ class RouterCore:
                     probability=model_info.get("probability", 0.8),
                     concurrency_limit=model_info.get("concurrency_limit")
                     or model_info.get("thread_limit"),
-                    prompt_cost=model_info.get("prompt_cost")
-                    if model_info.get("prompt_cost") is not None
-                    else p_cost,
-                    completion_cost=model_info.get("completion_cost")
-                    if model_info.get("completion_cost") is not None
-                    else c_cost,
+                    prompt_cost=(
+                        model_info.get("prompt_cost")
+                        if model_info.get("prompt_cost") is not None
+                        else p_cost
+                    ),
+                    completion_cost=(
+                        model_info.get("completion_cost")
+                        if model_info.get("completion_cost") is not None
+                        else c_cost
+                    ),
                     supports_function_calling=supports_function_calling,
                     max_input_tokens=model_info.get("max_input_tokens")
                     or max_input_tokens,
@@ -1003,10 +1007,8 @@ class RouterCore:
                 url = REALITY_ROUTING_URL
                 try:
                     # Use stored token from settings or forwarded header
-                    auth_token = request.authorization or settings.reality_check_token
-                    logger.info(
-                        f"RC Call Token source: {'request' if request.authorization else 'settings'}"
-                    )
+                    auth_token = settings.reality_check_token
+                    logger.info(f"RC Call Token source: settings")
                     if auth_token:
                         logger.info(f"RC Call Token starts with: {auth_token[:15]}...")
 
@@ -1277,17 +1279,17 @@ class RouterCore:
                 logprobs_mean=response.get("logprobs_mean"),
                 logprobs_std=response.get("logprobs_std"),
                 first_token_logprob=response.get("first_token_logprob"),
-                first_token_top_logprobs=json.dumps(
-                    response.get("first_token_top_logprobs")
-                )
-                if response.get("first_token_top_logprobs")
-                else None,
+                first_token_top_logprobs=(
+                    json.dumps(response.get("first_token_top_logprobs"))
+                    if response.get("first_token_top_logprobs")
+                    else None
+                ),
                 second_token_logprob=response.get("second_token_logprob"),
-                second_token_top_logprobs=json.dumps(
-                    response.get("second_token_top_logprobs")
-                )
-                if response.get("second_token_top_logprobs")
-                else None,
+                second_token_top_logprobs=(
+                    json.dumps(response.get("second_token_top_logprobs"))
+                    if response.get("second_token_top_logprobs")
+                    else None
+                ),
             )
 
             # Retrieve the log entry we just created to update extra fields
@@ -1309,9 +1311,7 @@ class RouterCore:
                     log_entry.reality_check_id = str(decision.reality_check_id)
                 log_entry.potential_cost = potential_max_cost
                 db.commit()
-                logger.info(
-                    f"Updated log entry {log_entry.id} with RC ID and features"
-                )
+                logger.info(f"Updated log entry {log_entry.id} with RC ID and features")
 
             logger.info(f"Logged routing decision for model {decision.model_id}")
         except Exception as e:
@@ -1592,9 +1592,7 @@ class RouterCore:
                                 f"Sending feedback to Reality Check ({fb_strategy}) for decision {rc_id_str}: {sentiment} (Payload: {fb_payload})"
                             )
                             # Use stored token from settings or forwarded header
-                            auth_token = (
-                                request.authorization or settings.reality_check_token
-                            )
+                            auth_token = settings.reality_check_token
                             headers = {
                                 "Content-Type": "application/json",
                                 "Accept": "application/json",
@@ -1847,9 +1845,13 @@ class RouterCore:
                                                 "type": "function",
                                                 "function": {
                                                     "name": str(name),
-                                                    "arguments": json.dumps(args)
-                                                    if isinstance(args, (dict, list))
-                                                    else str(args or "{}"),
+                                                    "arguments": (
+                                                        json.dumps(args)
+                                                        if isinstance(
+                                                            args, (dict, list)
+                                                        )
+                                                        else str(args or "{}")
+                                                    ),
                                                 },
                                             }
                                         )
@@ -1936,10 +1938,7 @@ class RouterCore:
                                         if strategy == "expected_utility"
                                         else REALITY_REROUTING_URL
                                     )
-                                    auth_token = (
-                                        request.authorization
-                                        or settings.reality_check_token
-                                    )
+                                    auth_token = settings.reality_check_token
                                     headers = {
                                         "Content-Type": "application/json",
                                         "Accept": "application/json",
@@ -1987,10 +1986,7 @@ class RouterCore:
                                     if strategy == "expected_utility"
                                     else REALITY_REROUTING_URL
                                 )
-                                auth_token = (
-                                    request.authorization
-                                    or settings.reality_check_token
-                                )
+                                auth_token = settings.reality_check_token
                                 headers = {
                                     "Content-Type": "application/json",
                                     "Accept": "application/json",
@@ -2079,12 +2075,14 @@ class RouterCore:
                         cont_request = RoutingRequest(
                             query="Continue",
                             agent_id=request.agent_id,
-                            parameters={
-                                **request.parameters,
-                                "messages": cont_messages,
-                            }
-                            if request.parameters
-                            else {"messages": cont_messages},
+                            parameters=(
+                                {
+                                    **request.parameters,
+                                    "messages": cont_messages,
+                                }
+                                if request.parameters
+                                else {"messages": cont_messages}
+                            ),
                             authorization=request.authorization,
                         )
 
@@ -2320,10 +2318,7 @@ class RouterCore:
                                         if strategy == "expected_utility"
                                         else REALITY_REROUTING_URL
                                     )
-                                    auth_token = (
-                                        request.authorization
-                                        or settings.reality_check_token
-                                    )
+                                    auth_token = settings.reality_check_token
                                     headers = {
                                         "Content-Type": "application/json",
                                         "Accept": "application/json",
@@ -2407,10 +2402,7 @@ class RouterCore:
                             # Match sequential curl behavior with fresh connection
                             async with httpx.AsyncClient(http2=False) as client:
                                 # Post-hoc assessment for tiered rerouting always uses REALITY_REROUTING_URL
-                                auth_token = (
-                                    request.authorization
-                                    or settings.reality_check_token
-                                )
+                                auth_token = settings.reality_check_token
                                 headers = {
                                     "Content-Type": "application/json",
                                     "User-Agent": "curl/7.68.0",
