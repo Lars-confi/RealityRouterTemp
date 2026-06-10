@@ -539,7 +539,13 @@ async def get_dashboard():
     </head>
     <body>
         <div style="max-width: 1200px; margin: 0 auto;">
-            <h1 style="text-align: center; margin-bottom: 40px; letter-spacing: 2px;">REALITY ROUTER CONTROL CENTER</h1>
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h1 style="display: inline-block; margin-bottom: 5px; letter-spacing: 2px;">REALITY ROUTER CONTROL CENTER</h1>
+                <div id="version-badge" style="font-size: 0.85em; color: #8b949e; margin-top: 5px;">Version: <span id="current-version">0.0.1</span></div>
+                <div id="update-alert" style="display: none; margin-top: 10px; color: #f39c12; font-weight: bold; background: rgba(243, 156, 18, 0.1); padding: 5px 15px; border-radius: 5px; border: 1px solid rgba(243, 156, 18, 0.3);">
+                    ⚠️ A new version is available! Run the installer to update.
+                </div>
+            </div>
 
             <div id="preferences" class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -684,6 +690,27 @@ async def get_dashboard():
                 });
             }
             initPreferences();
+
+            async function checkVersion() {
+                try {
+                    const response = await fetch('https://api.github.com/repos/Lars-confi/RealityRouterTemp/tags');
+                    const tags = await response.json();
+                    if (tags && tags.length > 0) {
+                        // Strip 'v' prefix if it exists (e.g. 'v0.0.1' -> '0.0.1')
+                        const latestVersion = tags[0].name.replace(/^v/, '');
+                        const currentVersion = document.getElementById('current-version').innerText.replace(/^v/, '');
+                        
+                        if (latestVersion !== currentVersion) {
+                            const alertEl = document.getElementById('update-alert');
+                            alertEl.style.display = 'inline-block';
+                            alertEl.innerHTML = `⚠️ Version ${latestVersion} is available! Run the installer to update.`;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking for updates:', error);
+                }
+            }
+            checkVersion();
 
             async function loadData() {
                 try {
@@ -915,7 +942,7 @@ async def get_dashboard():
                                             <td style="padding: 4px; text-align: right;">$${(d.cost || 0).toFixed(4)}</td>
                                             <td style="padding: 4px; text-align: right;">${(d.time || 0).toFixed(1)}s</td>
                                             <td style="padding: 4px; text-align: right;">${(d.uncertainty || 0).toFixed(2)}</td>
-                                            <td style="padding: 4px; text-align: center;">${d.feedback_required ? '❌' : ''}</td>
+                                            <td style="padding: 4px; text-align: center;">${d.feedback_required ? '💡' : ''}</td>
                                         </tr>
                                     `;
                                 }
