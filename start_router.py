@@ -664,7 +664,7 @@ def wizard_reality_check_auth(env_vars):
         else:
             # Microsoft Device Code Flow
             data = urllib.parse.urlencode(
-                {"client_id": client_id, "scope": "User.Read"}
+                {"client_id": client_id, "scope": "openid User.Read"}
             ).encode()
             req = urllib.request.Request(
                 "https://login.microsoftonline.com/common/oauth2/v2.0/devicecode",
