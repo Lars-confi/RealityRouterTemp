@@ -2653,7 +2653,7 @@ async def get_agent_card():
         "name": "RealityRouter",
         "description": "Intelligent routing system for LLM requests with MCP support",
         "version": "0.0.1",
-        "context_length": max_context,
+        "max_input_tokens": max_context,
         "capabilities": {
             "routing_strategies": ["expected_utility", "round_robin", "weighted"],
             "mcp_translation": True,
