@@ -374,7 +374,7 @@ def get_all_models(env_vars):
 
 
 def wizard_global_settings(env_vars):
-    print_header("Step 2: Intelligence Coefficients")
+    print_header("Step 3: Intelligence Coefficients")
     print_status("Tune how the router prioritizes Accuracy vs Cost vs Speed.")
 
     print(f"\n  {C_BOLD}Utility Formula:{C_RESET}")
@@ -398,7 +398,7 @@ def wizard_global_settings(env_vars):
 
 
 def wizard_routing_strategy(env_vars):
-    print_header("Step 1: Routing Strategy")
+    print_header("Step 2: Routing Strategy")
 
     questions = [
         inquirer.List(
@@ -440,7 +440,7 @@ def wizard_providers(env_vars):
     ]
 
     while True:
-        print_header("Step 3: Provider Credentials")
+        print_header("Step 4: Provider Credentials")
 
         choices = []
         for p_id, p_name in providers_list:
@@ -487,7 +487,7 @@ def wizard_model_management(env_vars):
     all_models = get_all_models(env_vars)
 
     while True:
-        print_header("Step 4: Model Visibility & Sentiment")
+        print_header("Step 5: Model Visibility & Sentiment")
         print_status(
             "Toggle models 'ON' or 'OFF' and select the Sentiment Analysis model.\n"
         )
@@ -566,7 +566,7 @@ def wizard_model_management(env_vars):
 
 
 def wizard_reality_check_auth(env_vars):
-    print_header("Step 3: Reality Check Authentication")
+    print_header("Step 1: Reality Check Authentication")
     print_status(
         "Authenticate with Reality Check to enable Snap and Ladder calibration."
     )
@@ -577,6 +577,7 @@ def wizard_reality_check_auth(env_vars):
         ("Login with Microsoft", "m"),
         ("Login with GitHub", "g"),
         ("Login with Google", "o"),
+        ("Skip Authentication", "s"),
     ]
     auth_q = [
         inquirer.List(
@@ -589,12 +590,18 @@ def wizard_reality_check_auth(env_vars):
     auth_a = inquirer.prompt(auth_q)
 
     if not auth_a or auth_a["auth_type"] == "s":
-        return
+        return None
 
     # Device Code Flow
     auth_type = auth_a["auth_type"]
     is_github = auth_type == "g"
     is_google = auth_type == "o"
+
+    provider_name = "Microsoft"
+    if is_github:
+        provider_name = "GitHub"
+    elif is_google:
+        provider_name = "Google"
 
     client_id = "0a4ce96f-47ee-446e-9179-bf2f03bdb416"  # Microsoft default
     if is_github:
@@ -726,8 +733,11 @@ def wizard_reality_check_auth(env_vars):
 
         if token:
             env_vars["REALITY_CHECK_TOKEN"] = f"Bearer {token}"
+            env_vars["REALITY_CHECK_PROVIDER"] = provider_name
             save_env(env_vars)
             print_status("Authentication successful!", "success")
+            time.sleep(1.5)
+            return provider_name
         else:
             print_status("Authentication timed out.", "error")
 
@@ -735,6 +745,7 @@ def wizard_reality_check_auth(env_vars):
         print_status(f"Login failed: {e}", "error")
 
     time.sleep(1.5)
+    return None
 
 
 def start_server(env_vars):
@@ -889,9 +900,53 @@ def main():
         if not begin_a or begin_a["begin"] == "n":
             sys.exit(0)
 
+        # Authentication loop
+        while True:
+            current_token = env_vars.get("REALITY_CHECK_TOKEN")
+            current_provider = env_vars.get("REALITY_CHECK_PROVIDER")
+
+            if not current_token:
+                provider = wizard_reality_check_auth(env_vars)
+                if provider:
+                    current_provider = provider
+                else:
+                    current_provider = "None (Skipped)"
+
+            clear_screen()
+            print_header("Authentication Status")
+            if env_vars.get("REALITY_CHECK_TOKEN"):
+                print(
+                    f"  {C_GREEN}{C_BOLD}{ICON_CHECK} Authenticated securely via {current_provider} SSO.{C_RESET}\n"
+                )
+            else:
+                print(
+                    f"  {C_YELLOW}⚠ Authentication skipped or failed. Reality Check will be disabled.{C_RESET}\n"
+                )
+
+            confirm_choices = [
+                ("Continue with the setup", "c"),
+                ("Go back and change authentication", "b"),
+            ]
+            confirm_q = [
+                inquirer.List(
+                    "confirm",
+                    message="How would you like to proceed?",
+                    choices=confirm_choices,
+                    default="c",
+                )
+            ]
+            confirm_a = inquirer.prompt(confirm_q)
+            if confirm_a and confirm_a["confirm"] == "c":
+                break
+            else:
+                if "REALITY_CHECK_TOKEN" in env_vars:
+                    del env_vars["REALITY_CHECK_TOKEN"]
+                if "REALITY_CHECK_PROVIDER" in env_vars:
+                    del env_vars["REALITY_CHECK_PROVIDER"]
+
+        # Run remaining steps in order
         wizard_routing_strategy(env_vars)
         wizard_global_settings(env_vars)
-        wizard_reality_check_auth(env_vars)
         wizard_providers(env_vars)
         wizard_model_management(env_vars)
 
