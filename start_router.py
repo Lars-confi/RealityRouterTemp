@@ -577,7 +577,6 @@ def wizard_reality_check_auth(env_vars):
         ("Login with Microsoft", "m"),
         ("Login with GitHub", "g"),
         ("Login with Google", "o"),
-        ("Skip Authentication", "s"),
     ]
     auth_q = [
         inquirer.List(
@@ -589,7 +588,7 @@ def wizard_reality_check_auth(env_vars):
     ]
     auth_a = inquirer.prompt(auth_q)
 
-    if not auth_a or auth_a["auth_type"] == "s":
+    if not auth_a:
         return None
 
     # Device Code Flow
@@ -920,7 +919,7 @@ def main():
                 )
             else:
                 print(
-                    f"  {C_YELLOW}⚠ Authentication skipped or failed. Reality Check will be disabled.{C_RESET}\n"
+                    f"  {C_RED}⚠ Authentication failed. A valid SSO token is required.{C_RESET}\n"
                 )
 
             confirm_choices = [
