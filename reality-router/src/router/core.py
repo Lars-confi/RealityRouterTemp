@@ -25,6 +25,7 @@ from src.models.routing import RoutingRequest, RoutingResponse
 from src.router.load_balancer import load_balancer
 from src.router.metrics import metrics_collector
 from src.utils.capability_tester import capability_manager
+from src.utils.keyword_manager import keyword_manager
 from src.utils.logger import setup_logger
 from src.utils.pricing import pricing_manager
 
@@ -173,6 +174,7 @@ class RouterCore:
         self.models = {}
         self.metrics = {}
         self.models_to_probe = []
+        self.translated_languages = set(["english"])
         settings = get_settings()
         self.utility_calculator = ExpectedUtilityCalculator(
             reward=settings.reward,
@@ -700,6 +702,26 @@ class RouterCore:
             "sem_fix": 0.0,
             "sem_refactor": 0.0,
             "sem_docs": 0.0,
+            "lex_ttr": 0.0,
+            "lex_avg_word_len": 0.0,
+            "char_digit_ratio": 0.0,
+            "char_symbol_ratio": 0.0,
+            "intent_math": 0.0,
+            "intent_summarize": 0.0,
+            "intent_roleplay": 0.0,
+            "format_json": 0.0,
+            "format_table": 0.0,
+            "question_count": 0.0,
+            "is_analytical": 0.0,
+            "script_latin": 0.0,
+            "script_latin_ext": 0.0,
+            "script_cyrillic": 0.0,
+            "script_cjk": 0.0,
+            "script_arabic": 0.0,
+            "char_entropy": 0.0,
+            "has_code_blocks": 0.0,
+            "has_url": 0.0,
+            "density_braces": 0.0,
             "tele_p_len": float(len(query)),
             "tele_hist_depth": 0.0,
             "tele_ctx_pressure": 0.0,
@@ -831,13 +853,24 @@ class RouterCore:
             if len(msgs) > 0:
                 features[k] /= float(len(msgs))
 
-        # Metadata
+        # Metadata & Lexical Complexity
         q_low = query.lower()
+        words = q_low.split()
+        num_words = max(1, len(words))
+        features["lex_ttr"] = len(set(words)) / num_words
+        features["lex_avg_word_len"] = sum(len(w) for w in words) / num_words
+        features["char_digit_ratio"] = sum(c.isdigit() for c in query) / max(
+            1, len(query)
+        )
+        features["char_symbol_ratio"] = len(re.findall(r"[^\w\s]", query)) / max(
+            1, len(query)
+        )
+
         features["meta_pos_con"] = float(
-            len(re.findall(r"\b(must|use|always)\b", q_low))
+            len(re.findall(keyword_manager.get_regex("meta_pos_con"), q_low))
         )
         features["meta_neg_con"] = float(
-            len(re.findall(r"\b(don't|never|avoid)\b", q_low))
+            len(re.findall(keyword_manager.get_regex("meta_neg_con"), q_low))
         )
         ids = re.findall(r"[a-zA-Z_]\w*", query)
         features["meta_id_dens"] = (
@@ -848,14 +881,77 @@ class RouterCore:
         )
 
         # Semantic Intent
-        if any(w in q_low for w in ["create", "write", "generate", "implement"]):
-            features["sem_gen"] = 1.0
-        if any(w in q_low for w in ["fix", "bug", "debug", "error"]):
-            features["sem_fix"] = 1.0
-        if any(w in q_low for w in ["refactor", "optimize", "clean"]):
-            features["sem_refactor"] = 1.0
-        if any(w in q_low for w in ["document", "comment", "readme"]):
-            features["sem_docs"] = 1.0
+        features["sem_gen"] = (
+            1.0 if re.search(keyword_manager.get_regex("gen"), q_low) else 0.0
+        )
+        features["sem_fix"] = (
+            1.0 if re.search(keyword_manager.get_regex("fix"), q_low) else 0.0
+        )
+        features["sem_refactor"] = (
+            1.0 if re.search(keyword_manager.get_regex("refactor"), q_low) else 0.0
+        )
+        features["sem_docs"] = (
+            1.0 if re.search(keyword_manager.get_regex("docs"), q_low) else 0.0
+        )
+
+        # General Intents
+        features["intent_math"] = (
+            1.0
+            if re.search(
+                keyword_manager.get_regex("math") + r"|\d+\s*[\+\-\*\/]\s*\d+", q_low
+            )
+            else 0.0
+        )
+        features["intent_summarize"] = (
+            1.0 if re.search(keyword_manager.get_regex("summarize"), q_low) else 0.0
+        )
+        features["intent_roleplay"] = (
+            1.0 if re.search(keyword_manager.get_regex("roleplay"), q_low) else 0.0
+        )
+
+        # Format Constraints
+        features["format_json"] = 1.0 if "json" in q_low else 0.0
+        features["format_table"] = (
+            1.0 if re.search(keyword_manager.get_regex("format_table"), q_low) else 0.0
+        )
+
+        # Question Typology
+        features["question_count"] = float(query.count("?"))
+        features["is_analytical"] = (
+            1.0 if re.search(keyword_manager.get_regex("analytical"), q_low) else 0.0
+        )
+
+        # Cross-Lingual Script Detection
+        text_len = max(1, len(query))
+        features["script_latin"] = len(re.findall(r"[\u0000-\u007F]", query)) / text_len
+        features["script_latin_ext"] = (
+            len(re.findall(r"[\u0080-\u024F]", query)) / text_len
+        )
+        features["script_cyrillic"] = (
+            len(re.findall(r"[\u0400-\u04FF]", query)) / text_len
+        )
+        features["script_cjk"] = (
+            len(re.findall(r"[\u4E00-\u9FFF\u3040-\u30FF\u31F0-\u31FF]", query))
+            / text_len
+        )
+        features["script_arabic"] = (
+            len(re.findall(r"[\u0600-\u06FF]", query)) / text_len
+        )
+
+        # Character Entropy (Information Density)
+        from collections import Counter
+
+        char_counts = Counter(query)
+        entropy_val = 0.0
+        for count in char_counts.values():
+            p = count / text_len
+            entropy_val -= p * math.log2(p)
+        features["char_entropy"] = entropy_val
+
+        # Cross-lingual Formatting Markers
+        features["has_code_blocks"] = 1.0 if "```" in query else 0.0
+        features["has_url"] = 1.0 if "http://" in query or "https://" in query else 0.0
+        features["density_braces"] = len(re.findall(r"[\{\}]", query)) / text_len
 
         # Telemetry
         features["tele_ctx_pressure"] = min(1.0, len(str(msgs)) / 128000)
@@ -1464,6 +1560,43 @@ class RouterCore:
         logger.info(f"Routing request with strategy: {strategy}")
         db = SessionLocal()
         try:
+            # Language detection and keyword translation in background
+            async def check_language_and_translate():
+                try:
+                    sentiment_model_id = settings.sentiment_model_id
+                    if sentiment_model_id in self.adapters:
+                        adapter = self.adapters[sentiment_model_id]
+                        lang_req = RoutingRequest(
+                            query="",
+                            parameters={
+                                "messages": [
+                                    {
+                                        "role": "user",
+                                        "content": f"Identify the primary language of this text. Respond with ONLY the English name of the language (e.g., 'Spanish', 'Japanese', 'English'):\n\n{request.query[:500]}",
+                                    }
+                                ],
+                                "max_tokens": 15,
+                                "temperature": 0.1,
+                            },
+                        )
+                        lang_resp = await adapter.forward_request(lang_req)
+                        lang = str(lang_resp.get("text", "")).strip().lower()
+                        lang = re.sub(r"[^a-z]", "", lang)
+                        if (
+                            lang
+                            and len(lang) < 20
+                            and lang not in self.translated_languages
+                        ):
+                            self.translated_languages.add(lang)
+                            await keyword_manager.translate_and_add_keywords(
+                                adapter, lang.capitalize()
+                            )
+                except Exception as e:
+                    logger.debug(f"Language check/translate failed: {e}")
+
+            if request.query and len(request.query) > 5:
+                asyncio.create_task(check_language_and_translate())
+
             # Strip fragile thought signatures from incoming messages to prevent Google 400 errors
             if request.parameters and "messages" in request.parameters:
                 for msg in request.parameters["messages"]:
