@@ -683,7 +683,7 @@ async def get_dashboard():
                                 <th>Model Name</th>
                                 <th>Provider</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th>Confidence</th>
                             </tr>
                         </thead>
                         <tbody id="all-models-body"></tbody>
@@ -781,7 +781,11 @@ async def get_dashboard():
                                 <td><span class="badge" style="background: rgba(255,255,255,0.1); color: #ccc;">${m.provider}</span></td>
                                 <td><span class="badge ${m.enabled ? 'badge-success' : ''}" style="${!m.enabled ? 'background: rgba(231, 76, 60, 0.2); color: #e74c3c;' : ''}">${m.enabled ? 'Enabled' : 'Disabled'}</span></td>
                                 <td>
-                                    <input type="range" class="model-slider" min="0" max="100" value="${m.preference !== undefined ? m.preference : (m.enabled ? 100 : 0)}" onchange="updateModelPreference('${m.id}', this.value)" title="Preference: ${m.preference !== undefined ? m.preference : (m.enabled ? 100 : 0)}">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <small style="color: #e74c3c;">None</small>
+                                        <input type="range" class="model-slider" min="0" max="100" value="${m.preference !== undefined ? m.preference : (m.enabled ? 100 : 0)}" onchange="updateModelPreference('${m.id}', this.value)" title="Confidence: ${m.preference !== undefined ? m.preference : (m.enabled ? 100 : 0)}%">
+                                        <small style="color: #1abc9c;">High</small>
+                                    </div>
                                 </td>
                             `;
                             tbody.appendChild(tr);
