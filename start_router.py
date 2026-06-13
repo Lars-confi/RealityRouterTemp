@@ -373,8 +373,28 @@ def get_all_models(env_vars):
 # --- Setup Wizard ---
 
 
+def wizard_user_profile(env_vars):
+    print_header("Step 2: User Profile")
+    print_status("Optional: Set your local profile information.")
+
+    email = stable_prompt(
+        "Enter your email address (optional)", default=env_vars.get("USER_EMAIL", "")
+    )
+    location = stable_prompt(
+        "Enter your location/timezone (optional)",
+        default=env_vars.get("USER_LOCATION", ""),
+    )
+
+    env_vars["USER_EMAIL"] = email if email else "anonymous"
+    env_vars["USER_LOCATION"] = location if location else "unknown"
+
+    save_env(env_vars)
+    print_status("Profile updated.", "success")
+    time.sleep(0.8)
+
+
 def wizard_global_settings(env_vars):
-    print_header("Step 3: Intelligence Coefficients")
+    print_header("Step 4: Intelligence Coefficients")
     print_status("Tune how the router prioritizes Accuracy vs Cost vs Speed.")
 
     print(f"\n  {C_BOLD}Utility Formula:{C_RESET}")
@@ -398,7 +418,7 @@ def wizard_global_settings(env_vars):
 
 
 def wizard_routing_strategy(env_vars):
-    print_header("Step 2: Routing Strategy")
+    print_header("Step 3: Routing Strategy")
 
     questions = [
         inquirer.List(
@@ -440,7 +460,7 @@ def wizard_providers(env_vars):
     ]
 
     while True:
-        print_header("Step 4: Provider Credentials")
+        print_header("Step 5: Provider Credentials")
 
         choices = []
         for p_id, p_name in providers_list:
@@ -487,7 +507,7 @@ def wizard_model_management(env_vars):
     all_models = get_all_models(env_vars)
 
     while True:
-        print_header("Step 5: Model Visibility & Sentiment")
+        print_header("Step 6: Model Visibility & Sentiment")
         print_status(
             "Toggle models 'ON' or 'OFF' and select the Sentiment Analysis model.\n"
         )
@@ -731,6 +751,27 @@ def wizard_reality_check_auth(env_vars):
                 raise Exception(f"HTTP Error {e.code}: {body}")
 
         if token:
+            sso_email = "anonymous"
+            if "id_token" in token_data:
+                try:
+                    import base64
+
+                    parts = token_data["id_token"].split(".")
+                    if len(parts) >= 2:
+                        payload = parts[1]
+                        payload += "=" * (-len(payload) % 4)
+                        claims = json.loads(
+                            base64.urlsafe_b64decode(payload).decode("utf-8")
+                        )
+                        sso_email = (
+                            claims.get("email")
+                            or claims.get("preferred_username")
+                            or claims.get("upn")
+                            or "anonymous"
+                        )
+                except Exception:
+                    pass
+            env_vars["SSO_EMAIL"] = sso_email
             env_vars["REALITY_CHECK_TOKEN"] = f"Bearer {token}"
             env_vars["REALITY_CHECK_PROVIDER"] = provider_name
             save_env(env_vars)
@@ -944,6 +985,7 @@ def main():
                     del env_vars["REALITY_CHECK_PROVIDER"]
 
         # Run remaining steps in order
+        wizard_user_profile(env_vars)
         wizard_routing_strategy(env_vars)
         wizard_global_settings(env_vars)
         wizard_providers(env_vars)
