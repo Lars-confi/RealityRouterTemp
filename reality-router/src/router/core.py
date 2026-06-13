@@ -158,12 +158,14 @@ class ExpectedUtilityCalculator:
             self.time_sensitivity = 1.0 - cost_sensitivity
 
     def calculate_expected_utility(
-        self, cost: float, time: float, probability: float
+        self, cost: float, time: float, probability: float, preference: float = 100.0
     ) -> float:
+        preference_penalty = (100.0 - preference) * 10.0
         return (
             probability * self.reward
             - self.cost_sensitivity * cost
             - self.time_sensitivity * time
+            - preference_penalty
         )
 
 
@@ -1277,8 +1279,11 @@ class RouterCore:
             decisions = []
             feedback_candidates = []
             for r in results:
+                preference = getattr(settings, "model_preferences", {}).get(
+                    r["id"], 100.0
+                )
                 utility = self.utility_calculator.calculate_expected_utility(
-                    r["cost"], r["time"], r["prob"]
+                    r["cost"], r["time"], r["prob"], preference
                 )
                 is_zed = request.agent_id and "zed" in request.agent_id.lower()
                 if (
@@ -2661,8 +2666,14 @@ class RouterCore:
                                         u_stop = (
                                             p_actual * self.utility_calculator.reward
                                         )
+                                        next_preference = getattr(
+                                            settings, "model_preferences", {}
+                                        ).get(next_best.model_id, 100.0)
                                         eu_continue = self.utility_calculator.calculate_expected_utility(
-                                            next_best.cost, next_best.time, 1.0
+                                            next_best.cost,
+                                            next_best.time,
+                                            1.0,
+                                            next_preference,
                                         )
 
                                         if u_stop < eu_continue:

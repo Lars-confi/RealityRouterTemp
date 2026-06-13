@@ -59,6 +59,7 @@ class Settings(BaseModel):
 
     # Model settings
     disabled_models: List[str] = Field(default_factory=list)
+    model_preferences: Dict[str, float] = Field(default_factory=dict)
     sentiment_model_id: Optional[str] = Field(default=None)
 
     # Routing settings
@@ -89,6 +90,18 @@ if "disabled_models" in _settings_data and isinstance(
         [x.strip() for x in val.split(",")] if val else []
     )
 
+if "model_preferences" in _settings_data and isinstance(
+    _settings_data["model_preferences"], str
+):
+    import json
+
+    try:
+        _settings_data["model_preferences"] = json.loads(
+            _settings_data["model_preferences"]
+        )
+    except Exception:
+        _settings_data["model_preferences"] = {}
+
 settings = Settings(**_settings_data)
 
 
@@ -111,23 +124,46 @@ def reload_settings() -> Settings:
             [x.strip() for x in val.split(",")] if val else []
         )
 
+    if "model_preferences" in _settings_data and isinstance(
+        _settings_data["model_preferences"], str
+    ):
+        import json
+
+        try:
+            _settings_data["model_preferences"] = json.loads(
+                _settings_data["model_preferences"]
+            )
+        except Exception:
+            _settings_data["model_preferences"] = {}
+
     settings = Settings(**_settings_data)
     return settings
 
 
-def toggle_model(model_id: str) -> None:
-    """Toggle a model's enabled/disabled state in the configuration"""
+def update_model_preference(model_id: str, value: float) -> None:
+    """Update a model's preference value in the configuration"""
+    if not hasattr(settings, "model_preferences"):
+        settings.model_preferences = {}
+
+    settings.model_preferences[model_id] = value
+
+    # Update disabled_models for complete off (value <= 0.0)
     disabled = set(settings.disabled_models)
-    if model_id in disabled:
-        disabled.remove(model_id)
-    else:
+    if value <= 0.0:
         disabled.add(model_id)
+    else:
+        if model_id in disabled:
+            disabled.remove(model_id)
 
     settings.disabled_models = list(disabled)
 
     # Save back to .env
     env_vars = _load_env_file(_env_path)
     env_vars["DISABLED_MODELS"] = ",".join(settings.disabled_models)
+
+    import json
+
+    env_vars["MODEL_PREFERENCES"] = json.dumps(settings.model_preferences)
 
     with open(_env_path, "w") as f:
         for k, v in env_vars.items():

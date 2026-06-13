@@ -495,28 +495,35 @@ async def update_preferences(pref: PreferenceUpdate):
     return {"status": "success", "alpha": alpha, "beta": beta}
 
 
-class ModelToggleRequest(BaseModel):
+class ModelPreferenceRequest(BaseModel):
     model_id: str
+    value: float
 
 
 @router.get("/models/all")
 async def get_all_models():
+    from src.config.settings import get_settings
     from src.router.core import router_core
 
-    return {"models": getattr(router_core, "all_discovered_models", [])}
+    settings = get_settings()
+    prefs = getattr(settings, "model_preferences", {})
+    models = getattr(router_core, "all_discovered_models", [])
+
+    # Inject preferences into models
+    for m in models:
+        m["preference"] = prefs.get(m["id"], 100.0 if m["enabled"] else 0.0)
+
+    return {"models": models}
 
 
-@router.post("/models/toggle")
-async def toggle_model_endpoint(req: ModelToggleRequest):
-    from src.config.settings import toggle_model
+@router.post("/models/preference")
+async def update_model_preference_endpoint(req: ModelPreferenceRequest):
+    from src.config.settings import update_model_preference
     from src.router.core import router_core
 
-    toggle_model(req.model_id)
+    update_model_preference(req.model_id, req.value)
     router_core.reload()
-    return {
-        "status": "success",
-        "models": getattr(router_core, "all_discovered_models", []),
-    }
+    return {"status": "success"}
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -564,9 +571,8 @@ async def get_dashboard():
             .tab-btn.active { background: #70b1ff; color: #000; border-color: #70b1ff; }
             .tab-content { display: none; }
             .tab-content.active { display: block; }
-            .toggle-btn { padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
-            .toggle-on { background: rgba(26, 188, 156, 0.2); color: #1abc9c; border: 1px solid #1abc9c; }
-            .toggle-off { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+            .model-slider { -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.1); border-radius: 5px; outline: none; accent-color: #1abc9c; height: 6px; width: 100px; }
+            .model-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; background: #ffffff; border-radius: 50%; cursor: pointer; box-shadow: 0 0 5px rgba(26, 188, 156, 0.8); }
             @media (max-width: 1100px) { .dashboard-row { flex-direction: column; } .dashboard-row .card { max-height: none; } }
         </style>
     </head>
@@ -774,7 +780,9 @@ async def get_dashboard():
                                 <td><strong>${m.name}</strong><br><small style="color:#8b949e;">${m.id}</small></td>
                                 <td><span class="badge" style="background: rgba(255,255,255,0.1); color: #ccc;">${m.provider}</span></td>
                                 <td><span class="badge ${m.enabled ? 'badge-success' : ''}" style="${!m.enabled ? 'background: rgba(231, 76, 60, 0.2); color: #e74c3c;' : ''}">${m.enabled ? 'Enabled' : 'Disabled'}</span></td>
-                                <td><button class="toggle-btn ${m.enabled ? 'toggle-off' : 'toggle-on'}" onclick="toggleModel('${m.id}')">${m.enabled ? 'Disable' : 'Enable'}</button></td>
+                                <td>
+                                    <input type="range" class="model-slider" min="0" max="100" value="${m.preference !== undefined ? m.preference : (m.enabled ? 100 : 0)}" onchange="updateModelPreference('${m.id}', this.value)" title="Preference: ${m.preference !== undefined ? m.preference : (m.enabled ? 100 : 0)}">
+                                </td>
                             `;
                             tbody.appendChild(tr);
                         });
@@ -786,18 +794,18 @@ async def get_dashboard():
                 }
             }
 
-            async function toggleModel(modelId) {
+            async function updateModelPreference(modelId, value) {
                 try {
-                    const res = await fetch('/metrics/models/toggle', {
+                    const res = await fetch('/metrics/models/preference', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ model_id: modelId })
+                        body: JSON.stringify({ model_id: modelId, value: parseFloat(value) })
                     });
                     if (res.ok) {
                         loadAllModels();
                     }
                 } catch (e) {
-                    console.error("Failed to toggle model", e);
+                    console.error("Failed to update model preference", e);
                 }
             }
 
