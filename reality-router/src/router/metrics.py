@@ -966,7 +966,7 @@ async def get_dashboard():
                         let pMax = (max / scale) * 100;
 
                         return `
-                        <div class="boxplot-container" title="Min: ${min.toFixed(2)}&#10;Q1: ${q1.toFixed(2)}&#10;Median: ${med.toFixed(2)}&#10;Q3: ${q3.toFixed(2)}&#10;Max: ${max.toFixed(2)}">
+                        <div class="boxplot-container" title="Min (0%): ${min.toFixed(2)}&#10;25th Percentile (Q1): ${q1.toFixed(2)}&#10;Median (50%): ${med.toFixed(2)}&#10;75th Percentile (Q3): ${q3.toFixed(2)}&#10;Max (100%): ${max.toFixed(2)}">
                             <div class="boxplot-whisker" style="left: ${pMin}%; width: ${pMax - pMin}%; background: #8b949e;"></div>
                             <div class="boxplot-box" style="left: ${pQ1}%; width: ${Math.max(0.5, pQ3 - pQ1)}%; background: #70b1ff;"></div>
                             <div class="boxplot-median" style="left: ${pMed}%;"></div>
