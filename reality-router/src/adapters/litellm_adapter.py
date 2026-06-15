@@ -91,6 +91,25 @@ class LiteLLMAdapter(BaseAdapter):
             litellm_args.pop("frequency_penalty", None)
             litellm_args.pop("presence_penalty", None)
 
+            # Inject thought_signature bypass for Gemini models to prevent 400 errors with tool calls
+            # We deepcopy the messages to avoid mutating the original request, which could break fallbacks
+            if litellm_args.get("messages"):
+                import copy
+
+                gemini_messages = copy.deepcopy(litellm_args["messages"])
+                for msg in gemini_messages:
+                    if msg.get("role") == "assistant" and msg.get("tool_calls"):
+                        for tc in msg["tool_calls"]:
+                            if isinstance(tc, dict):
+                                if "extra_content" not in tc:
+                                    tc["extra_content"] = {}
+                                if "google" not in tc["extra_content"]:
+                                    tc["extra_content"]["google"] = {}
+                                tc["extra_content"]["google"]["thought_signature"] = (
+                                    "skip_thought_signature_validator"
+                                )
+                litellm_args["messages"] = gemini_messages
+
         # Force stream=False internally for the router's logic to work correctly.
         # This prevents 'CustomStreamWrapper' attribute errors and allows the router
         # to assess responses before sending them back to the client.
