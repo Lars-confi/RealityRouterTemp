@@ -300,17 +300,21 @@ async def get_metrics_summary(db: Session = Depends(get_db)):
                 if data:
                     stats[stat_key] = {
                         "min": float(np.min(data)),
+                        "p10": float(np.percentile(data, 10)),
                         "q1": float(np.percentile(data, 25)),
                         "median": float(np.median(data)),
                         "q3": float(np.percentile(data, 75)),
+                        "p90": float(np.percentile(data, 90)),
                         "max": float(np.max(data)),
                     }
                 else:
                     stats[stat_key] = {
                         "min": 0,
+                        "p10": 0,
                         "q1": 0,
                         "median": 0,
                         "q3": 0,
+                        "p90": 0,
                         "max": 0,
                     }
 
@@ -956,6 +960,8 @@ async def get_dashboard():
                     function makeBoxplot(stats, globalMax, isProb) {
                         if (!stats) return '';
                         let min = stats.min, q1 = stats.q1, med = stats.median, q3 = stats.q3, max = stats.max;
+                        let p10 = stats.p10 !== undefined ? stats.p10 : min;
+                        let p90 = stats.p90 !== undefined ? stats.p90 : max;
                         let scale = globalMax;
                         if (isProb) { scale = 1.0; }
 
@@ -966,7 +972,7 @@ async def get_dashboard():
                         let pMax = (max / scale) * 100;
 
                         return `
-                        <div class="boxplot-container" title="Min (0%): ${min.toFixed(2)}&#10;25th Percentile (Q1): ${q1.toFixed(2)}&#10;Median (50%): ${med.toFixed(2)}&#10;75th Percentile (Q3): ${q3.toFixed(2)}&#10;Max (100%): ${max.toFixed(2)}">
+                        <div class="boxplot-container" title="Min (0%): ${min.toFixed(2)}&#10;10th Percentile: ${p10.toFixed(2)}&#10;25th Percentile (Q1): ${q1.toFixed(2)}&#10;Median (50%): ${med.toFixed(2)}&#10;75th Percentile (Q3): ${q3.toFixed(2)}&#10;90th Percentile: ${p90.toFixed(2)}&#10;Max (100%): ${max.toFixed(2)}">
                             <div class="boxplot-whisker" style="left: ${pMin}%; width: ${pMax - pMin}%; background: #8b949e;"></div>
                             <div class="boxplot-box" style="left: ${pQ1}%; width: ${Math.max(0.5, pQ3 - pQ1)}%; background: #70b1ff;"></div>
                             <div class="boxplot-median" style="left: ${pMed}%;"></div>
