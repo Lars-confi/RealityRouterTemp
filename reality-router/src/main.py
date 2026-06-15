@@ -16,6 +16,11 @@ from src.router.metrics import router as metrics_router
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Suppress LiteLLM debug banner
+import litellm
+
+litellm.suppress_debug_info = True
+
 # Initialize database
 init_db()
 
