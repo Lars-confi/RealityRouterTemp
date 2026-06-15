@@ -589,7 +589,7 @@ def wizard_reality_check_auth(env_vars):
     print_header("Step 1: Authentication")
     print_status("Reality Router can only be used after authentication.")
     print(
-        f"  {C_YELLOW}Note:{C_RESET} This information will only be used to ensure the underlying crowdsourcing utilities aren't abused or misused."
+        f"  {C_YELLOW}Note:{C_RESET} Reality Check handles the crowdsourcing. This information will only be used to ensure the underlying crowdsourcing utilities aren't abused or misused."
     )
     choices = [
         ("Login with Microsoft", "m"),
@@ -863,9 +863,7 @@ def deploy_docker(env_vars):
     # Use absolute path for volumes to avoid Docker mounting issues
     abs_app_home = os.path.abspath(APP_HOME)
 
-    compose_content = f"""version: '3.8'
-
-services:
+    compose_content = f"""services:
   reality-router:
     build: .
     image: reality-router:latest
