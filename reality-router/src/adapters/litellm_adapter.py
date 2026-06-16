@@ -98,14 +98,18 @@ class LiteLLMAdapter(BaseAdapter):
 
                 gemini_messages = copy.deepcopy(litellm_args["messages"])
                 for msg in gemini_messages:
-                    if msg.get("role") == "assistant" and msg.get("tool_calls"):
-                        flattened_content = msg.get("content", "") or ""
-                        for tc in msg["tool_calls"]:
-                            if isinstance(tc, dict):
-                                fn = tc.get("function", {})
-                                flattened_content += f"\n[Action: {fn.get('name')}({fn.get('arguments')})]"
-                        msg["content"] = flattened_content.strip()
+                    if msg.get("role") in ["assistant", "model"]:
+                        if msg.get("tool_calls"):
+                            flattened_content = msg.get("content", "") or ""
+                            for tc in msg["tool_calls"]:
+                                if isinstance(tc, dict):
+                                    fn = tc.get("function", {})
+                                    flattened_content += f"\n[Action: {fn.get('name')}({fn.get('arguments')})]"
+                            msg["content"] = flattened_content.strip()
+
+                        # Purge to prevent thought_signature validation errors
                         msg.pop("tool_calls", None)
+                        msg.pop("function_call", None)
                     elif msg.get("role") == "tool":
                         msg["role"] = "user"
                         msg["content"] = (
