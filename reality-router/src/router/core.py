@@ -1188,7 +1188,7 @@ class RouterCore:
                 url = REALITY_ROUTING_URL
                 try:
                     # Use stored token from settings or forwarded header
-                    auth_token = request.authorization or settings.reality_check_token
+                    auth_token = settings.reality_check_token
                     logger.info(f"RC Call Token source: settings")
                     if auth_token:
                         logger.info(f"RC Call Token starts with: {auth_token[:15]}...")
@@ -1813,9 +1813,7 @@ class RouterCore:
                                 f"Sending feedback to Reality Check ({fb_strategy}) for decision {rc_id_str}: {sentiment} (Payload: {fb_payload})"
                             )
                             # Use stored token from settings or forwarded header
-                            auth_token = (
-                                request.authorization or settings.reality_check_token
-                            )
+                            auth_token = settings.reality_check_token
                             headers = {
                                 "Content-Type": "application/json",
                                 "Accept": "application/json",
@@ -2161,10 +2159,7 @@ class RouterCore:
                                         if strategy == "expected_utility"
                                         else REALITY_REROUTING_URL
                                     )
-                                    auth_token = (
-                                        request.authorization
-                                        or settings.reality_check_token
-                                    )
+                                    auth_token = settings.reality_check_token
                                     headers = {
                                         "Content-Type": "application/json",
                                         "Accept": "application/json",
@@ -2212,10 +2207,7 @@ class RouterCore:
                                     if strategy == "expected_utility"
                                     else REALITY_REROUTING_URL
                                 )
-                                auth_token = (
-                                    request.authorization
-                                    or settings.reality_check_token
-                                )
+                                auth_token = settings.reality_check_token
                                 headers = {
                                     "Content-Type": "application/json",
                                     "Accept": "application/json",
@@ -2547,10 +2539,7 @@ class RouterCore:
                                         if strategy == "expected_utility"
                                         else REALITY_REROUTING_URL
                                     )
-                                    auth_token = (
-                                        request.authorization
-                                        or settings.reality_check_token
-                                    )
+                                    auth_token = settings.reality_check_token
                                     headers = {
                                         "Content-Type": "application/json",
                                         "Accept": "application/json",
@@ -2634,10 +2623,7 @@ class RouterCore:
                             # Match sequential curl behavior with fresh connection
                             async with httpx.AsyncClient(http2=False) as client:
                                 # Post-hoc assessment for tiered rerouting always uses REALITY_REROUTING_URL
-                                auth_token = (
-                                    request.authorization
-                                    or settings.reality_check_token
-                                )
+                                auth_token = settings.reality_check_token
                                 headers = {
                                     "Content-Type": "application/json",
                                     "User-Agent": "curl/7.68.0",
