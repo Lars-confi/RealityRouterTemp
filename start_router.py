@@ -761,6 +761,10 @@ def wizard_reality_check_auth(env_vars):
                         if error_code == "slow_down":
                             interval += 2
                             continue
+                        if error_code == "access_denied":
+                            raise Exception("Access denied by user.")
+                        if error_code == "expired_token":
+                            raise Exception("Device code expired.")
                         raise Exception(
                             f"Auth failed: {token_data.get('error_description', error_code)}"
                         )
@@ -774,7 +778,11 @@ def wizard_reality_check_auth(env_vars):
                     if error_code == "slow_down":
                         interval += 2
                         continue
-                except:
+                    if error_code == "access_denied":
+                        raise Exception("Access denied by user.")
+                    if error_code == "expired_token":
+                        raise Exception("Device code expired.")
+                except Exception:
                     pass
                 raise Exception(f"HTTP Error {e.code}: {body}")
 
