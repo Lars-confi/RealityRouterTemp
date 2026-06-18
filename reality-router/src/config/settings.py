@@ -48,6 +48,7 @@ class Settings(BaseModel):
     anthropic_api_key: Optional[str] = Field(default=None)
     mistral_api_key: Optional[str] = Field(default=None)
     gemini_api_key: Optional[str] = Field(default=None)
+    deepseek_api_key: Optional[str] = Field(default=None)
     custom_llm_base_url: Optional[str] = Field(default=None)
     custom_llm_api_key: Optional[str] = Field(default=None)
     reality_check_token: Optional[str] = Field(default=None)

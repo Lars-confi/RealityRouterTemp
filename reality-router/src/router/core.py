@@ -636,6 +636,77 @@ class RouterCore:
                 except Exception as e:
                     logger.warning(f"Gemini model registration failed: {e}")
 
+            # 4. DeepSeek
+            deepseek_key = settings.deepseek_api_key
+            if deepseek_key and deepseek_key != "dummy":
+                try:
+                    resp = httpx.get(
+                        "https://api.deepseek.com/v1/models",
+                        headers={"Authorization": f"Bearer {deepseek_key}"},
+                        timeout=3,
+                    )
+                    if resp.status_code == 200:
+                        for m in resp.json().get("data", []):
+                            raw = m.get("id")
+                            if not raw or "deepseek" not in raw.lower():
+                                continue
+                            name = f"deepseek/{raw}"
+
+                            # Add to discovered models list
+                            if not any(
+                                d.get("id") == name for d in self.all_discovered_models
+                            ):
+                                self.all_discovered_models.append(
+                                    {
+                                        "id": name,
+                                        "name": name,
+                                        "provider": "deepseek",
+                                        "enabled": name not in settings.disabled_models,
+                                    }
+                                )
+
+                            if name in self.models or name in settings.disabled_models:
+                                continue
+                            if name not in self.adapters:
+                                from src.adapters.litellm_adapter import LiteLLMAdapter
+
+                                self.adapters[name] = LiteLLMAdapter(
+                                    model_name=name, api_key=deepseek_key
+                                )
+                            (
+                                p_cost,
+                                c_cost,
+                                supports_function_calling,
+                                max_input_tokens,
+                                max_tokens,
+                            ) = pricing_manager.get_model_pricing(name)
+                            if p_cost is None:
+                                low = raw.lower()
+                                if "reasoner" in low or "r1" in low:
+                                    p_cost, c_cost = 0.00055, 0.00219
+                                elif "coder" in low:
+                                    p_cost, c_cost = 0.00014, 0.00028
+                                else:
+                                    p_cost, c_cost = 0.00028, 0.00042
+                            supports_function_calling = True
+                            cost = (p_cost + c_cost) / 2
+                            self.add_model(
+                                name,
+                                name,
+                                cost,
+                                0.6,
+                                0.88,
+                                None,
+                                p_cost,
+                                c_cost,
+                                supports_function_calling,
+                                max_input_tokens,
+                                max_tokens,
+                            )
+                            self.load_balancer.add_model(name, name, 1.0)
+                except Exception as e:
+                    logger.warning(f"Auto-discovery failed for DeepSeek: {e}")
+
             logger.info(f"Total configured and discovered models: {len(self.models)}")
 
             # Ensure sentiment model adapter is loaded even if the model is disabled for routing
@@ -1825,7 +1896,9 @@ class RouterCore:
                                 if not auth_token.startswith(
                                     "Bearer "
                                 ) and not auth_token.startswith("Basic "):
-                                    headers["X-Reality-Check-Token"] = f"Bearer {auth_token}"
+                                    headers["X-Reality-Check-Token"] = (
+                                        f"Bearer {auth_token}"
+                                    )
                                 else:
                                     headers["X-Reality-Check-Token"] = auth_token
 
@@ -2175,7 +2248,9 @@ class RouterCore:
                                                 f"Bearer {auth_token}"
                                             )
                                         else:
-                                            headers["X-Reality-Check-Token"] = auth_token
+                                            headers["X-Reality-Check-Token"] = (
+                                                auth_token
+                                            )
 
                                     await client.post(
                                         f"{url}/feedback",
@@ -2555,7 +2630,9 @@ class RouterCore:
                                                 f"Bearer {auth_token}"
                                             )
                                         else:
-                                            headers["X-Reality-Check-Token"] = auth_token
+                                            headers["X-Reality-Check-Token"] = (
+                                                auth_token
+                                            )
 
                                     fb_resp = await client.post(
                                         f"{url}/feedback",
