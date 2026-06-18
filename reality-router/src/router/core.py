@@ -146,7 +146,7 @@ class ExpectedUtilityCalculator:
 
     def __init__(
         self,
-        reward: float = 1.0,
+        reward: float = 100.0,
         cost_sensitivity: float = 0.5,
         time_sensitivity: float = 0.5,
     ):
@@ -180,7 +180,7 @@ class RouterCore:
         self.translated_languages = set(["english"])
         settings = get_settings()
         self.utility_calculator = ExpectedUtilityCalculator(
-            reward=settings.reward,
+            reward=100.0,
             cost_sensitivity=settings.cost_sensitivity,
             time_sensitivity=settings.time_sensitivity,
         )

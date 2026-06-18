@@ -169,7 +169,7 @@ A utility function assigns a numerical value to a specific outcome, representing
 
 Our system incurs the cost (ci) and the time delay (ti) regardless of whether the LLM is correct or not. The only variable outcome is correctness. Let's introduce weighting factors to balance these different units:
 
-- R: The inherent reward or value of getting a correct answer.
+- R: The inherent reward or value of getting a correct answer (fixed at 100).
 - α: Your sensitivity to cost (how much utility you lose per cent spent).
 - β: Your sensitivity to time (how much utility you lose per second of delay).
 
@@ -211,7 +211,7 @@ To make the system more user-friendly, we can simplify the parameter configurati
 
 **Parameter Configuration**
 Users must configure the following parameters during setup:
-- R (Reward): The inherent reward or value of getting a correct answer.
+- R (Reward): The inherent reward or value of getting a correct answer (fixed at 100).
 - α (Cost Sensitivity): Sensitivity to cost (how much utility you lose per cent spent).
 - β (Time Sensitivity): Sensitivity to time (how much utility you lose per second of delay). If not set fallback to the relationship β = 1 - α, which reduces the number of parameters users need to configure.
 

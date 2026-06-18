@@ -66,7 +66,6 @@ class Settings(BaseModel):
     # Routing settings
     enable_auto_discovery: bool = Field(default=True)
     default_strategy: str = Field(default="expected_utility")
-    reward: float = Field(default=1.0)
     cost_sensitivity: float = Field(default=0.5)
     time_sensitivity: float = Field(default=0.5)
 

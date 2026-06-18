@@ -18,7 +18,7 @@ EU(m_i) = p_i · R − α · c_i − β · t_i
 The five terms:
 
 - `p_i` **probability of success** — the estimated likelihood this specific model produces a correct/high-quality answer to *this specific kind* of query. Calibrated by Reality Check™ from historical outcomes on similar tasks. Range: 0–1.
-- `R` **reward** — the value of a correct answer. You set this once during setup.
+- `R` **reward** — the value of a correct answer, fixed at 100.
 - `c_i` **cost** — the estimated dollar cost of running `m_i` on this query. Computed from input token count, historical output length, and the model's specific per-token pricing.
 - `t_i` **latency** — the estimated response time, derived from a rolling 5–10 minute average for this model.
 - `α` & `β` **sensitivities** — your weights on cost and latency, tuned once during setup. `α` high → router prefers cheap models. `β` high → router prefers fast ones.

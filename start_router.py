@@ -402,9 +402,6 @@ def wizard_global_settings(env_vars):
         f"  {C_CYAN}EU(m) = p * {C_BOLD}R{C_RESET}{C_CYAN} - {C_BOLD}α{C_RESET}{C_CYAN} * cost - {C_BOLD}β{C_RESET}{C_CYAN} * time{C_RESET}\n"
     )
 
-    env_vars["REWARD"] = stable_prompt(
-        "Success Value (R)", default=env_vars.get("REWARD", "1.0")
-    )
     env_vars["COST_SENSITIVITY"] = stable_prompt(
         "Cost Penalty (α)", default=env_vars.get("COST_SENSITIVITY", "0.5")
     )
