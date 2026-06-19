@@ -520,6 +520,19 @@ async def get_all_models():
         m_id = m["id"]
         pref = prefs.get(m_id)
 
+        # Inject extra info for tooltips
+        if m_id in active_pool:
+            info = active_pool[m_id]
+            m_copy["details"] = {
+                "prompt_cost": f"${info.get('prompt_cost', 0):.6f}/1k",
+                "completion_cost": f"${info.get('completion_cost', 0):.6f}/1k",
+                "max_tokens": info.get("max_tokens", "Unknown"),
+                "supports_tools": "Yes"
+                if info.get("supports_function_calling")
+                else "No",
+                "supports_logprobs": "Yes" if info.get("supports_logprobs") else "No",
+            }
+
         # Determine status and reason
         if m_id in active_pool:
             m_copy["status_category"] = "active"
@@ -611,6 +624,13 @@ async def get_dashboard():
             .tab-content.active { display: block; }
             .model-slider { -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.1); border-radius: 5px; outline: none; accent-color: #1abc9c; height: 6px; width: 100px; }
             .model-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; background: #ffffff; border-radius: 50%; cursor: pointer; box-shadow: 0 0 5px rgba(26, 188, 156, 0.8); }
+
+            .tooltip { position: relative; display: inline-block; cursor: help; border-bottom: 1px dotted rgba(255,255,255,0.3); }
+            .tooltip .tooltiptext { visibility: hidden; width: 220px; background-color: #2c3e50; color: #fff; text-align: left; border-radius: 6px; padding: 10px; position: absolute; z-index: 100; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-size: 0.85em; pointer-events: none; }
+            .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+            .tooltiptext div { margin-bottom: 4px; display: flex; justify-content: space-between; }
+            .tooltiptext b { color: #70b1ff; }
+
             @media (max-width: 1100px) { .dashboard-row { flex-direction: column; } .dashboard-row .card { max-height: none; } }
         </style>
     </head>
@@ -823,9 +843,26 @@ async def get_dashboard():
                                 statusHtml = `<span class="badge" style="background: rgba(243, 156, 18, 0.2); color: #f39c12;" title="${m.reason}">Unavailable</span>`;
                             }
 
+                            let detailsHtml = '';
+                            if (m.details) {
+                                detailsHtml = `
+                                    <div class="tooltiptext">
+                                        <div><b>In Cost:</b> <span>${m.details.prompt_cost}</span></div>
+                                        <div><b>Out Cost:</b> <span>${m.details.completion_cost}</span></div>
+                                        <div><b>Max Tokens:</b> <span>${m.details.max_tokens}</span></div>
+                                        <div><b>Tools:</b> <span>${m.details.supports_tools}</span></div>
+                                        <div><b>Logprobs:</b> <span>${m.details.supports_logprobs}</span></div>
+                                    </div>
+                                `;
+                            }
+
                             tr.innerHTML = `
                                 <td>
-                                    <strong>${m.name}</strong><br>
+                                    <div class="${m.details ? 'tooltip' : ''}">
+                                        <strong>${m.name}</strong>
+                                        ${detailsHtml}
+                                    </div>
+                                    <br>
                                     <small style="color:#8b949e;">${m.id}</small>
                                     ${m.status_category === 'unavailable' ? `<br><small style="color:#f39c12; font-style: italic;">${m.reason}</small>` : ''}
                                 </td>
