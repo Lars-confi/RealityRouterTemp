@@ -511,11 +511,38 @@ async def get_all_models():
 
     settings = get_settings()
     prefs = getattr(settings, "model_preferences", {})
-    models = getattr(router_core, "all_discovered_models", [])
+    all_discovered = getattr(router_core, "all_discovered_models", [])
+    active_pool = router_core.models
 
-    # Inject preferences into models
-    for m in models:
-        m["preference"] = prefs.get(m["id"], 100.0 if m["enabled"] else 0.0)
+    models = []
+    for m in all_discovered:
+        m_copy = m.copy()
+        m_id = m["id"]
+        pref = prefs.get(m_id)
+
+        # Determine status and reason
+        if m_id in active_pool:
+            m_copy["status_category"] = "active"
+            m_copy["reason"] = "Active in pool"
+            # Default preference to 100 if not set but active
+            m_copy["preference"] = pref if pref is not None else 100.0
+        elif m["enabled"] is False:
+            m_copy["status_category"] = "disabled"
+            m_copy["reason"] = "Manually disabled in setup"
+            m_copy["preference"] = pref if pref is not None else 0.0
+        else:
+            m_copy["status_category"] = "unavailable"
+            m_copy["reason"] = "Failed auto-discovery or initialization"
+            m_copy["preference"] = pref if pref is not None else 0.0
+
+        models.append(m_copy)
+
+    # Sort: 1. Active with high preference, 2. Unavailable, 3. Disabled
+    def sort_key(m):
+        category_order = {"active": 0, "unavailable": 1, "disabled": 2}
+        return (category_order.get(m["status_category"], 3), -(m["preference"] or 0))
+
+    models.sort(key=sort_key)
 
     return {"models": models}
 
@@ -780,14 +807,27 @@ async def get_dashboard():
                     if (data.models && data.models.length > 0) {
                         data.models.forEach(m => {
                             const tr = document.createElement('tr');
+                            let statusHtml = '';
+                            if (m.status_category === 'active') {
+                                statusHtml = `<span class="badge badge-success">Active</span>`;
+                            } else if (m.status_category === 'disabled') {
+                                statusHtml = `<span class="badge" style="background: rgba(231, 76, 60, 0.2); color: #e74c3c;">Disabled</span>`;
+                            } else {
+                                statusHtml = `<span class="badge" style="background: rgba(243, 156, 18, 0.2); color: #f39c12;" title="${m.reason}">Unavailable</span>`;
+                            }
+
                             tr.innerHTML = `
-                                <td><strong>${m.name}</strong><br><small style="color:#8b949e;">${m.id}</small></td>
+                                <td>
+                                    <strong>${m.name}</strong><br>
+                                    <small style="color:#8b949e;">${m.id}</small>
+                                    ${m.status_category === 'unavailable' ? `<br><small style="color:#f39c12; font-style: italic;">${m.reason}</small>` : ''}
+                                </td>
                                 <td><span class="badge" style="background: rgba(255,255,255,0.1); color: #ccc;">${m.provider}</span></td>
-                                <td><span class="badge ${m.enabled ? 'badge-success' : ''}" style="${!m.enabled ? 'background: rgba(231, 76, 60, 0.2); color: #e74c3c;' : ''}">${m.enabled ? 'Enabled' : 'Disabled'}</span></td>
+                                <td>${statusHtml}</td>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 8px;">
                                         <small style="color: #e74c3c;">None</small>
-                                        <input type="range" class="model-slider" min="0" max="100" value="${m.preference !== undefined ? m.preference : (m.enabled ? 100 : 0)}" onchange="updateModelPreference('${m.id}', this.value)" title="Confidence: ${m.preference !== undefined ? m.preference : (m.enabled ? 100 : 0)}%">
+                                        <input type="range" class="model-slider" min="0" max="100" value="${m.preference !== undefined ? m.preference : 0}" onchange="updateModelPreference('${m.id}', this.value)" title="Confidence: ${m.preference !== undefined ? m.preference : 0}%">
                                         <small style="color: #1abc9c;">High</small>
                                     </div>
                                 </td>
