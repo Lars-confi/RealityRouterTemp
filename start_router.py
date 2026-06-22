@@ -527,6 +527,19 @@ def wizard_providers(env_vars):
                 # Test the new key/URL
                 print_status(f"Testing connection to {choice}...", "info")
 
+                # Docker Localhost Warning
+                if (
+                    os.path.exists("/.dockerenv")
+                    and ("localhost" in new_val or "127.0.0.1" in new_val)
+                    and "URL" in env_key
+                ):
+                    print_status(
+                        "Warning: 'localhost' usually won't work inside Docker.", "warn"
+                    )
+                    print(
+                        f"  {C_YELLOW}Hint:{C_RESET} Use your machine's local IP (e.g., 192.168.x.x) or 'host.docker.internal'.\n"
+                    )
+
                 # Temporarily update env_vars for testing
                 temp_env = env_vars.copy()
                 temp_env[env_key] = new_val
@@ -581,6 +594,11 @@ def wizard_providers(env_vars):
                         f"Connection test failed for {choice}. Check your credentials/URL.",
                         "error",
                     )
+                    if choice == "custom/local":
+                        print(
+                            f"  {C_RED}Error:{C_RESET} Could not reach Ollama/Custom API at the provided URL."
+                        )
+
                     retry = stable_prompt("Save anyway? (y/n)", default="n")
                     if retry.lower() == "y":
                         env_vars[env_key] = new_val
