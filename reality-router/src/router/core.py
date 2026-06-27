@@ -2851,7 +2851,7 @@ class RouterCore:
 
                             # 1. Calculate p_actual via /decide endpoint (Expert Mode)
                             # Match sequential curl behavior with fresh connection
-                            async with httpx.AsyncClient(http2=False) as client:
+                            async with httpx.AsyncClient(http2=False, trust_env=False) as client:
                                 # Post-hoc assessment for tiered rerouting always uses REALITY_REROUTING_URL
                                 auth_token = settings.reality_check_token
                                 headers = {
