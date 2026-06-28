@@ -52,6 +52,7 @@ class Settings(BaseModel):
     custom_llm_base_url: Optional[str] = Field(default=None)
     custom_llm_api_key: Optional[str] = Field(default=None)
     reality_check_token: Optional[str] = Field(default=None)
+    reality_check_provider: Optional[str] = Field(default=None)
 
     # User Profile settings
     user_email: str = Field(default="anonymous")

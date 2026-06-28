@@ -1425,10 +1425,8 @@ class RouterCore:
                         "Connection": "close",
                     }
                     if auth_token:
-                        if not auth_token.startswith(
-                            "Bearer "
-                        ) and not auth_token.startswith("Basic "):
-                            headers["X-Reality-Check-Token"] = f"Bearer {auth_token}"
+                        if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
+                            headers["Authorization"] = auth_token
                         else:
                             headers["X-Reality-Check-Token"] = auth_token
 
@@ -2046,12 +2044,8 @@ class RouterCore:
                                 "Connection": "close",
                             }
                             if auth_token:
-                                if not auth_token.startswith(
-                                    "Bearer "
-                                ) and not auth_token.startswith("Basic "):
-                                    headers["X-Reality-Check-Token"] = (
-                                        f"Bearer {auth_token}"
-                                    )
+                                if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
+                                    headers["Authorization"] = auth_token
                                 else:
                                     headers["X-Reality-Check-Token"] = auth_token
 
@@ -2394,16 +2388,10 @@ class RouterCore:
                                         "Connection": "close",
                                     }
                                     if auth_token:
-                                        if not auth_token.startswith(
-                                            "Bearer "
-                                        ) and not auth_token.startswith("Basic "):
-                                            headers["X-Reality-Check-Token"] = (
-                                                f"Bearer {auth_token}"
-                                            )
+                                        if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
+                                            headers["Authorization"] = auth_token
                                         else:
-                                            headers["X-Reality-Check-Token"] = (
-                                                auth_token
-                                            )
+                                            headers["X-Reality-Check-Token"] = auth_token
 
                                     await client.post(
                                         f"{url}/feedback",
@@ -2444,12 +2432,8 @@ class RouterCore:
                                     "Connection": "close",
                                 }
                                 if auth_token:
-                                    if not auth_token.startswith(
-                                        "Bearer "
-                                    ) and not auth_token.startswith("Basic "):
-                                        headers["X-Reality-Check-Token"] = (
-                                            f"Bearer {auth_token}"
-                                        )
+                                    if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
+                                        headers["Authorization"] = auth_token
                                     else:
                                         headers["X-Reality-Check-Token"] = auth_token
 
@@ -2776,16 +2760,10 @@ class RouterCore:
                                         "Connection": "close",
                                     }
                                     if auth_token:
-                                        if not auth_token.startswith(
-                                            "Bearer "
-                                        ) and not auth_token.startswith("Basic "):
-                                            headers["X-Reality-Check-Token"] = (
-                                                f"Bearer {auth_token}"
-                                            )
+                                        if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
+                                            headers["Authorization"] = auth_token
                                         else:
-                                            headers["X-Reality-Check-Token"] = (
-                                                auth_token
-                                            )
+                                            headers["X-Reality-Check-Token"] = auth_token
 
                                     fb_resp = await client.post(
                                         f"{url}/feedback",
@@ -2860,12 +2838,8 @@ class RouterCore:
                                     "Connection": "close",
                                 }
                                 if auth_token:
-                                    if not auth_token.startswith(
-                                        "Bearer "
-                                    ) and not auth_token.startswith("Basic "):
-                                        headers["X-Reality-Check-Token"] = (
-                                            f"Bearer {auth_token}"
-                                        )
+                                    if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
+                                        headers["Authorization"] = auth_token
                                     else:
                                         headers["X-Reality-Check-Token"] = auth_token
 
