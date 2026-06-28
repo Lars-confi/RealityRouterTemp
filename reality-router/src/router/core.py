@@ -1434,13 +1434,8 @@ class RouterCore:
                             )
                             else f"Bearer {auth_token}"
                         )
-                        if (
-                            settings.reality_check_provider
-                            and settings.reality_check_provider.lower() == "github"
-                        ):
-                            headers["Authorization"] = full_token
-                        else:
-                            headers["X-Reality-Check-Token"] = full_token
+                        # Always use bypass header as standard Authorization is stripped by Azure
+                        headers["X-Reality-Check-Token"] = full_token
                         logger.info(
                             f"Attaching headers: {list(headers.keys())} for provider: {settings.reality_check_provider} (Token: {full_token[:20]}...)"
                         )
@@ -2072,14 +2067,8 @@ class RouterCore:
                                     )
                                     else f"Bearer {auth_token}"
                                 )
-                                if (
-                                    settings.reality_check_provider
-                                    and settings.reality_check_provider.lower()
-                                    == "github"
-                                ):
-                                    headers["Authorization"] = full_token
-                                else:
-                                    headers["X-Reality-Check-Token"] = full_token
+                                # Always use bypass header as standard Authorization is stripped by Azure
+                                headers["X-Reality-Check-Token"] = full_token
                                 logger.info(
                                     f"Attaching headers: {list(headers.keys())} for provider: {settings.reality_check_provider} (Token: {full_token[:20]}...)"
                                 )
@@ -2436,16 +2425,8 @@ class RouterCore:
                                             )
                                             else f"Bearer {auth_token}"
                                         )
-                                        if (
-                                            settings.reality_check_provider
-                                            and settings.reality_check_provider.lower()
-                                            == "github"
-                                        ):
-                                            headers["Authorization"] = full_token
-                                        else:
-                                            headers["X-Reality-Check-Token"] = (
-                                                full_token
-                                            )
+                                        # Always use bypass header as standard Authorization is stripped by Azure
+                                        headers["X-Reality-Check-Token"] = full_token
                                         logger.info(
                                             f"Attaching headers: {list(headers.keys())} for provider: {settings.reality_check_provider} (Token: {full_token[:20]}...)"
                                         )
@@ -2502,14 +2483,8 @@ class RouterCore:
                                         )
                                         else f"Bearer {auth_token}"
                                     )
-                                    if (
-                                        settings.reality_check_provider
-                                        and settings.reality_check_provider.lower()
-                                        == "github"
-                                    ):
-                                        headers["Authorization"] = full_token
-                                    else:
-                                        headers["X-Reality-Check-Token"] = full_token
+                                    # Always use bypass header as standard Authorization is stripped by Azure
+                                    headers["X-Reality-Check-Token"] = full_token
                                     logger.info(
                                         f"Attaching headers: {list(headers.keys())} for provider: {settings.reality_check_provider} (Token: {full_token[:20]}...)"
                                     )
@@ -2850,16 +2825,8 @@ class RouterCore:
                                             )
                                             else f"Bearer {auth_token}"
                                         )
-                                        if (
-                                            settings.reality_check_provider
-                                            and settings.reality_check_provider.lower()
-                                            == "github"
-                                        ):
-                                            headers["Authorization"] = full_token
-                                        else:
-                                            headers["X-Reality-Check-Token"] = (
-                                                full_token
-                                            )
+                                        # Always use bypass header as standard Authorization is stripped by Azure
+                                        headers["X-Reality-Check-Token"] = full_token
                                         logger.info(
                                             f"Attaching headers: {list(headers.keys())} for provider: {settings.reality_check_provider} (Token: {full_token[:20]}...)"
                                         )
@@ -2954,14 +2921,8 @@ class RouterCore:
                                         )
                                         else f"Bearer {auth_token}"
                                     )
-                                    if (
-                                        settings.reality_check_provider
-                                        and settings.reality_check_provider.lower()
-                                        == "github"
-                                    ):
-                                        headers["Authorization"] = full_token
-                                    else:
-                                        headers["X-Reality-Check-Token"] = full_token
+                                    # Always use bypass header as standard Authorization is stripped by Azure
+                                    headers["X-Reality-Check-Token"] = full_token
                                     logger.info(
                                         f"Attaching headers: {list(headers.keys())} for provider: {settings.reality_check_provider} (Token: {full_token[:20]}...)"
                                     )
