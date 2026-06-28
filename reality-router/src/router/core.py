@@ -1425,10 +1425,29 @@ class RouterCore:
                         "Connection": "close",
                     }
                     if auth_token:
-                        if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
-                            headers["Authorization"] = auth_token
+                        # Ensure token has Bearer/Basic prefix as required by backend SSO
+                        full_token = (
+                            auth_token
+                            if (
+                                auth_token.startswith("Bearer ")
+                                or auth_token.startswith("Basic ")
+                            )
+                            else f"Bearer {auth_token}"
+                        )
+                        if (
+                            settings.reality_check_provider
+                            and settings.reality_check_provider.lower() == "github"
+                        ):
+                            headers["Authorization"] = full_token
                         else:
-                            headers["X-Reality-Check-Token"] = auth_token
+                            headers["X-Reality-Check-Token"] = full_token
+                        logger.debug(
+                            f"Attached auth header for {settings.reality_check_provider or 'unknown'}"
+                        )
+                    else:
+                        logger.warning(
+                            "Reality Router token is missing in settings! Authentication with Reality Check API will fail."
+                        )
 
                     # Match curl behavior: fresh connection per request, no HTTP/1.1
                     async with httpx.AsyncClient(
@@ -2044,10 +2063,30 @@ class RouterCore:
                                 "Connection": "close",
                             }
                             if auth_token:
-                                if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
-                                    headers["Authorization"] = auth_token
+                                # Ensure token has Bearer/Basic prefix as required by backend SSO
+                                full_token = (
+                                    auth_token
+                                    if (
+                                        auth_token.startswith("Bearer ")
+                                        or auth_token.startswith("Basic ")
+                                    )
+                                    else f"Bearer {auth_token}"
+                                )
+                                if (
+                                    settings.reality_check_provider
+                                    and settings.reality_check_provider.lower()
+                                    == "github"
+                                ):
+                                    headers["Authorization"] = full_token
                                 else:
-                                    headers["X-Reality-Check-Token"] = auth_token
+                                    headers["X-Reality-Check-Token"] = full_token
+                                logger.debug(
+                                    f"Attached auth header for {settings.reality_check_provider or 'unknown'}"
+                                )
+                            else:
+                                logger.warning(
+                                    "Reality Router token is missing in settings! Authentication with Reality Check API will fail."
+                                )
 
                             async with httpx.AsyncClient(
                                 http2=False, trust_env=False
@@ -2388,10 +2427,32 @@ class RouterCore:
                                         "Connection": "close",
                                     }
                                     if auth_token:
-                                        if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
-                                            headers["Authorization"] = auth_token
+                                        # Ensure token has Bearer/Basic prefix as required by backend SSO
+                                        full_token = (
+                                            auth_token
+                                            if (
+                                                auth_token.startswith("Bearer ")
+                                                or auth_token.startswith("Basic ")
+                                            )
+                                            else f"Bearer {auth_token}"
+                                        )
+                                        if (
+                                            settings.reality_check_provider
+                                            and settings.reality_check_provider.lower()
+                                            == "github"
+                                        ):
+                                            headers["Authorization"] = full_token
                                         else:
-                                            headers["X-Reality-Check-Token"] = auth_token
+                                            headers["X-Reality-Check-Token"] = (
+                                                full_token
+                                            )
+                                        logger.debug(
+                                            f"Attached auth header for {settings.reality_check_provider or 'unknown'}"
+                                        )
+                                    else:
+                                        logger.warning(
+                                            "Reality Router token is missing in settings! Authentication with Reality Check API will fail."
+                                        )
 
                                     await client.post(
                                         f"{url}/feedback",
@@ -2432,10 +2493,30 @@ class RouterCore:
                                     "Connection": "close",
                                 }
                                 if auth_token:
-                                    if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
-                                        headers["Authorization"] = auth_token
+                                    # Ensure token has Bearer/Basic prefix as required by backend SSO
+                                    full_token = (
+                                        auth_token
+                                        if (
+                                            auth_token.startswith("Bearer ")
+                                            or auth_token.startswith("Basic ")
+                                        )
+                                        else f"Bearer {auth_token}"
+                                    )
+                                    if (
+                                        settings.reality_check_provider
+                                        and settings.reality_check_provider.lower()
+                                        == "github"
+                                    ):
+                                        headers["Authorization"] = full_token
                                     else:
-                                        headers["X-Reality-Check-Token"] = auth_token
+                                        headers["X-Reality-Check-Token"] = full_token
+                                    logger.debug(
+                                        f"Attached auth header for {settings.reality_check_provider or 'unknown'}"
+                                    )
+                                else:
+                                    logger.warning(
+                                        "Reality Router token is missing in settings! Authentication with Reality Check API will fail."
+                                    )
 
                                 await client.post(
                                     f"{url}/feedback",
@@ -2760,10 +2841,32 @@ class RouterCore:
                                         "Connection": "close",
                                     }
                                     if auth_token:
-                                        if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
-                                            headers["Authorization"] = auth_token
+                                        # Ensure token has Bearer/Basic prefix as required by backend SSO
+                                        full_token = (
+                                            auth_token
+                                            if (
+                                                auth_token.startswith("Bearer ")
+                                                or auth_token.startswith("Basic ")
+                                            )
+                                            else f"Bearer {auth_token}"
+                                        )
+                                        if (
+                                            settings.reality_check_provider
+                                            and settings.reality_check_provider.lower()
+                                            == "github"
+                                        ):
+                                            headers["Authorization"] = full_token
                                         else:
-                                            headers["X-Reality-Check-Token"] = auth_token
+                                            headers["X-Reality-Check-Token"] = (
+                                                full_token
+                                            )
+                                        logger.debug(
+                                            f"Attached auth header for {settings.reality_check_provider or 'unknown'}"
+                                        )
+                                    else:
+                                        logger.warning(
+                                            "Reality Router token is missing in settings! Authentication with Reality Check API will fail."
+                                        )
 
                                     fb_resp = await client.post(
                                         f"{url}/feedback",
@@ -2829,19 +2932,43 @@ class RouterCore:
 
                             # 1. Calculate p_actual via /decide endpoint (Expert Mode)
                             # Match sequential curl behavior with fresh connection
-                            async with httpx.AsyncClient(http2=False, trust_env=False) as client:
+                            async with httpx.AsyncClient(
+                                http2=False, trust_env=False
+                            ) as client:
                                 # Post-hoc assessment for tiered rerouting always uses REALITY_REROUTING_URL
                                 auth_token = settings.reality_check_token
                                 headers = {
                                     "Content-Type": "application/json",
+                                    "Accept": "application/json",
+                                    "Expect": "",
                                     "User-Agent": "curl/7.68.0",
                                     "Connection": "close",
                                 }
                                 if auth_token:
-                                    if settings.reality_check_provider and settings.reality_check_provider.lower() == "github":
-                                        headers["Authorization"] = auth_token
+                                    # Ensure token has Bearer/Basic prefix as required by backend SSO
+                                    full_token = (
+                                        auth_token
+                                        if (
+                                            auth_token.startswith("Bearer ")
+                                            or auth_token.startswith("Basic ")
+                                        )
+                                        else f"Bearer {auth_token}"
+                                    )
+                                    if (
+                                        settings.reality_check_provider
+                                        and settings.reality_check_provider.lower()
+                                        == "github"
+                                    ):
+                                        headers["Authorization"] = full_token
                                     else:
-                                        headers["X-Reality-Check-Token"] = auth_token
+                                        headers["X-Reality-Check-Token"] = full_token
+                                    logger.debug(
+                                        f"Attached auth header for {settings.reality_check_provider or 'unknown'}"
+                                    )
+                                else:
+                                    logger.warning(
+                                        "Reality Router token is missing in settings! Authentication with Reality Check API will fail."
+                                    )
 
                                 rc_resp = await client.post(
                                     f"{REALITY_REROUTING_URL}/decide",
